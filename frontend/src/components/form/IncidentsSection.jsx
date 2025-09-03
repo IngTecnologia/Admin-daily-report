@@ -1,0 +1,123 @@
+import React from 'react'
+import { INCIDENT_TYPES } from '../../services/constants'
+import DynamicIncidentFields from './DynamicIncidentFields'
+
+const IncidentsSection = ({ formData, errors, updateField, updateDynamicField }) => {
+  const handleQuantityChange = (value) => {
+    const quantity = parseInt(value, 10) || 0
+    updateField('cantidad_incidencias', quantity)
+  }
+
+  return (
+    <div className="form-section">
+      <h2 className="section-title">
+        =¨ Personal con Incidencias
+      </h2>
+      
+      <div className="form-grid">
+        <div className="form-field">
+          <label htmlFor="cantidad_incidencias" className="form-label">
+            Cantidad de personal con incidencias *
+            <small style={{ display: 'block', fontWeight: 'normal', color: 'var(--neutral-gray)' }}>
+              Ingrese 0 si no hay incidencias
+            </small>
+          </label>
+          <input
+            type="number"
+            id="cantidad_incidencias"
+            min="0"
+            max="50"
+            value={formData.cantidad_incidencias}
+            onChange={(e) => handleQuantityChange(e.target.value)}
+            className={`form-input ${errors.cantidad_incidencias ? 'error' : ''}`}
+            placeholder="Ej: 2"
+            required
+          />
+          {errors.cantidad_incidencias && (
+            <span className="error-message">{errors.cantidad_incidencias}</span>
+          )}
+          
+          {formData.cantidad_incidencias > 0 && (
+            <div style={{
+              marginTop: '0.5rem',
+              padding: '0.5rem',
+              backgroundColor: '#fffbeb',
+              border: '1px solid #fed7aa',
+              borderRadius: '4px',
+              fontSize: '0.875rem',
+              color: 'var(--warning-yellow)'
+            }}>
+                Se generarán {formData.cantidad_incidencias} formularios de incidencia
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Campos dinámicos de incidencias */}
+      {formData.cantidad_incidencias > 0 && (
+        <div className="dynamic-section">
+          <h3 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: 'var(--primary-blue)',
+            marginBottom: '1rem'
+          }}>
+            =Ý Detalles de Incidencias ({formData.cantidad_incidencias})
+          </h3>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {Array.from({ length: formData.cantidad_incidencias }, (_, index) => (
+              <DynamicIncidentFields
+                key={index}
+                index={index}
+                incident={formData.incidencias[index] || {}}
+                errors={errors}
+                updateDynamicField={updateDynamicField}
+              />
+            ))}
+          </div>
+
+          {/* Resumen de incidencias */}
+          <div style={{
+            marginTop: '1rem',
+            padding: '1rem',
+            backgroundColor: '#f0f9ff',
+            border: '1px solid #bae6fd',
+            borderRadius: '6px'
+          }}>
+            <h4 style={{ 
+              fontSize: '1rem', 
+              fontWeight: '600', 
+              color: 'var(--primary-blue)',
+              marginBottom: '0.5rem'
+            }}>
+              =Ê Resumen de Incidencias
+            </h4>
+            
+            <div style={{ fontSize: '0.875rem', color: 'var(--neutral-gray)' }}>
+              {formData.incidencias.filter(inc => inc && inc.tipo_incidencia).length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  {formData.incidencias
+                    .filter(inc => inc && inc.tipo_incidencia)
+                    .map((inc, idx) => (
+                      <div key={idx}>
+                        <strong>{idx + 1}.</strong> {inc.tipo_incidencia} - {inc.nombre_empleado || 'Sin nombre'}
+                        {inc.fecha_fin && ` (hasta ${inc.fecha_fin})`}
+                      </div>
+                    ))
+                  }
+                </div>
+              ) : (
+                <div style={{ color: 'var(--neutral-gray)', fontStyle: 'italic' }}>
+                  Complete los campos para ver el resumen
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default IncidentsSection
