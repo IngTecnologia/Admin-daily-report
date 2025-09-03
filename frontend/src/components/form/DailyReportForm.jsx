@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from '../../hooks/useForm'
+import { API_BASE_URL } from '../../services/constants'
 import AdministratorSection from './AdministratorSection'
 import PersonnelInfoSection from './PersonnelInfoSection'
 import IncidentsSection from './IncidentsSection'
@@ -36,7 +37,7 @@ const DailyReportForm = () => {
     setSubmitError(null)
 
     try {
-      // Preparar los datos para el backend según la especificación de la API
+      // Preparar los datos para el backend segï¿½n la especificaciï¿½n de la API
       const submitData = {
         administrador: formData.administrador,
         cliente_operacion: formData.cliente_operacion,
@@ -57,21 +58,26 @@ const DailyReportForm = () => {
 
       console.log('Enviando datos:', submitData)
 
-      // TODO: Implementar llamada a API cuando esté lista
-      // const response = await fetch(`${API_BASE_URL}/reportes`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(submitData)
-      // })
+      // Llamada a API real
+      const response = await fetch(`${API_BASE_URL}/reportes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData)
+      })
 
-      // Simular envío exitoso por ahora
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`)
+      }
+
+      const responseData = await response.json()
+      console.log('Respuesta del servidor:', responseData)
       
       setSubmitSuccess(true)
       
-      // Redirigir a página de éxito después de un momento
+      // Redirigir a pï¿½gina de ï¿½xito despuï¿½s de un momento
       setTimeout(() => {
         navigate('/success', { 
           state: { 
@@ -95,10 +101,10 @@ const DailyReportForm = () => {
         <div style={{ padding: '3rem', textAlign: 'center' }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem' }}></div>
           <h2 style={{ color: 'var(--success-green)', marginBottom: '1rem' }}>
-            ¡Reporte Enviado Exitosamente!
+            ï¿½Reporte Enviado Exitosamente!
           </h2>
           <p style={{ color: 'var(--neutral-gray)' }}>
-            Redirigiendo a la página de confirmación...
+            Redirigiendo a la pï¿½gina de confirmaciï¿½n...
           </p>
           <Loading />
         </div>
@@ -108,21 +114,21 @@ const DailyReportForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="form-card">
-      {/* Sección 1: Información del Administrador */}
+      {/* Secciï¿½n 1: Informaciï¿½n del Administrador */}
       <AdministratorSection
         formData={formData}
         errors={errors}
         updateField={updateField}
       />
 
-      {/* Sección 2: Información de Personal */}
+      {/* Secciï¿½n 2: Informaciï¿½n de Personal */}
       <PersonnelInfoSection
         formData={formData}
         errors={errors}
         updateField={updateField}
       />
 
-      {/* Sección 3: Personal con Incidencias */}
+      {/* Secciï¿½n 3: Personal con Incidencias */}
       <IncidentsSection
         formData={formData}
         errors={errors}
@@ -130,7 +136,7 @@ const DailyReportForm = () => {
         updateDynamicField={updateDynamicField}
       />
 
-      {/* Sección 4: Ingresos o Retiros */}
+      {/* Secciï¿½n 4: Ingresos o Retiros */}
       <HiringRetirementsSection
         formData={formData}
         errors={errors}
@@ -138,7 +144,7 @@ const DailyReportForm = () => {
         updateDynamicField={updateDynamicField}
       />
 
-      {/* Área de errores y envío */}
+      {/* ï¿½rea de errores y envï¿½o */}
       <div className="form-section">
         {submitError && (
           <Alert type="error" message={submitError} />
@@ -180,7 +186,7 @@ const DailyReportForm = () => {
               </>
             ) : (
               <>
-                =ä Enviar Reporte Diario
+                =ï¿½ Enviar Reporte Diario
               </>
             )}
           </button>
@@ -194,7 +200,7 @@ const DailyReportForm = () => {
           fontSize: '0.875rem',
           color: 'var(--neutral-gray)'
         }}>
-          <strong>=Ë Resumen:</strong> {' '}
+          <strong>=ï¿½ Resumen:</strong> {' '}
           {formData.administrador && `${formData.administrador} " `}
           {formData.cliente_operacion && `${formData.cliente_operacion} " `}
           {formData.horas_diarias && `${formData.horas_diarias}h diarias " `}

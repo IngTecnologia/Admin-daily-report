@@ -7,7 +7,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "4501:80"  # Puerto específico según README
+      - "4501:80"  # Puerto especifico segun README
     depends_on:
       - backend
     restart: unless-stopped
@@ -27,7 +27,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8001:8001"  # Puerto específico según README
+      - "8001:8001"  # Puerto especifico segun README
     restart: unless-stopped
     networks:
       - admin-daily-report

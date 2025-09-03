@@ -1,4 +1,4 @@
-// Constantes del formulario según especificaciones del README
+// Constantes del formulario segï¿½n especificaciones del README
 
 export const ADMINISTRATORS = [
   'Adriana Robayo',
@@ -10,7 +10,7 @@ export const ADMINISTRATORS = [
   'Kenia Sanchez',
   'Liliana Romero',
   'Marcela Cusba Gomez',
-  'Mirledys García San Juan',
+  'Mirledys Garcï¿½a San Juan',
   'Yolima Arenas Zarate'
 ]
 
@@ -23,21 +23,21 @@ export const CLIENT_OPERATIONS = [
   'SIERRACOL',
   'VPI ADMON',
   'VPI CUSIANA',
-  'VPI FLOREÑA',
+  'VPI FLOREï¿½A',
   'VPI CUPIAGUA'
 ]
 
 export const INCIDENT_TYPES = [
-  'Incapacidad Médica Por Enfermedad Común',
-  'Incapacidad Médica por Enfermedad Laboral',
-  'Permiso por Cita Médica',
+  'Incapacidad Mï¿½dica Por Enfermedad Comï¿½n',
+  'Incapacidad Mï¿½dica por Enfermedad Laboral',
+  'Permiso por Cita Mï¿½dica',
   'Licencia de Maternidad',
   'Licencia de paternidad',
   'Permiso por Luto',
-  'Permiso por Calamidad Doméstica',
+  'Permiso por Calamidad Domï¿½stica',
   'Vacaciones',
   'Compensatorios',
-  'Día de la Familia',
+  'Dï¿½a de la Familia',
   'Suspensiones de contrato',
   'Permisos no remunerados'
 ]
@@ -47,7 +47,7 @@ export const EMPLOYEE_STATUSES = [
   'Retiro'
 ]
 
-// Configuración de validaciones
+// Configuraciï¿½n de validaciones
 export const VALIDATION_RULES = {
   administrador: { required: true, type: 'select' },
   cliente_operacion: { required: true, type: 'select' },
@@ -100,8 +100,10 @@ export const VALIDATION_RULES = {
   }
 }
 
-// Configuración de API
-export const API_BASE_URL = 'http://localhost:8001/api/v1'
+// Configuracion de API
+export const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'http://localhost:8001/api/v1'  // En produccion Docker
+  : 'http://localhost:8001/api/v1'  // En desarrollo
 
 export const API_ENDPOINTS = {
   REPORTES: '/reportes',
