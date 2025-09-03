@@ -1,5 +1,5 @@
 """
-Configuración del sistema Admin Daily Report
+Configuracion del sistema Admin Daily Report
 """
 import os
 from pathlib import Path
@@ -8,20 +8,20 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """Configuración principal del sistema"""
+    """Configuracion principal del sistema"""
     
-    # Información de la aplicación
+    # Informacion de la aplicacion
     app_name: str = "Admin Daily Report API"
     app_version: str = "1.0.0"
     app_description: str = "API para sistema de reportes diarios de administradores"
     
-    # Configuración del servidor
+    # Configuracion del servidor
     host: str = "0.0.0.0"
     port: int = 8001
     debug: bool = True
     reload: bool = True
     
-    # Configuración de CORS
+    # Configuracion de CORS
     cors_origins: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",  # Vite dev server
@@ -36,11 +36,11 @@ class Settings(BaseSettings):
     data_dir: Path = base_dir / "data"
     logs_dir: Path = base_dir / "logs"
     
-    # Configuración de Excel
+    # Configuracion de Excel
     excel_file_name: str = "reportes_diarios.xlsx"
     excel_file_path: Path = data_dir / excel_file_name
     
-    # Configuración de hojas Excel según README
+    # Configuracion de hojas Excel segun README
     excel_sheets: dict = {
         "reportes": "Reportes",
         "incidencias": "Incidencias", 
@@ -48,7 +48,7 @@ class Settings(BaseSettings):
         "configuracion": "Configuracion"
     }
     
-    # Límites del sistema
+    # Limites del sistema
     max_reportes_per_admin_per_day: int = 1
     max_incidencias_per_report: int = 50
     max_movimientos_per_report: int = 50
@@ -93,7 +93,7 @@ class Settings(BaseSettings):
         self.logs_dir.mkdir(parents=True, exist_ok=True)
 
 
-# Configuración de constantes según el README
+# Configuraciï¿½n de constantes segï¿½n el README
 ADMINISTRATORS = [
     "Adriana Robayo",
     "Angela Ramirez", 
@@ -104,7 +104,7 @@ ADMINISTRATORS = [
     "Kenia Sanchez",
     "Liliana Romero",
     "Marcela Cusba Gomez",
-    "Mirledys García San Juan",
+    "Mirledys Garcia San Juan",
     "Yolima Arenas Zarate"
 ]
 
@@ -117,28 +117,28 @@ CLIENT_OPERATIONS = [
     "SIERRACOL",
     "VPI ADMON",
     "VPI CUSIANA",
-    "VPI FLOREÑA",
+    "VPI FLORENA",
     "VPI CUPIAGUA"
 ]
 
 INCIDENT_TYPES = [
-    "Incapacidad Médica Por Enfermedad Común",
-    "Incapacidad Médica por Enfermedad Laboral",
-    "Permiso por Cita Médica",
+    "Incapacidad Medica Por Enfermedad Comun",
+    "Incapacidad Medica por Enfermedad Laboral",
+    "Permiso por Cita Medica",
     "Licencia de Maternidad",
     "Licencia de paternidad",
     "Permiso por Luto",
-    "Permiso por Calamidad Doméstica",
+    "Permiso por Calamidad Domestica",
     "Vacaciones",
     "Compensatorios",
-    "Día de la Familia",
+    "Dia de la Familia",
     "Suspensiones de contrato",
     "Permisos no remunerados"
 ]
 
 EMPLOYEE_STATUSES = ["Ingreso", "Retiro"]
 
-# Estructura de la base de datos Excel según README
+# Estructura de la base de datos Excel segun README
 EXCEL_SCHEMA = {
     "Reportes": {
         "columns": [
@@ -203,5 +203,5 @@ EXCEL_SCHEMA = {
     }
 }
 
-# Instancia global de configuración
+# Instancia global de configuracion
 settings = Settings()
