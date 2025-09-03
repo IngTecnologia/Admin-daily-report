@@ -21,7 +21,7 @@ const Home = () => {
             opacity: '0.9',
             textShadow: '0 1px 2px rgba(0,0,0,0.3)'
           }}>
-            Complete la información diaria de su operación
+            Complete la informacion diaria de su operacion
           </p>
         </div>
         

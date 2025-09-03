@@ -46,13 +46,13 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
               fontSize: '0.875rem',
               color: 'var(--primary-blue)'
             }}>
-              =ï¿½ Se generarï¿½n {formData.cantidad_ingresos_retiros} formularios de movimiento
+              =Ý Se generarán {formData.cantidad_ingresos_retiros} formularios de movimiento
             </div>
           )}
         </div>
       </div>
 
-      {/* Campos dinï¿½micos de ingresos/retiros */}
+      {/* Campos dinámicos de ingresos/retiros */}
       {formData.cantidad_ingresos_retiros > 0 && (
         <div className="dynamic-section">
           <h3 style={{ 
@@ -61,7 +61,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
             color: 'var(--primary-blue)',
             marginBottom: '1rem'
           }}>
-            ðŸ“‹ Movimientos de Personal ({formData.cantidad_ingresos_retiros})
+            =e Movimientos de Personal ({formData.cantidad_ingresos_retiros})
           </h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -90,13 +90,13 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
               color: 'var(--success-green)',
               marginBottom: '0.5rem'
             }}>
-              =ï¿½ Resumen de Movimientos
+              =Ê Resumen de Movimientos
             </h4>
             
             <div style={{ fontSize: '0.875rem' }}>
               {formData.ingresos_retiros.filter(mov => mov && mov.nombre_empleado).length > 0 ? (
                 <div>
-                  {/* Estadï¿½sticas */}
+                  {/* Estadísticas */}
                   <div style={{ 
                     display: 'flex', 
                     gap: '2rem', 
@@ -110,7 +110,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
                     </div>
                     <div>
                       <strong style={{ color: 'var(--error-red)' }}>
-                        âŒ Retiros: {formData.ingresos_retiros.filter(mov => mov && mov.estado === 'Retiro').length}
+                        L Retiros: {formData.ingresos_retiros.filter(mov => mov && mov.estado === 'Retiro').length}
                       </strong>
                     </div>
                   </div>

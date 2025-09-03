@@ -15,17 +15,17 @@ const Admin = () => {
               ='
             </div>
 
-            {/* Título */}
+            {/* Tï¿½tulo */}
             <h1 style={{ 
               fontSize: '2.5rem', 
               fontWeight: '700', 
               color: 'var(--primary-blue)',
               marginBottom: '1rem'
             }}>
-              Panel de Administración
+              Panel de AdministraciÃ³n
             </h1>
 
-            {/* Subtítulo */}
+            {/* Subtï¿½tulo */}
             <p style={{ 
               fontSize: '1.25rem', 
               color: 'var(--neutral-gray)',
@@ -51,7 +51,7 @@ const Admin = () => {
                 color: 'var(--warning-yellow)',
                 marginBottom: '1rem'
               }}>
-                =§ En Desarrollo
+                =ï¿½ En Desarrollo
               </h3>
 
               <div style={{ 
@@ -60,8 +60,8 @@ const Admin = () => {
                 lineHeight: '1.6'
               }}>
                 <p style={{ marginBottom: '1rem' }}>
-                  El panel de administración está actualmente en desarrollo. 
-                  Las siguientes funcionalidades estarán disponibles próximamente:
+                  El panel de administraciï¿½n estï¿½ actualmente en desarrollo. 
+                  Las siguientes funcionalidades estarï¿½n disponibles prï¿½ximamente:
                 </p>
 
                 <ul style={{ 
@@ -69,22 +69,23 @@ const Admin = () => {
                   marginBottom: '1rem'
                 }}>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =Ê Dashboard con métricas y gráficos
+                    =ï¿½ Dashboard con mï¿½tricas y grï¿½ficos
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =Ë Lista filtrable de todos los reportes
+                    =ï¿½ Lista filtrable de todos los reportes
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    = Búsqueda avanzada por administrador y operación
+                    =
+ Bï¿½squeda avanzada por administrador y operaciï¿½n
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =È Análisis de tendencias y estadísticas
+                    =ï¿½ Anï¿½lisis de tendencias y estadï¿½sticas
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =å Exportación de datos en Excel/CSV
+                    =ï¿½ Exportaciï¿½n de datos en Excel/CSV
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =ñ Vista detallada de cada reporte
+                    =ï¿½ Vista detallada de cada reporte
                   </li>
                 </ul>
 
@@ -97,7 +98,7 @@ const Admin = () => {
               </div>
             </div>
 
-            {/* Estadísticas simuladas */}
+            {/* Estadï¿½sticas simuladas */}
             <div style={{
               backgroundColor: '#f0f9ff',
               border: '1px solid #bae6fd',
@@ -113,7 +114,7 @@ const Admin = () => {
                 color: 'var(--primary-blue)',
                 marginBottom: '1rem'
               }}>
-                =Ê Vista Previa del Dashboard
+                =ï¿½ Vista Previa del Dashboard
               </h3>
 
               <div style={{
@@ -153,7 +154,7 @@ const Admin = () => {
                 className="btn btn-primary"
                 style={{ textDecoration: 'none' }}
               >
-                =Ý Crear Nuevo Reporte
+                =ï¿½ Crear Nuevo Reporte
               </Link>
 
               <button
@@ -163,13 +164,13 @@ const Admin = () => {
                   opacity: 0.6,
                   cursor: 'not-allowed'
                 }}
-                title="Próximamente disponible"
+                title="Prï¿½ximamente disponible"
               >
-                =Ê Ver Reportes (Próximamente)
+                =ï¿½ Ver Reportes (Prï¿½ximamente)
               </button>
             </div>
 
-            {/* Información adicional */}
+            {/* Informaciï¿½n adicional */}
             <div style={{
               marginTop: '2rem',
               padding: '1rem',
@@ -181,8 +182,8 @@ const Admin = () => {
               maxWidth: '500px',
               margin: '2rem auto 0 auto'
             }}>
-               <strong>Estado del Sistema:</strong> El formulario de reportes está completamente funcional. 
-              El área admin se completará en la siguiente fase del desarrollo.
+               <strong>Estado del Sistema:</strong> El formulario de reportes estï¿½ completamente funcional. 
+              El ï¿½rea admin se completarï¿½ en la siguiente fase del desarrollo.
             </div>
           </div>
         </div>

@@ -11,12 +11,12 @@ const Alert = ({ type = 'info', message, onClose }) => {
       case 'error':
         return {
           className: 'alert-error',
-          icon: '❌'
+          icon: 'L'
         }
       case 'warning':
         return {
           className: 'alert-warning',
-          icon: '�'
+          icon: '�'
         }
       default:
         return {
@@ -46,7 +46,7 @@ const Alert = ({ type = 'info', message, onClose }) => {
           onMouseEnter={(e) => e.target.style.opacity = '1'}
           onMouseLeave={(e) => e.target.style.opacity = '0.7'}
         >
-          ❌
+          
         </button>
       )}
     </div>
