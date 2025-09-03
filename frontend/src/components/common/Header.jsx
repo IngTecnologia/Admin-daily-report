@@ -18,7 +18,7 @@ const Header = () => {
               to="/"
               style={{
                 textDecoration: 'none',
-                color: 'var(--primary-blue)',
+                color: 'var(--primary-red)',
                 fontWeight: '500'
               }}
             >

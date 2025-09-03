@@ -44,7 +44,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
               border: '1px solid #bae6fd',
               borderRadius: '4px',
               fontSize: '0.875rem',
-              color: 'var(--primary-blue)'
+              color: 'var(--primary-red)'
             }}>
               📝 Se generarán {formData.cantidad_ingresos_retiros} formularios de movimiento
             </div>
@@ -58,7 +58,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
           <h3 style={{ 
             fontSize: '1.25rem', 
             fontWeight: '600', 
-            color: 'var(--primary-blue)',
+            color: 'var(--primary-red)',
             marginBottom: '1rem'
           }}>
             📋 Movimientos de Personal ({formData.cantidad_ingresos_retiros})

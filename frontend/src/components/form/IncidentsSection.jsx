@@ -59,7 +59,7 @@ const IncidentsSection = ({ formData, errors, updateField, updateDynamicField })
           <h3 style={{ 
             fontSize: '1.25rem', 
             fontWeight: '600', 
-            color: 'var(--primary-blue)',
+            color: 'var(--primary-red)',
             marginBottom: '1rem'
           }}>
             📋 Detalles de Incidencias ({formData.cantidad_incidencias})
@@ -88,7 +88,7 @@ const IncidentsSection = ({ formData, errors, updateField, updateDynamicField })
             <h4 style={{ 
               fontSize: '1rem', 
               fontWeight: '600', 
-              color: 'var(--primary-blue)',
+              color: 'var(--primary-red)',
               marginBottom: '0.5rem'
             }}>
               📋 Resumen de Incidencias

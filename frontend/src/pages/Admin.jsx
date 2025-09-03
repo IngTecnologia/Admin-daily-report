@@ -19,7 +19,7 @@ const Admin = () => {
             <h1 style={{ 
               fontSize: '2.5rem', 
               fontWeight: '700', 
-              color: 'var(--primary-blue)',
+              color: 'var(--primary-red)',
               marginBottom: '1rem'
             }}>
               Panel de Administración
@@ -110,7 +110,7 @@ const Admin = () => {
               <h3 style={{ 
                 fontSize: '1.25rem', 
                 fontWeight: '600',
-                color: 'var(--primary-blue)',
+                color: 'var(--primary-red)',
                 marginBottom: '1rem'
               }}>
                 📊 Vista Previa del Dashboard
@@ -127,7 +127,7 @@ const Admin = () => {
                   <div style={{ color: 'var(--neutral-gray)' }}>Reportes Hoy</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '2rem', color: 'var(--primary-blue)' }}>0</div>
+                  <div style={{ fontSize: '2rem', color: 'var(--primary-red)' }}>0</div>
                   <div style={{ color: 'var(--neutral-gray)' }}>Total Reportes</div>
                 </div>
                 <div style={{ textAlign: 'center' }}>

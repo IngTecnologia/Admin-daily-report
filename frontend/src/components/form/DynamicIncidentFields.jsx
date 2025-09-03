@@ -22,7 +22,7 @@ const DynamicIncidentFields = ({ index, incident, errors, updateDynamicField }) 
         <h4 style={{ 
           fontSize: '1.1rem', 
           fontWeight: '600', 
-          color: 'var(--primary-blue)',
+          color: 'var(--primary-red)',
           margin: 0
         }}>
           Incidencia #{index + 1}
@@ -145,7 +145,7 @@ const DynamicIncidentFields = ({ index, incident, errors, updateDynamicField }) 
           )}
           {incident.tipo_incidencia.includes('Permiso') && (
             <div>
-              📅 <strong>Permiso:</strong> Autorizacion temporal
+              📅 <strong>Permiso:</strong> Autorización temporal
             </div>
           )}
         </div>

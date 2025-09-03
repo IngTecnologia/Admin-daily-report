@@ -8,7 +8,7 @@ const Loading = ({ size = '20px' }) => {
         width: size,
         height: size,
         border: `2px solid #f3f3f3`,
-        borderTop: `2px solid var(--primary-blue)`,
+        borderTop: `2px solid var(--primary-red)`,
         borderRadius: '50%',
         animation: 'spin 1s linear infinite'
       }}

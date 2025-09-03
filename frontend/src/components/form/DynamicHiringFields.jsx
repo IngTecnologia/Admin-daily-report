@@ -39,7 +39,7 @@ const DynamicHiringFields = ({ index, movement, errors, updateDynamicField }) =>
         <h4 style={{ 
           fontSize: '1.1rem', 
           fontWeight: '600', 
-          color: 'var(--primary-blue)',
+          color: 'var(--primary-red)',
           margin: 0
         }}>
           Movimiento #{index + 1}

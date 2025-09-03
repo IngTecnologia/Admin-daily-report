@@ -61,7 +61,7 @@ const Success = () => {
                 <h3 style={{ 
                   fontSize: '1.25rem', 
                   fontWeight: '600',
-                  color: 'var(--primary-blue)',
+                  color: 'var(--primary-red)',
                   marginBottom: '1rem'
                 }}>
                   📋 Resumen del Reporte

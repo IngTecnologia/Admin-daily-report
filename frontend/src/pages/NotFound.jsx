@@ -56,7 +56,7 @@ const NotFound = () => {
               <h3 style={{ 
                 fontSize: '1.125rem', 
                 fontWeight: '600',
-                color: 'var(--primary-blue)',
+                color: 'var(--primary-red)',
                 marginBottom: '1rem'
               }}>
                 💡 ¿Qué puede hacer?
@@ -114,7 +114,7 @@ const NotFound = () => {
               border: '1px solid #bae6fd',
               borderRadius: '6px',
               fontSize: '0.875rem',
-              color: 'var(--primary-blue)',
+              color: 'var(--primary-red)',
               maxWidth: '400px',
               margin: '3rem auto 0 auto'
             }}>
