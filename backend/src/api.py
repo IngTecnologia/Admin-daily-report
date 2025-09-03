@@ -1,6 +1,6 @@
 """
 API principal para el sistema de reportes diarios
-Endpoints según especificaciones del README
+Endpoints segun especificaciones del README
 """
 from datetime import datetime, date
 from typing import List, Dict, Any, Optional
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manejo del ciclo de vida de la aplicación"""
+    """Manejo del ciclo de vida de la aplicacion"""
     # Startup
     logger.info("Iniciando Admin Daily Report API")
     logger.info(f"Archivo Excel: {settings.excel_file_path}")
@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
     logger.info("Cerrando Admin Daily Report API")
 
 
-# Crear aplicación FastAPI
+# Crear aplicacion FastAPI
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
@@ -84,9 +84,9 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-# Función auxiliar para obtener información del cliente
+# Funcion auxiliar para obtener informacion del cliente
 def get_client_info(request: Request) -> Dict[str, str]:
-    """Obtener información del cliente para auditoría"""
+    """Obtener informacion del cliente para auditoria"""
     return {
         "ip": request.client.host if request.client else "Unknown",
         "user_agent": request.headers.get("user-agent", "Unknown")
@@ -104,7 +104,7 @@ async def health_check():
     )
 
 
-# ENDPOINTS PRINCIPALES según especificaciones del README
+# ENDPOINTS PRINCIPALES segun especificaciones del README
 
 @app.post(
     f"{settings.api_v1_prefix}/reportes",
@@ -121,7 +121,7 @@ async def create_daily_report(
     Crear un nuevo reporte diario
     
     - **administrador**: Administrador que reporta (de la lista predefinida)
-    - **cliente_operacion**: Cliente/Operación (de la lista predefinida)
+    - **cliente_operacion**: Cliente/Operacion (de la lista predefinida)
     - **horas_diarias**: Horas trabajadas (1-24)
     - **personal_staff**: Cantidad de personal staff (e0)
     - **personal_base**: Cantidad de personal base (e0)
@@ -129,10 +129,10 @@ async def create_daily_report(
     - **ingresos_retiros**: Lista de movimientos de personal (opcional)
     """
     try:
-        # Obtener información del cliente
+        # Obtener informacion del cliente
         client_info = get_client_info(request)
         
-        # Validar límite de reportes por día (regla de negocio)
+        # Validar limite de reportes por dia (regla de negocio)
         today = date.today()
         existing_reports = excel_handler.get_reports_by_date(today)
         admin_reports_today = [
@@ -170,13 +170,13 @@ async def create_daily_report(
         )
 
 
-# ENDPOINTS DEL ÁREA ADMIN
+# ENDPOINTS DEL AREA ADMIN
 
 @app.get(
     f"{settings.api_v1_prefix}/admin/reportes",
     response_model=List[Dict[str, Any]],
     summary="Obtener lista de reportes (Admin)",
-    description="Obtener lista filtrable de todos los reportes para el área admin"
+    description="Obtener lista filtrable de todos los reportes para el area admin"
 )
 async def get_reports(
     administrador: Optional[str] = None,
@@ -189,15 +189,15 @@ async def get_reports(
     """
     Obtener lista de reportes con filtros opcionales
     
-    - **administrador**: Filtrar por administrador específico
-    - **cliente**: Filtrar por cliente/operación
+    - **administrador**: Filtrar por administrador especifico
+    - **cliente**: Filtrar por cliente/operacion
     - **fecha_inicio**: Fecha inicial del rango (YYYY-MM-DD)
     - **fecha_fin**: Fecha final del rango (YYYY-MM-DD)
-    - **page**: Número de página para paginación
-    - **limit**: Registros por página (máx. 100)
+    - **page**: Numero de pagina para paginacion
+    - **limit**: Registros por pagina (max. 100)
     """
     try:
-        # Validar parámetros
+        # Validar parametros
         if limit > 100:
             limit = 100
         if page < 1:
@@ -217,7 +217,7 @@ async def get_reports(
         # Obtener reportes
         all_reports = excel_handler.get_all_reports(filters)
         
-        # Aplicar paginación
+        # Aplicar paginacion
         start_index = (page - 1) * limit
         end_index = start_index + limit
         paginated_reports = all_reports[start_index:end_index]
@@ -237,14 +237,14 @@ async def get_reports(
 @app.get(
     f"{settings.api_v1_prefix}/admin/reportes/{{report_id}}",
     response_model=Dict[str, Any],
-    summary="Obtener detalles de un reporte específico",
+    summary="Obtener detalles de un reporte especifico",
     description="Obtener detalles completos de un reporte por su ID"
 )
 async def get_report_details(report_id: str) -> Dict[str, Any]:
     """
-    Obtener detalles completos de un reporte específico
+    Obtener detalles completos de un reporte especifico
     
-    - **report_id**: ID único del reporte (formato: RPT-YYYYMMDD-NNN)
+    - **report_id**: ID unico del reporte (formato: RPT-YYYYMMDD-NNN)
     """
     try:
         all_reports = excel_handler.get_all_reports()
@@ -257,7 +257,7 @@ async def get_report_details(report_id: str) -> Dict[str, Any]:
             )
         
         # TODO: Agregar detalles de incidencias y movimientos
-        # Por ahora retornamos el reporte básico
+        # Por ahora retornamos el reporte basico
         
         logger.info(f"Detalles de reporte obtenidos: {report_id}")
         return report
@@ -275,20 +275,20 @@ async def get_report_details(report_id: str) -> Dict[str, Any]:
 @app.get(
     f"{settings.api_v1_prefix}/admin/analytics",
     response_model=AnalyticsResponse,
-    summary="Obtener métricas para dashboard",
-    description="Obtener métricas y estadísticas para el dashboard administrativo"
+    summary="Obtener metricas para dashboard",
+    description="Obtener metricas y estadisticas para el dashboard administrativo"
 )
 async def get_analytics() -> AnalyticsResponse:
     """
-    Obtener métricas para el dashboard administrativo
+    Obtener metricas para el dashboard administrativo
     
-    Retorna estadísticas como:
+    Retorna estadisticas como:
     - Total de reportes
-    - Reportes del día
+    - Reportes del dia
     - Promedio de horas diarias
     - Total de incidencias del mes
     - Administradores activos
-    - Datos para gráficos
+    - Datos para graficos
     """
     try:
         analytics_data = excel_handler.get_analytics_data()
@@ -328,8 +328,8 @@ async def export_data(
     """
     Exportar datos filtrados
     
-    TODO: Implementar exportación real de archivos
-    Por ahora retorna información sobre qué se exportaría
+    TODO: Implementar exportacion real de archivos
+    Por ahora retorna informacion sobre que se exportaria
     """
     try:
         # Por ahora, solo retornamos un placeholder
@@ -341,24 +341,24 @@ async def export_data(
             "formato": formato
         }
         
-        # Obtener datos que se exportarían
+        # Obtener datos que se exportarian
         reports = excel_handler.get_all_reports(filters)
         
         return APIResponse(
             success=True,
-            message=f"Se exportarían {len(reports)} reportes en formato {formato}",
+            message=f"Se exportarian {len(reports)} reportes en formato {formato}",
             data={
                 "cantidad_reportes": len(reports),
                 "filtros_aplicados": filters,
-                "nota": "Funcionalidad de exportación en desarrollo"
+                "nota": "Funcionalidad de exportacion en desarrollo"
             }
         )
         
     except Exception as e:
-        logger.error(f"Error en exportación: {e}")
+        logger.error(f"Error en exportacion: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error interno del servidor en exportación"
+            detail="Error interno del servidor en exportacion"
         )
 
 
@@ -401,7 +401,7 @@ async def get_system_config():
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Manejador global de excepciones no capturadas"""
-    logger.error(f"Excepción no manejada: {exc}", exc_info=True)
+    logger.error(f"Excepcion no manejada: {exc}", exc_info=True)
     
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -413,14 +413,14 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Endpoint de información de la API
+# Endpoint de informacion de la API
 @app.get(
     "/",
-    summary="Información de la API",
-    description="Información básica sobre la API"
+    summary="Informacion de la API",
+    description="Informacion basica sobre la API"
 )
 async def root():
-    """Información básica de la API"""
+    """Informacion basica de la API"""
     return APIResponse(
         success=True,
         message=f"API {settings.app_name} v{settings.app_version} funcionando correctamente",
@@ -431,7 +431,7 @@ async def root():
             "endpoints_disponibles": {
                 "POST /api/v1/reportes": "Crear nuevo reporte diario",
                 "GET /api/v1/admin/reportes": "Obtener lista de reportes", 
-                "GET /api/v1/admin/analytics": "Obtener métricas dashboard",
+                "GET /api/v1/admin/analytics": "Obtener metricas dashboard",
                 "GET /api/v1/config": "Obtener configuraciones del sistema",
                 "GET /health": "Health check"
             }

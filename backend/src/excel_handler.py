@@ -41,13 +41,13 @@ class ExcelHandler:
         default_sheet = workbook.active
         workbook.remove(default_sheet)
         
-        # Crear cada hoja según el esquema
+        # Crear cada hoja segun el esquema
         for sheet_key, sheet_name in self.sheets.items():
             if sheet_key in EXCEL_SCHEMA:
                 worksheet = workbook.create_sheet(sheet_name)
                 self._setup_sheet_headers(worksheet, sheet_key)
         
-        # Crear hoja de configuración inicial
+        # Crear hoja de configuracion inicial
         self._create_config_sheet(workbook)
         
         # Guardar archivo
@@ -83,18 +83,23 @@ class ExcelHandler:
             worksheet.column_dimensions[column_letter].width = adjusted_width
     
     def _create_config_sheet(self, workbook: Workbook) -> None:
-        """Crear hoja de configuración inicial"""
-        config_sheet = workbook[self.sheets["configuracion"]]
+        """Crear hoja de configuracion inicial"""
+        config_sheet = workbook.create_sheet(self.sheets["configuracion"])
+        
+        # Configurar headers
+        headers = ["Clave", "Valor", "Descripcion", "Fecha_Modificacion"]
+        for col_num, header in enumerate(headers, 1):
+            config_sheet.cell(row=1, column=col_num, value=header)
         
         # Configuraciones iniciales
         config_data = [
-            ["version_sistema", "1.0.0", "Versión del sistema", datetime.now()],
-            ["max_reportes_dia", "10", "Máximo reportes por día por admin", datetime.now()],
-            ["fecha_creacion", datetime.now().isoformat(), "Fecha de creación del sistema", datetime.now()],
-            ["backup_enabled", "true", "Backups automáticos habilitados", datetime.now()],
+            ["version_sistema", "1.0.0", "Version del sistema", datetime.now()],
+            ["max_reportes_dia", "10", "Maximo reportes por dia por admin", datetime.now()],
+            ["fecha_creacion", datetime.now().isoformat(), "Fecha de creacion del sistema", datetime.now()],
+            ["backup_enabled", "true", "Backups automaticos habilitados", datetime.now()],
         ]
         
-        # Agregar datos de configuración
+        # Agregar datos de configuracion
         for row_num, data in enumerate(config_data, 2):
             for col_num, value in enumerate(data, 1):
                 config_sheet.cell(row=row_num, column=col_num, value=value)
@@ -124,11 +129,11 @@ class ExcelHandler:
             self._create_initial_file()
     
     def generate_report_id(self) -> str:
-        """Generar ID único para reporte según formato especificado"""
+        """Generar ID unico para reporte segun formato especificado"""
         today = datetime.now()
         date_str = today.strftime("%Y%m%d")
         
-        # Contar reportes del día
+        # Contar reportes del dia
         existing_reports = self.get_reports_by_date(today.date())
         count = len(existing_reports) + 1
         
@@ -181,10 +186,10 @@ class ExcelHandler:
         workbook = openpyxl.load_workbook(self.file_path)
         sheet = workbook[self.sheets["reportes"]]
         
-        # Encontrar siguiente fila vacía
+        # Encontrar siguiente fila vacia
         next_row = sheet.max_row + 1
         
-        # Datos del reporte según esquema
+        # Datos del reporte segun esquema
         row_data = [
             report_id,
             timestamp,
@@ -216,7 +221,7 @@ class ExcelHandler:
         for incident_num, incident in enumerate(incidents, 1):
             next_row = sheet.max_row + 1
             
-            # Datos de la incidencia según esquema
+            # Datos de la incidencia segun esquema
             row_data = [
                 report_id,
                 incident_num,
@@ -253,7 +258,7 @@ class ExcelHandler:
         for movement_num, movement in enumerate(movements, 1):
             next_row = sheet.max_row + 1
             
-            # Datos del movimiento según esquema
+            # Datos del movimiento segun esquema
             row_data = [
                 report_id,
                 movement_num,
@@ -290,7 +295,7 @@ class ExcelHandler:
             headers = [cell.value for cell in sheet[1]]
             
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                if row[0] is None:  # Fila vacía
+                if row[0] is None:  # Fila vacia
                     break
                     
                 row_dict = dict(zip(headers, row))
@@ -324,7 +329,7 @@ class ExcelHandler:
             headers = [cell.value for cell in sheet[1]]
             
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                if row[0] is None:  # Fila vacía
+                if row[0] is None:  # Fila vacia
                     break
                     
                 row_dict = dict(zip(headers, row))
@@ -344,14 +349,14 @@ class ExcelHandler:
     
     def _apply_filters(self, report: Dict, filters: Dict) -> bool:
         """Aplicar filtros a un reporte"""
-        # Implementar lógica de filtros según necesidades del admin panel
+        # Implementar logica de filtros segun necesidades del admin panel
         if filters.get('administrador') and report.get('Administrador') != filters['administrador']:
             return False
         
         if filters.get('cliente') and report.get('Cliente_Operacion') != filters['cliente']:
             return False
             
-        # Agregar más filtros según se necesiten
+        # Agregar mas filtros segun se necesiten
         return True
     
     def get_analytics_data(self) -> Dict[str, Any]:
@@ -361,7 +366,7 @@ class ExcelHandler:
             all_reports = self.get_all_reports()
             reports_today = self.get_reports_by_date(today)
             
-            # Calcular estadísticas básicas
+            # Calcular estadisticas basicas
             total_reportes = len(all_reports)
             reportes_hoy = len(reports_today)
             
@@ -380,7 +385,7 @@ class ExcelHandler:
                     if fecha_creacion.month == current_month and fecha_creacion.year == current_year:
                         incidencias_mes += report.get('Cantidad_Incidencias', 0)
             
-            # Administradores activos (únicos que han reportado)
+            # Administradores activos (unicos que han reportado)
             administradores_activos = len(set(r.get('Administrador') for r in all_reports if r.get('Administrador')))
             
             return {
@@ -390,7 +395,7 @@ class ExcelHandler:
                 "total_incidencias_mes": incidencias_mes,
                 "administradores_activos": administradores_activos,
                 "graficos": {
-                    # Placeholder para gráficos que se pueden implementar después
+                    # Placeholder para graficos que se pueden implementar despues
                     "reportes_por_dia": [],
                     "incidencias_por_tipo": [],
                     "personal_por_operacion": []

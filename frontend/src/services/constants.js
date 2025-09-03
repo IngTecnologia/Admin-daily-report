@@ -1,4 +1,4 @@
-// Constantes del formulario seg�n especificaciones del README
+// Constantes del formulario según especificaciones del README
 
 export const ADMINISTRATORS = [
   'Adriana Robayo',
@@ -10,7 +10,7 @@ export const ADMINISTRATORS = [
   'Kenia Sanchez',
   'Liliana Romero',
   'Marcela Cusba Gomez',
-  'Mirledys Garc�a San Juan',
+  'Mirledys García San Juan',
   'Yolima Arenas Zarate'
 ]
 
@@ -23,21 +23,21 @@ export const CLIENT_OPERATIONS = [
   'SIERRACOL',
   'VPI ADMON',
   'VPI CUSIANA',
-  'VPI FLORE�A',
+  'VPI FLORENA',
   'VPI CUPIAGUA'
 ]
 
 export const INCIDENT_TYPES = [
-  'Incapacidad M�dica Por Enfermedad Com�n',
-  'Incapacidad M�dica por Enfermedad Laboral',
-  'Permiso por Cita M�dica',
+  'Incapacidad Médica Por Enfermedad Común',
+  'Incapacidad Médica por Enfermedad Laboral',
+  'Permiso por Cita Médica',
   'Licencia de Maternidad',
   'Licencia de paternidad',
   'Permiso por Luto',
-  'Permiso por Calamidad Dom�stica',
+  'Permiso por Calamidad Doméstica',
   'Vacaciones',
   'Compensatorios',
-  'D�a de la Familia',
+  'Día de la Familia',
   'Suspensiones de contrato',
   'Permisos no remunerados'
 ]
@@ -47,7 +47,7 @@ export const EMPLOYEE_STATUSES = [
   'Retiro'
 ]
 
-// Configuraci�n de validaciones
+// Configuración de validaciones
 export const VALIDATION_RULES = {
   administrador: { required: true, type: 'select' },
   cliente_operacion: { required: true, type: 'select' },

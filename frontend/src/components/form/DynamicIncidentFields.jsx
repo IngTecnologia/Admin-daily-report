@@ -130,12 +130,12 @@ const DynamicIncidentFields = ({ index, incident, errors, updateDynamicField }) 
         }}>
           {incident.tipo_incidencia.includes('Incapacidad') && (
             <div>
-              💊 <strong>Incapacidad medica:</strong> Requiere certificado medico
+              💊 <strong>Incapacidad médica:</strong> Requiere certificado médico
             </div>
           )}
           {incident.tipo_incidencia.includes('Licencia') && (
             <div>
-              📋 <strong>Licencia:</strong> Segun normativa laboral vigente
+              📋 <strong>Licencia:</strong> Según normativa laboral vigente
             </div>
           )}
           {incident.tipo_incidencia === 'Vacaciones' && (

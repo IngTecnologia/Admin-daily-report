@@ -30,7 +30,7 @@ const NotFound = () => {
               color: 'var(--dark-text)',
               marginBottom: '1rem'
             }}>
-              Pagina no encontrada
+              Página no encontrada
             </h2>
 
             <p style={{ 
@@ -40,7 +40,7 @@ const NotFound = () => {
               maxWidth: '500px',
               margin: '0 auto 2rem auto'
             }}>
-              Lo sentimos, la pagina que esta buscando no existe o ha sido movida.
+              Lo sentimos, la página que está buscando no existe o ha sido movida.
             </p>
 
             <div style={{
@@ -59,7 +59,7 @@ const NotFound = () => {
                 color: 'var(--primary-blue)',
                 marginBottom: '1rem'
               }}>
-                💡 Que puede hacer?
+                💡 ¿Qué puede hacer?
               </h3>
 
               <ul style={{ 
@@ -70,13 +70,13 @@ const NotFound = () => {
                 color: 'var(--neutral-gray)'
               }}>
                 <li style={{ marginBottom: '0.5rem' }}>
-                  ✅ Verificar que la URL este escrita correctamente
+                  ✅ Verificar que la URL esté escrita correctamente
                 </li>
                 <li style={{ marginBottom: '0.5rem' }}>
-                  🏠 Volver a la pagina principal
+                  🏠 Volver a la página principal
                 </li>
                 <li style={{ marginBottom: '0.5rem' }}>
-                  📊 Acceder al panel de administracion
+                  📀 Acceder al panel de administración
                 </li>
                 <li>
                   📝 Crear un nuevo reporte diario
@@ -118,7 +118,7 @@ const NotFound = () => {
               maxWidth: '400px',
               margin: '3rem auto 0 auto'
             }}>
-              <strong>📞 Necesita ayuda?</strong>
+              <strong>📞 ¿Necesita ayuda?</strong>
               <br />
               Si el problema persiste, contacte al administrador del sistema.
             </div>

@@ -13,7 +13,7 @@ const Home = () => {
             marginBottom: '1rem',
             textShadow: '0 2px 4px rgba(0,0,0,0.3)'
           }}>
-            =Ê Reporte Diario de Administrador
+            ğŸ“‹ Reporte Diario de Administrador
           </h1>
           <p style={{ 
             fontSize: '1.25rem', 
@@ -21,7 +21,7 @@ const Home = () => {
             opacity: '0.9',
             textShadow: '0 1px 2px rgba(0,0,0,0.3)'
           }}>
-            Complete la información diaria de su operación
+            Complete la informaciÃ³n diaria de su operaciÃ³n
           </p>
         </div>
         

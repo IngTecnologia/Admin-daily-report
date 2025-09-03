@@ -37,7 +37,7 @@ const DailyReportForm = () => {
     setSubmitError(null)
 
     try {
-      // Preparar los datos para el backend seg�n la especificaci�n de la API
+      // Preparar los datos para el backend según la especificación de la API
       const submitData = {
         administrador: formData.administrador,
         cliente_operacion: formData.cliente_operacion,
@@ -77,7 +77,7 @@ const DailyReportForm = () => {
       
       setSubmitSuccess(true)
       
-      // Redirigir a p�gina de �xito despu�s de un momento
+      // Redirigir a página de éxito después de un momento
       setTimeout(() => {
         navigate('/success', { 
           state: { 
@@ -101,10 +101,10 @@ const DailyReportForm = () => {
         <div style={{ padding: '3rem', textAlign: 'center' }}>
           <div style={{ fontSize: '4rem', marginBottom: '1rem' }}></div>
           <h2 style={{ color: 'var(--success-green)', marginBottom: '1rem' }}>
-            �Reporte Enviado Exitosamente!
+¡Reporte Enviado Exitosamente!
           </h2>
           <p style={{ color: 'var(--neutral-gray)' }}>
-            Redirigiendo a la p�gina de confirmaci�n...
+            Redirigiendo a la página de confirmación...
           </p>
           <Loading />
         </div>
@@ -114,21 +114,21 @@ const DailyReportForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="form-card">
-      {/* Secci�n 1: Informaci�n del Administrador */}
+      {/* Sección 1: Información del Administrador */}
       <AdministratorSection
         formData={formData}
         errors={errors}
         updateField={updateField}
       />
 
-      {/* Secci�n 2: Informaci�n de Personal */}
+      {/* Sección 2: Información de Personal */}
       <PersonnelInfoSection
         formData={formData}
         errors={errors}
         updateField={updateField}
       />
 
-      {/* Secci�n 3: Personal con Incidencias */}
+      {/* Sección 3: Personal con Incidencias */}
       <IncidentsSection
         formData={formData}
         errors={errors}
@@ -136,7 +136,7 @@ const DailyReportForm = () => {
         updateDynamicField={updateDynamicField}
       />
 
-      {/* Secci�n 4: Ingresos o Retiros */}
+      {/* Sección 4: Ingresos o Retiros */}
       <HiringRetirementsSection
         formData={formData}
         errors={errors}
@@ -144,7 +144,7 @@ const DailyReportForm = () => {
         updateDynamicField={updateDynamicField}
       />
 
-      {/* �rea de errores y env�o */}
+      {/* Área de errores y envío */}
       <div className="form-section">
         {submitError && (
           <Alert type="error" message={submitError} />
@@ -186,7 +186,7 @@ const DailyReportForm = () => {
               </>
             ) : (
               <>
-                =� Enviar Reporte Diario
+📝 Enviar Reporte Diario
               </>
             )}
           </button>
@@ -200,7 +200,7 @@ const DailyReportForm = () => {
           fontSize: '0.875rem',
           color: 'var(--neutral-gray)'
         }}>
-          <strong>=� Resumen:</strong> {' '}
+          <strong>📄 Resumen:</strong> {' '}
           {formData.administrador && `${formData.administrador} " `}
           {formData.cliente_operacion && `${formData.cliente_operacion} " `}
           {formData.horas_diarias && `${formData.horas_diarias}h diarias " `}

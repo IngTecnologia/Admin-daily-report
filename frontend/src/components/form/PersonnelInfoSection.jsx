@@ -4,7 +4,7 @@ const PersonnelInfoSection = ({ formData, errors, updateField }) => {
   return (
     <div className="form-section">
       <h2 className="section-title">
-        =e Informaci�n de Personal
+        👥 Información de Personal
       </h2>
       
       <div className="form-grid">
@@ -12,7 +12,7 @@ const PersonnelInfoSection = ({ formData, errors, updateField }) => {
           <label htmlFor="horas_diarias" className="form-label">
             Horas diarias *
             <small style={{ display: 'block', fontWeight: 'normal', color: 'var(--neutral-gray)' }}>
-              N�mero de horas trabajadas (1-24)
+              Número de horas trabajadas (1-24)
             </small>
           </label>
           <input

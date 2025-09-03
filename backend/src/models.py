@@ -9,7 +9,7 @@ from enum import Enum
 
 
 class AdministratorEnum(str, Enum):
-    """Administradores válidos según especificaciones"""
+    """Administradores validos segun especificaciones"""
     ADRIANA_ROBAYO = "Adriana Robayo"
     ANGELA_RAMIREZ = "Angela Ramirez"
     FLORIBE_CORREA = "Floribe Correa"
@@ -19,12 +19,12 @@ class AdministratorEnum(str, Enum):
     KENIA_SANCHEZ = "Kenia Sanchez"
     LILIANA_ROMERO = "Liliana Romero"
     MARCELA_CUSBA = "Marcela Cusba Gomez"
-    MIRLEDYS_GARCIA = "Mirledys García San Juan"
+    MIRLEDYS_GARCIA = "Mirledys Garcia San Juan"
     YOLIMA_ARENAS = "Yolima Arenas Zarate"
 
 
 class ClientOperationEnum(str, Enum):
-    """Clientes/Operaciones válidos según especificaciones"""
+    """Clientes/Operaciones validos segun especificaciones"""
     ADMIN_BARRANCA = "Administrativo Barranca"
     ADMIN_BOGOTA = "Administrativo Bogota"
     CEDCO = "CEDCO"
@@ -33,22 +33,22 @@ class ClientOperationEnum(str, Enum):
     SIERRACOL = "SIERRACOL"
     VPI_ADMON = "VPI ADMON"
     VPI_CUSIANA = "VPI CUSIANA"
-    VPI_FLORENA = "VPI FLOREÑA"
+    VPI_FLORENA = "VPI FLORENA"
     VPI_CUPIAGUA = "VPI CUPIAGUA"
 
 
 class IncidentTypeEnum(str, Enum):
-    """Tipos de incidencias válidos según especificaciones"""
-    INCAPACIDAD_COMUN = "Incapacidad Médica Por Enfermedad Común"
-    INCAPACIDAD_LABORAL = "Incapacidad Médica por Enfermedad Laboral"
-    PERMISO_CITA = "Permiso por Cita Médica"
+    """Tipos de incidencias validos segun especificaciones"""
+    INCAPACIDAD_COMUN = "Incapacidad Medica Por Enfermedad Comun"
+    INCAPACIDAD_LABORAL = "Incapacidad Medica por Enfermedad Laboral"
+    PERMISO_CITA = "Permiso por Cita Medica"
     LICENCIA_MATERNIDAD = "Licencia de Maternidad"
     LICENCIA_PATERNIDAD = "Licencia de paternidad"
     PERMISO_LUTO = "Permiso por Luto"
-    PERMISO_CALAMIDAD = "Permiso por Calamidad Doméstica"
+    PERMISO_CALAMIDAD = "Permiso por Calamidad Domestica"
     VACACIONES = "Vacaciones"
     COMPENSATORIOS = "Compensatorios"
-    DIA_FAMILIA = "Día de la Familia"
+    DIA_FAMILIA = "Dia de la Familia"
     SUSPENSIONES = "Suspensiones de contrato"
     PERMISOS_NO_REMUNERADOS = "Permisos no remunerados"
 
@@ -82,7 +82,7 @@ class IncidentCreate(BaseModel):
     def validate_nombre_empleado(cls, v):
         """Validar formato del nombre del empleado"""
         if not v.strip():
-            raise ValueError('El nombre del empleado no puede estar vacío')
+            raise ValueError('El nombre del empleado no puede estar vacio')
         if len(v.strip()) < 3:
             raise ValueError('El nombre debe tener al menos 3 caracteres')
         return v.strip().title()
@@ -115,14 +115,14 @@ class MovementCreate(BaseModel):
     def validate_nombre_empleado(cls, v):
         """Validar formato del nombre del empleado"""
         if not v.strip():
-            raise ValueError('El nombre del empleado no puede estar vacío')
+            raise ValueError('El nombre del empleado no puede estar vacio')
         return v.strip().title()
 
     @validator('cargo')
     def validate_cargo(cls, v):
         """Validar formato del cargo"""
         if not v.strip():
-            raise ValueError('El cargo no puede estar vacío')
+            raise ValueError('El cargo no puede estar vacio')
         return v.strip().title()
 
 
@@ -136,12 +136,12 @@ class MovementResponse(MovementCreate):
 class DailyReportCreate(BaseModel):
     """Modelo para crear un reporte diario"""
     administrador: AdministratorEnum = Field(..., description="Administrador que reporta")
-    cliente_operacion: ClientOperationEnum = Field(..., description="Cliente/Operación")
+    cliente_operacion: ClientOperationEnum = Field(..., description="Cliente/Operacion")
     horas_diarias: int = Field(
         ..., 
         ge=1, 
         le=24, 
-        description="Horas trabajadas en el día (1-24)"
+        description="Horas trabajadas en el dia (1-24)"
     )
     personal_staff: int = Field(
         ..., 
@@ -164,30 +164,30 @@ class DailyReportCreate(BaseModel):
 
     @validator('incidencias')
     def validate_incidencias(cls, v):
-        """Validar límite máximo de incidencias"""
+        """Validar limite maximo de incidencias"""
         if len(v) > 50:
-            raise ValueError('Máximo 50 incidencias permitidas')
+            raise ValueError('Maximo 50 incidencias permitidas')
         return v
 
     @validator('ingresos_retiros')
     def validate_ingresos_retiros(cls, v):
-        """Validar límite máximo de movimientos"""
+        """Validar limite maximo de movimientos"""
         if len(v) > 50:
-            raise ValueError('Máximo 50 movimientos permitidos')
+            raise ValueError('Maximo 50 movimientos permitidos')
         return v
 
 
 class DailyReportResponse(BaseModel):
     """Modelo de respuesta para reportes diarios"""
-    id: str = Field(..., description="ID único del reporte")
-    fecha_creacion: datetime = Field(..., description="Fecha y hora de creación")
+    id: str = Field(..., description="ID unico del reporte")
+    fecha_creacion: datetime = Field(..., description="Fecha y hora de creacion")
     administrador: str
     cliente_operacion: str
     horas_diarias: int
     personal_staff: int
     personal_base: int
-    cantidad_incidencias: int = Field(..., description="Número total de incidencias")
-    cantidad_ingresos_retiros: int = Field(..., description="Número total de movimientos")
+    cantidad_incidencias: int = Field(..., description="Numero total de incidencias")
+    cantidad_ingresos_retiros: int = Field(..., description="Numero total de movimientos")
     estado: str = Field(default="Completado", description="Estado del reporte")
     incidencias: List[IncidentResponse] = Field(default=[])
     ingresos_retiros: List[MovementResponse] = Field(default=[])
@@ -195,23 +195,23 @@ class DailyReportResponse(BaseModel):
 
 # Modelos para respuestas de API
 class APIResponse(BaseModel):
-    """Respuesta estándar de la API"""
-    success: bool = Field(..., description="Indica si la operación fue exitosa")
+    """Respuesta estandar de la API"""
+    success: bool = Field(..., description="Indica si la operacion fue exitosa")
     message: str = Field(..., description="Mensaje descriptivo")
     data: Optional[dict] = Field(None, description="Datos de la respuesta")
 
 
 class ReportCreateResponse(APIResponse):
-    """Respuesta específica para creación de reportes"""
+    """Respuesta especifica para creacion de reportes"""
     data: Optional[dict] = Field(
         None, 
         description="Contiene id y fecha_creacion del reporte creado"
     )
 
 
-# Modelos para filtros y búsquedas (Admin)
+# Modelos para filtros y busquedas (Admin)
 class ReportFilter(BaseModel):
-    """Filtros para búsqueda de reportes"""
+    """Filtros para busqueda de reportes"""
     administrador: Optional[str] = None
     cliente: Optional[str] = None
     fecha_inicio: Optional[date] = None
@@ -230,9 +230,9 @@ class AnalyticsResponse(BaseModel):
     graficos: dict = Field(default={})
 
 
-# Modelos para configuración
+# Modelos para configuracion
 class SystemConfig(BaseModel):
-    """Configuración del sistema"""
+    """Configuracion del sistema"""
     max_reportes_por_dia: int = Field(default=10)
     max_incidencias_por_reporte: int = Field(default=50)
     max_movimientos_por_reporte: int = Field(default=50)
