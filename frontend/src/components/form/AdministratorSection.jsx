@@ -5,7 +5,7 @@ const AdministratorSection = ({ formData, errors, updateField }) => {
   return (
     <div className="form-section">
       <h2 className="section-title">
-        =d Información del Administrador
+        =d InformaciÃ³n del Administrador
       </h2>
       
       <div className="form-grid">
@@ -34,7 +34,7 @@ const AdministratorSection = ({ formData, errors, updateField }) => {
 
         <div className="form-field">
           <label htmlFor="cliente_operacion" className="form-label">
-            Cliente (operación) *
+            Cliente (operaciÃ³n) *
           </label>
           <select
             id="cliente_operacion"
@@ -43,7 +43,7 @@ const AdministratorSection = ({ formData, errors, updateField }) => {
             className={`form-select ${errors.cliente_operacion ? 'error' : ''}`}
             required
           >
-            <option value="">Seleccione una operación</option>
+            <option value="">Seleccione una operaciï¿½n</option>
             {CLIENT_OPERATIONS.map((operation) => (
               <option key={operation} value={operation}>
                 {operation}
