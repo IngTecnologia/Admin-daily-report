@@ -12,10 +12,10 @@ const Admin = () => {
               fontSize: '4rem', 
               marginBottom: '1.5rem'
             }}>
-              ='
+              ⚙️
             </div>
 
-            {/* T�tulo */}
+            {/* Título */}
             <h1 style={{ 
               fontSize: '2.5rem', 
               fontWeight: '700', 
@@ -25,7 +25,7 @@ const Admin = () => {
               Panel de Administración
             </h1>
 
-            {/* Subt�tulo */}
+            {/* Subtítulo */}
             <p style={{ 
               fontSize: '1.25rem', 
               color: 'var(--neutral-gray)',
@@ -51,7 +51,7 @@ const Admin = () => {
                 color: 'var(--warning-yellow)',
                 marginBottom: '1rem'
               }}>
-                =� En Desarrollo
+                🚧 En Desarrollo
               </h3>
 
               <div style={{ 
@@ -60,8 +60,8 @@ const Admin = () => {
                 lineHeight: '1.6'
               }}>
                 <p style={{ marginBottom: '1rem' }}>
-                  El panel de administraci�n est� actualmente en desarrollo. 
-                  Las siguientes funcionalidades estar�n disponibles pr�ximamente:
+                  El panel de administración está actualmente en desarrollo. 
+                  Las siguientes funcionalidades estarán disponibles próximamente:
                 </p>
 
                 <ul style={{ 
@@ -69,23 +69,22 @@ const Admin = () => {
                   marginBottom: '1rem'
                 }}>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =� Dashboard con m�tricas y gr�ficos
+                    📊 Dashboard con métricas y gráficos
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =� Lista filtrable de todos los reportes
+                    📋 Lista filtrable de todos los reportes
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =
- B�squeda avanzada por administrador y operaci�n
+                    🔍 Búsqueda avanzada por administrador y operación
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =� An�lisis de tendencias y estad�sticas
+                    📈 Análisis de tendencias y estadísticas
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =� Exportaci�n de datos en Excel/CSV
+                    📄 Exportación de datos en Excel/CSV
                   </li>
                   <li style={{ marginBottom: '0.5rem' }}>
-                    =� Vista detallada de cada reporte
+                    🔍 Vista detallada de cada reporte
                   </li>
                 </ul>
 
@@ -114,7 +113,7 @@ const Admin = () => {
                 color: 'var(--primary-blue)',
                 marginBottom: '1rem'
               }}>
-                =� Vista Previa del Dashboard
+                📊 Vista Previa del Dashboard
               </h3>
 
               <div style={{
@@ -154,7 +153,7 @@ const Admin = () => {
                 className="btn btn-primary"
                 style={{ textDecoration: 'none' }}
               >
-                =� Crear Nuevo Reporte
+                📝 Crear Nuevo Reporte
               </Link>
 
               <button
@@ -164,13 +163,13 @@ const Admin = () => {
                   opacity: 0.6,
                   cursor: 'not-allowed'
                 }}
-                title="Pr�ximamente disponible"
+                title="Próximamente disponible"
               >
-                =� Ver Reportes (Pr�ximamente)
+                📄 Ver Reportes (Próximamente)
               </button>
             </div>
 
-            {/* Informaci�n adicional */}
+            {/* Información adicional */}
             <div style={{
               marginTop: '2rem',
               padding: '1rem',
@@ -183,7 +182,7 @@ const Admin = () => {
               margin: '2rem auto 0 auto'
             }}>
                <strong>Estado del Sistema:</strong> El formulario de reportes est� completamente funcional. 
-              El �rea admin se completar� en la siguiente fase del desarrollo.
+              El área admin se completará en la siguiente fase del desarrollo.
             </div>
           </div>
         </div>

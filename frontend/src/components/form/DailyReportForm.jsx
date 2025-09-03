@@ -99,7 +99,7 @@ const DailyReportForm = () => {
     return (
       <div className="form-card">
         <div style={{ padding: '3rem', textAlign: 'center' }}>
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}></div>
+          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
           <h2 style={{ color: 'var(--success-green)', marginBottom: '1rem' }}>
 ¡Reporte Enviado Exitosamente!
           </h2>
@@ -201,12 +201,12 @@ const DailyReportForm = () => {
           color: 'var(--neutral-gray)'
         }}>
           <strong>📄 Resumen:</strong> {' '}
-          {formData.administrador && `${formData.administrador} " `}
-          {formData.cliente_operacion && `${formData.cliente_operacion} " `}
-          {formData.horas_diarias && `${formData.horas_diarias}h diarias " `}
-          {formData.personal_staff && `${formData.personal_staff} staff " `}
-          {formData.personal_base && `${formData.personal_base} base " `}
-          {formData.cantidad_incidencias > 0 && `${formData.cantidad_incidencias} incidencias " `}
+          {formData.administrador && `${formData.administrador} • `}
+          {formData.cliente_operacion && `${formData.cliente_operacion} • `}
+          {formData.horas_diarias && `${formData.horas_diarias}h diarias • `}
+          {formData.personal_staff && `${formData.personal_staff} staff • `}
+          {formData.personal_base && `${formData.personal_base} base • `}
+          {formData.cantidad_incidencias > 0 && `${formData.cantidad_incidencias} incidencias • `}
           {formData.cantidad_ingresos_retiros > 0 && `${formData.cantidad_ingresos_retiros} movimientos`}
         </div>
       </div>

@@ -6,7 +6,7 @@ const Alert = ({ type = 'info', message, onClose }) => {
       case 'success':
         return {
           className: 'alert-success',
-          icon: ''
+          icon: '✅'
         }
       case 'error':
         return {
@@ -16,12 +16,12 @@ const Alert = ({ type = 'info', message, onClose }) => {
       case 'warning':
         return {
           className: 'alert-warning',
-          icon: '�'
+          icon: '⚠️'
         }
       default:
         return {
           className: 'alert-info',
-          icon: '9'
+          icon: 'ℹ️'
         }
     }
   }

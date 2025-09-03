@@ -10,7 +10,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
   return (
     <div className="form-section">
       <h2 className="section-title">
-        = Ingresos o Retiros
+        💼 Ingresos o Retiros
       </h2>
       
       <div className="form-grid">
@@ -46,13 +46,13 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
               fontSize: '0.875rem',
               color: 'var(--primary-blue)'
             }}>
-              =� Se generar�n {formData.cantidad_ingresos_retiros} formularios de movimiento
+              📝 Se generarán {formData.cantidad_ingresos_retiros} formularios de movimiento
             </div>
           )}
         </div>
       </div>
 
-      {/* Campos din�micos de ingresos/retiros */}
+      {/* Campos dinámicos de ingresos/retiros */}
       {formData.cantidad_ingresos_retiros > 0 && (
         <div className="dynamic-section">
           <h3 style={{ 
@@ -90,13 +90,13 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
               color: 'var(--success-green)',
               marginBottom: '0.5rem'
             }}>
-              =� Resumen de Movimientos
+              📊 Resumen de Movimientos
             </h4>
             
             <div style={{ fontSize: '0.875rem' }}>
               {formData.ingresos_retiros.filter(mov => mov && mov.nombre_empleado).length > 0 ? (
                 <div>
-                  {/* Estad�sticas */}
+                  {/* Estadísticas */}
                   <div style={{ 
                     display: 'flex', 
                     gap: '2rem', 
