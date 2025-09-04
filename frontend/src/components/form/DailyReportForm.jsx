@@ -6,6 +6,7 @@ import AdministratorSection from './AdministratorSection'
 import PersonnelInfoSection from './PersonnelInfoSection'
 import IncidentsSection from './IncidentsSection'
 import HiringRetirementsSection from './HiringRetirementsSection'
+import RelevantFactsSection from './RelevantFactsSection'
 import Loading from '../common/Loading'
 import Alert from '../common/Alert'
 
@@ -53,7 +54,8 @@ const DailyReportForm = () => {
           nombre_empleado: mov.nombre_empleado,
           cargo: mov.cargo,
           estado: mov.estado
-        }))
+        })),
+        hechos_relevantes: formData.hechos_relevantes || ''
       }
 
       console.log('Enviando datos:', submitData)
@@ -142,6 +144,13 @@ const DailyReportForm = () => {
         errors={errors}
         updateField={updateField}
         updateDynamicField={updateDynamicField}
+      />
+
+      {/* Sección 5: Hechos Relevantes */}
+      <RelevantFactsSection
+        formData={formData}
+        errors={errors}
+        updateField={updateField}
       />
 
       {/* Área de errores y envío */}

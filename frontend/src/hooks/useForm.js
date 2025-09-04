@@ -10,6 +10,7 @@ export const useForm = (initialState = {}) => {
     personal_base: '',
     cantidad_incidencias: '',
     cantidad_ingresos_retiros: '',
+    hechos_relevantes: '',
     incidencias: [],
     ingresos_retiros: [],
     ...initialState
@@ -235,6 +236,7 @@ export const useForm = (initialState = {}) => {
       personal_base: '',
       cantidad_incidencias: '',
       cantidad_ingresos_retiros: '',
+      hechos_relevantes: '',
       incidencias: [],
       ingresos_retiros: []
     })
