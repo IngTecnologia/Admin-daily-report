@@ -140,7 +140,7 @@ EMPLOYEE_STATUSES = ["Ingreso", "Retiro"]
 
 # Estructura de la base de datos Excel segun README
 EXCEL_SCHEMA = {
-    "Reportes": {
+    "reportes": {
         "columns": [
             "ID", "Fecha_Creacion", "Administrador", "Cliente_Operacion",
             "Horas_Diarias", "Personal_Staff", "Personal_Base", 
@@ -163,7 +163,7 @@ EXCEL_SCHEMA = {
             "User_Agent": "string"
         }
     },
-    "Incidencias": {
+    "incidencias": {
         "columns": [
             "ID_Reporte", "Numero_Incidencia", "Tipo_Incidencia",
             "Nombre_Empleado", "Fecha_Fin_Novedad", "Fecha_Registro"
@@ -177,7 +177,7 @@ EXCEL_SCHEMA = {
             "Fecha_Registro": "datetime"
         }
     },
-    "Ingresos_Retiros": {
+    "ingresos_retiros": {
         "columns": [
             "ID_Reporte", "Numero_Movimiento", "Nombre_Empleado",
             "Cargo", "Estado", "Fecha_Registro"
@@ -191,7 +191,7 @@ EXCEL_SCHEMA = {
             "Fecha_Registro": "datetime"
         }
     },
-    "Configuracion": {
+    "configuracion": {
         "columns": [
             "Clave", "Valor", "Descripcion", "Fecha_Modificacion"
         ],
