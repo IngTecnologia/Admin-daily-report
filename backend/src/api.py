@@ -7,6 +7,8 @@ from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 import logging
 from contextlib import asynccontextmanager
 
@@ -65,6 +67,20 @@ app.add_middleware(
     allow_methods=settings.cors_methods,
     allow_headers=settings.cors_headers,
 )
+
+
+# Handler para errores de validacion
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logger.error(f"Error de validacion en {request.method} {request.url}: {exc.errors()}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": "Error de validacion",
+            "errors": exc.errors(),
+            "body": exc.body
+        }
+    )
 
 
 # Middleware para logging de requests
