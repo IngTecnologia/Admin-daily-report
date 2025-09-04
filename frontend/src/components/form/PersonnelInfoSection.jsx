@@ -1,4 +1,5 @@
 import React from 'react'
+import NumberInput from '../common/NumberInput'
 
 const PersonnelInfoSection = ({ formData, errors, updateField }) => {
   return (
@@ -15,13 +16,12 @@ const PersonnelInfoSection = ({ formData, errors, updateField }) => {
               Número de horas trabajadas (1-24)
             </small>
           </label>
-          <input
-            type="number"
+          <NumberInput
             id="horas_diarias"
-            min="1"
-            max="24"
+            min={1}
+            max={24}
             value={formData.horas_diarias}
-            onChange={(e) => updateField('horas_diarias', e.target.value)}
+            onChange={(value) => updateField('horas_diarias', value)}
             className={`form-input ${errors.horas_diarias ? 'error' : ''}`}
             placeholder="Ej: 8"
             required
@@ -38,12 +38,12 @@ const PersonnelInfoSection = ({ formData, errors, updateField }) => {
               Cantidad de personal staff
             </small>
           </label>
-          <input
-            type="number"
+          <NumberInput
             id="personal_staff"
-            min="0"
+            min={0}
+            max={9999}
             value={formData.personal_staff}
-            onChange={(e) => updateField('personal_staff', e.target.value)}
+            onChange={(value) => updateField('personal_staff', value)}
             className={`form-input ${errors.personal_staff ? 'error' : ''}`}
             placeholder="Ej: 15"
             required
@@ -60,12 +60,12 @@ const PersonnelInfoSection = ({ formData, errors, updateField }) => {
               Cantidad de personal base
             </small>
           </label>
-          <input
-            type="number"
+          <NumberInput
             id="personal_base"
-            min="0"
+            min={0}
+            max={9999}
             value={formData.personal_base}
-            onChange={(e) => updateField('personal_base', e.target.value)}
+            onChange={(value) => updateField('personal_base', value)}
             className={`form-input ${errors.personal_base ? 'error' : ''}`}
             placeholder="Ej: 45"
             required

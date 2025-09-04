@@ -1,10 +1,10 @@
 import React from 'react'
 import DynamicHiringFields from './DynamicHiringFields'
+import NumberInput from '../common/NumberInput'
 
 const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamicField }) => {
   const handleQuantityChange = (value) => {
-    const quantity = parseInt(value, 10) || 0
-    updateField('cantidad_ingresos_retiros', quantity)
+    updateField('cantidad_ingresos_retiros', value)
   }
 
   return (
@@ -21,13 +21,12 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
               Ingrese 0 si no hay movimientos de personal
             </small>
           </label>
-          <input
-            type="number"
+          <NumberInput
             id="cantidad_ingresos_retiros"
-            min="0"
-            max="50"
+            min={0}
+            max={50}
             value={formData.cantidad_ingresos_retiros}
-            onChange={(e) => handleQuantityChange(e.target.value)}
+            onChange={handleQuantityChange}
             className={`form-input ${errors.cantidad_ingresos_retiros ? 'error' : ''}`}
             placeholder="Ej: 3"
             required

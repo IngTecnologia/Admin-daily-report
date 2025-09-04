@@ -167,7 +167,7 @@ const DailyReportForm = () => {
               cursor: isSubmitting ? 'not-allowed' : 'pointer'
             }}
           >
-            = Limpiar Formulario
+            🗑️ Limpiar Formulario
           </button>
 
           <button

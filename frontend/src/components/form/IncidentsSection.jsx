@@ -1,11 +1,11 @@
 import React from 'react'
 import { INCIDENT_TYPES } from '../../services/constants'
 import DynamicIncidentFields from './DynamicIncidentFields'
+import NumberInput from '../common/NumberInput'
 
 const IncidentsSection = ({ formData, errors, updateField, updateDynamicField }) => {
   const handleQuantityChange = (value) => {
-    const quantity = parseInt(value, 10) || 0
-    updateField('cantidad_incidencias', quantity)
+    updateField('cantidad_incidencias', value)
   }
 
   return (
@@ -22,13 +22,12 @@ const IncidentsSection = ({ formData, errors, updateField, updateDynamicField })
               Ingrese 0 si no hay incidencias
             </small>
           </label>
-          <input
-            type="number"
+          <NumberInput
             id="cantidad_incidencias"
-            min="0"
-            max="50"
+            min={0}
+            max={50}
             value={formData.cantidad_incidencias}
-            onChange={(e) => handleQuantityChange(e.target.value)}
+            onChange={handleQuantityChange}
             className={`form-input ${errors.cantidad_incidencias ? 'error' : ''}`}
             placeholder="Ej: 2"
             required
