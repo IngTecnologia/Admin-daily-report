@@ -3,8 +3,6 @@ import { VALIDATION_RULES } from '../services/constants'
 
 export const useForm = (initialState = {}) => {
   const [formData, setFormData] = useState({
-    administrador: '',
-    cliente_operacion: '',
     horas_diarias: '',
     personal_staff: '',
     personal_base: '',
@@ -111,10 +109,10 @@ export const useForm = (initialState = {}) => {
     const newErrors = {}
     let isValid = true
 
-    // Validar campos b�sicos
+    // Validar campos b�sicos (excluyendo los campos de administrador)
     Object.keys(VALIDATION_RULES).forEach(fieldName => {
-      if (['nombre_empleado', 'fecha_fin', 'cargo'].includes(fieldName)) {
-        return // Estos se validan din�micamente
+      if (['nombre_empleado', 'fecha_fin', 'cargo', 'administrador', 'cliente_operacion'].includes(fieldName)) {
+        return // Estos se validan din�micamente o ya no se usan
       }
       
       const error = validateField(fieldName, formData[fieldName])
@@ -229,8 +227,6 @@ export const useForm = (initialState = {}) => {
   // Funci�n para resetear el formulario
   const resetForm = () => {
     setFormData({
-      administrador: '',
-      cliente_operacion: '',
       horas_diarias: '',
       personal_staff: '',
       personal_base: '',

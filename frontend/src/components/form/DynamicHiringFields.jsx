@@ -20,11 +20,11 @@ const DynamicHiringFields = ({ index, movement, errors, updateDynamicField }) =>
   const getStatusIcon = (status) => {
     switch (status) {
       case 'Ingreso':
-        return ''
+        return '‚úÖ'
       case 'Retiro':
-        return ''
+        return '‚ùå'
       default:
-        return '=À'
+        return 'üë§'
     }
   }
 
@@ -65,7 +65,7 @@ const DynamicHiringFields = ({ index, movement, errors, updateDynamicField }) =>
               color: 'var(--success-green)',
               fontWeight: '500'
             }}>
-               Completo
+              ‚úÖ Completo
             </div>
           )}
         </div>
@@ -81,7 +81,7 @@ const DynamicHiringFields = ({ index, movement, errors, updateDynamicField }) =>
             value={movement.nombre_empleado || ''}
             onChange={(e) => handleFieldChange('nombre_empleado', e.target.value)}
             className={`form-input ${errors[`ingresos_retiros.${index}.nombre_empleado`] ? 'error' : ''}`}
-            placeholder="Ej: MarÌa LÛpez Gonz·lez"
+            placeholder="Ej: Mar√≠a L√≥pez Gonz√°lez"
             minLength={3}
             maxLength={100}
             required
@@ -102,7 +102,7 @@ const DynamicHiringFields = ({ index, movement, errors, updateDynamicField }) =>
             value={movement.cargo || ''}
             onChange={(e) => handleFieldChange('cargo', e.target.value)}
             className={`form-input ${errors[`ingresos_retiros.${index}.cargo`] ? 'error' : ''}`}
-            placeholder="Ej: TÈcnico de Campo, Supervisor, Operario"
+            placeholder="Ej: T√©cnico de Campo, Supervisor, Operario"
             minLength={2}
             maxLength={50}
             required
@@ -139,7 +139,7 @@ const DynamicHiringFields = ({ index, movement, errors, updateDynamicField }) =>
         </div>
       </div>
 
-      {/* InformaciÛn adicional basada en el estado */}
+      {/* Informaci√≥n adicional basada en el estado */}
       {movement.estado && (
         <div style={{
           marginTop: '0.75rem',
@@ -151,12 +151,12 @@ const DynamicHiringFields = ({ index, movement, errors, updateDynamicField }) =>
         }}>
           {movement.estado === 'Ingreso' ? (
             <div style={{ color: 'var(--success-green)' }}>
-               <strong>Ingreso de personal:</strong> Nueva incorporaciÛn al equipo
+              ‚úÖ <strong>Ingreso de personal:</strong> Nueva incorporaci√≥n al equipo
               {movement.cargo && ` como ${movement.cargo}`}
             </div>
           ) : (
             <div style={{ color: 'var(--error-red)' }}>
-              L <strong>Retiro de personal:</strong> Salida del equipo
+              ‚ùå <strong>Retiro de personal:</strong> Salida del equipo
               {movement.cargo && ` del cargo ${movement.cargo}`}
             </div>
           )}
@@ -194,7 +194,7 @@ const DynamicHiringFields = ({ index, movement, errors, updateDynamicField }) =>
               {movement.nombre_empleado}
             </div>
             <div style={{ fontSize: '0.875rem', color: 'var(--neutral-gray)' }}>
-              {movement.cargo} " {movement.estado}
+              {movement.cargo} ‚Ä¢ {movement.estado}
             </div>
           </div>
         </div>

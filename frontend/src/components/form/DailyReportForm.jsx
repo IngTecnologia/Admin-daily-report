@@ -1,8 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from '../../hooks/useForm'
+import { useAuth } from '../../contexts/AuthContext'
 import { API_BASE_URL } from '../../services/constants'
-import AdministratorSection from './AdministratorSection'
+import { getClientForAdmin } from '../../config/adminMapping'
 import PersonnelInfoSection from './PersonnelInfoSection'
 import IncidentsSection from './IncidentsSection'
 import HiringRetirementsSection from './HiringRetirementsSection'
@@ -12,6 +13,7 @@ import Alert from '../common/Alert'
 
 const DailyReportForm = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const {
     formData,
     errors,
@@ -38,10 +40,20 @@ const DailyReportForm = () => {
     setSubmitError(null)
 
     try {
+      // Obtener administrador y cliente del usuario autenticado
+      const administrador = user?.fullName || user?.username
+      const cliente_operacion = getClientForAdmin(administrador)
+      
+      // Validar que el usuario tenga un cliente asignado
+      if (!cliente_operacion) {
+        setSubmitError(`No se encontró cliente asignado para el administrador: ${administrador}`)
+        return
+      }
+
       // Preparar los datos para el backend según la especificación de la API
       const submitData = {
-        administrador: formData.administrador,
-        cliente_operacion: formData.cliente_operacion,
+        administrador: administrador,
+        cliente_operacion: cliente_operacion,
         horas_diarias: parseInt(formData.horas_diarias, 10),
         personal_staff: parseInt(formData.personal_staff, 10),
         personal_base: parseInt(formData.personal_base, 10),
@@ -116,14 +128,28 @@ const DailyReportForm = () => {
 
   return (
     <form onSubmit={handleSubmit} className="form-card">
-      {/* Sección 1: Información del Administrador */}
-      <AdministratorSection
-        formData={formData}
-        errors={errors}
-        updateField={updateField}
-      />
+      {/* Información del administrador actual */}
+      <div className="form-section">
+        <h2 className="section-title">
+          👤 Administrador: {user?.fullName}
+        </h2>
+        <div style={{
+          padding: '1rem',
+          backgroundColor: '#f0fdf4',
+          border: '1px solid #bbf7d0',
+          borderRadius: '6px',
+          fontSize: '0.875rem'
+        }}>
+          <div style={{ color: 'var(--success-green)', fontWeight: '600' }}>
+            ✅ Cliente/Operación: {getClientForAdmin(user?.fullName || user?.username)}
+          </div>
+          <div style={{ color: 'var(--neutral-gray)', marginTop: '0.25rem' }}>
+            Usuario autenticado: {user?.username} • Área: {user?.area}
+          </div>
+        </div>
+      </div>
 
-      {/* Sección 2: Información de Personal */}
+      {/* Sección 1: Información de Personal */}
       <PersonnelInfoSection
         formData={formData}
         errors={errors}
@@ -210,8 +236,8 @@ const DailyReportForm = () => {
           color: 'var(--neutral-gray)'
         }}>
           <strong>📄 Resumen:</strong> {' '}
-          {formData.administrador && `${formData.administrador} • `}
-          {formData.cliente_operacion && `${formData.cliente_operacion} • `}
+          {user?.fullName && `${user.fullName} • `}
+          {getClientForAdmin(user?.fullName || user?.username) && `${getClientForAdmin(user?.fullName || user?.username)} • `}
           {formData.horas_diarias && `${formData.horas_diarias}h diarias • `}
           {formData.personal_staff && `${formData.personal_staff} staff • `}
           {formData.personal_base && `${formData.personal_base} base • `}

@@ -10,7 +10,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
   return (
     <div className="form-section">
       <h2 className="section-title">
-        💼 Ingresos o Retiros
+        💼 Ingresos o Retiros
       </h2>
       
       <div className="form-grid">
@@ -104,7 +104,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
                   }}>
                     <div>
                       <strong style={{ color: 'var(--success-green)' }}>
-                         Ingresos: {formData.ingresos_retiros.filter(mov => mov && mov.estado === 'Ingreso').length}
+                        ✅ Ingresos: {formData.ingresos_retiros.filter(mov => mov && mov.estado === 'Ingreso').length}
                       </strong>
                     </div>
                     <div>
@@ -125,7 +125,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
                             color: mov.estado === 'Ingreso' ? 'var(--success-green)' : 'var(--error-red)',
                             fontWeight: '500'
                           }}>
-                            {mov.estado === 'Ingreso' ? '' : ''} {mov.estado}
+                            {mov.estado === 'Ingreso' ? '✅' : '❌'} {mov.estado}
                           </span>{' '}
                           - {mov.nombre_empleado || 'Sin nombre'}{' '}
                           {mov.cargo && `(${mov.cargo})`}
