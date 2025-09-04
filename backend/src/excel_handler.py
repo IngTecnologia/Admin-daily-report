@@ -169,6 +169,7 @@ class ExcelHandler:
                 personal_base=report.personal_base,
                 cantidad_incidencias=len(report.incidencias),
                 cantidad_ingresos_retiros=len(report.ingresos_retiros),
+                hechos_relevantes=report.hechos_relevantes or "",
                 estado="Completado",
                 incidencias=incident_responses,
                 ingresos_retiros=movement_responses
@@ -200,6 +201,7 @@ class ExcelHandler:
             report.personal_base,
             len(report.incidencias),
             len(report.ingresos_retiros),
+            report.hechos_relevantes or "",
             "Completado",
             client_info.get("ip", "Unknown"),
             client_info.get("user_agent", "Unknown")

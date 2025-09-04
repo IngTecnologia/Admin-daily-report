@@ -145,7 +145,7 @@ EXCEL_SCHEMA = {
             "ID", "Fecha_Creacion", "Administrador", "Cliente_Operacion",
             "Horas_Diarias", "Personal_Staff", "Personal_Base", 
             "Cantidad_Incidencias", "Cantidad_Ingresos_Retiros",
-            "Estado", "IP_Origen", "User_Agent"
+            "Hechos_Relevantes", "Estado", "IP_Origen", "User_Agent"
         ],
         "types": {
             "ID": "string",
@@ -157,6 +157,7 @@ EXCEL_SCHEMA = {
             "Personal_Base": "integer",
             "Cantidad_Incidencias": "integer",
             "Cantidad_Ingresos_Retiros": "integer",
+            "Hechos_Relevantes": "string",
             "Estado": "string",
             "IP_Origen": "string",
             "User_Agent": "string"

@@ -161,6 +161,11 @@ class DailyReportCreate(BaseModel):
         default=[], 
         description="Lista de ingresos y retiros"
     )
+    hechos_relevantes: Optional[str] = Field(
+        default="", 
+        max_length=2000, 
+        description="Hechos relevantes del dia (opcional)"
+    )
 
     @validator('incidencias')
     def validate_incidencias(cls, v):
@@ -189,6 +194,7 @@ class DailyReportResponse(BaseModel):
     cantidad_incidencias: int = Field(..., description="Numero total de incidencias")
     cantidad_ingresos_retiros: int = Field(..., description="Numero total de movimientos")
     estado: str = Field(default="Completado", description="Estado del reporte")
+    hechos_relevantes: Optional[str] = Field(default="", description="Hechos relevantes del dia")
     incidencias: List[IncidentResponse] = Field(default=[])
     ingresos_retiros: List[MovementResponse] = Field(default=[])
 
