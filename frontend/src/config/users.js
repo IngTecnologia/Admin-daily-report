@@ -11,7 +11,7 @@ export const USERS = [
     password: 'admonpc2025',
     fullName: 'Adriana Robayo',
     role: 'form_user',
-    area: 'Administrativo Bogota'
+    area: 'Consorcio P&C'
   },
   //Angela Ramirez
   {
@@ -20,7 +20,7 @@ export const USERS = [
     password: 'admonvrc2025',
     fullName: 'Angela Ramirez', 
     role: 'form_user',
-    area: 'Campo Cupiagua'
+    area: 'Confiabilidad VRC'
   },
   //Floribe Correa
   {
@@ -29,7 +29,7 @@ export const USERS = [
     password: 'admonbog2025',
     fullName: 'Floribe Correa', 
     role: 'form_user',
-    area: 'Campo Cupiagua'
+    area: 'Administrativo Bogota'
   },
   //Julieth Rincon
   {
@@ -38,7 +38,7 @@ export const USERS = [
     password: 'admoncedco2025',
     fullName: 'Julieth Rincon',
     role: 'form_user',
-    area: 'Campo Floreña'
+    area: 'Sierracol CEDCO'
   },
   //Eddinson Javier Martinez
   {
@@ -47,7 +47,7 @@ export const USERS = [
     password: 'admoncus2025',
     fullName: 'Eddinson Javier Martinez',
     role: 'form_user',
-    area: 'Campo Floreña'
+    area: 'VPI CUSIANA'
   },
   //Jorge Ivan Alvarado Celis
   {
@@ -56,7 +56,7 @@ export const USERS = [
     password: 'admonflo2025',
     fullName: 'Jorge Iván Alvarado Celis',
     role: 'form_user',
-    area: 'Campo Floreña'
+    area: 'VPI FLOREÑA'
   },
   //Kenia Sanchez 
   {
@@ -65,7 +65,7 @@ export const USERS = [
     password: 'admonclm2025',
     fullName: 'Kenia Sanchez',
     role: 'form_user',
-    area: 'Campo Floreña'
+    area: 'Sierracol CLM'
   },
   //Liliana Romero 
   {
@@ -74,7 +74,7 @@ export const USERS = [
     password: 'admonbrc2025',
     fullName: 'Liliana Romero',
     role: 'form_user',
-    area: 'Campo Floreña'
+    area: 'Administrativo Barranca'
   },
   //Marcela Cusba 
   {
@@ -83,7 +83,7 @@ export const USERS = [
     password: 'admonggs2025',
     fullName: 'Marcela Cusba Gomez',
     role: 'form_user',
-    area: 'Campo Floreña'
+    area: 'VPI ADMON'
   },
   //Mirledys Garcia San Juan 
   {
@@ -92,7 +92,7 @@ export const USERS = [
     password: 'admoncrc2025',
     fullName: 'Mirledys Garcia San Juan',
     role: 'form_user',
-    area: 'Campo Floreña'
+    area: 'Sierracol CRC'
   },
   //Yolima Arenas Zarate 
   {
@@ -101,7 +101,7 @@ export const USERS = [
     password: 'admoncup2025',
     fullName: 'Yolima Arenas Zarate',
     role: 'form_user',
-    area: 'Campo Floreña'
+    area: 'VPI CUPIAGUA'
   },
 
   // Usuarios con acceso al formulario + panel admin
@@ -130,7 +130,7 @@ export const USERS = [
     password: 'proti2025',
     fullName: 'Andrés Muñoz',
     role: 'admin_user',
-    area: 'Análisis y Reportes'
+    area: 'TI'
   },
   //Hugo Rodriguez
   {
@@ -139,7 +139,7 @@ export const USERS = [
     password: 'gteadmon2025',
     fullName: 'Hugo Rodríguez',
     role: 'admin_user',
-    area: 'Análisis y Reportes'
+    area: 'Gerencia Administrativa'
   }
 ]
 
