@@ -72,7 +72,7 @@ const Login = () => {
             color: 'var(--neutral-gray)',
             fontSize: '1rem'
           }}>
-            Sistema de Reportes Diarios
+            Sistema de Reporte Diario Administrativo
           </p>
         </div>
 
@@ -145,7 +145,7 @@ const Login = () => {
                 onMouseEnter={(e) => !isLoading && (e.target.style.opacity = '1')}
                 onMouseLeave={(e) => !isLoading && (e.target.style.opacity = '0.7')}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? '●●●' : '○○○'}
               </button>
             </div>
           </div>
@@ -173,31 +173,6 @@ const Login = () => {
             )}
           </button>
 
-          {/* Información de usuarios demo */}
-          <div style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '6px',
-            padding: '1rem',
-            fontSize: '0.875rem'
-          }}>
-            <div style={{ 
-              fontWeight: '600', 
-              marginBottom: '0.5rem',
-              color: 'var(--primary-red)'
-            }}>
-              📋 Usuarios de ejemplo:
-            </div>
-            <div style={{ color: 'var(--neutral-gray)', lineHeight: '1.4' }}>
-              <strong>Solo formulario:</strong><br />
-              • admin.campo1 / campo123<br />
-              • supervisor.floreña / flor789<br />
-              <br />
-              <strong>Formulario + Admin:</strong><br />
-              • admin.general / admin2024<br />
-              • gerente.operaciones / gerente2024
-            </div>
-          </div>
         </form>
       </div>
     </div>

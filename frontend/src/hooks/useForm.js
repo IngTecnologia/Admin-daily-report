@@ -8,8 +8,8 @@ export const useForm = (initialState = {}) => {
     horas_diarias: '',
     personal_staff: '',
     personal_base: '',
-    cantidad_incidencias: 0,
-    cantidad_ingresos_retiros: 0,
+    cantidad_incidencias: '',
+    cantidad_ingresos_retiros: '',
     incidencias: [],
     ingresos_retiros: [],
     ...initialState
@@ -19,51 +19,51 @@ export const useForm = (initialState = {}) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [touchedFields, setTouchedFields] = useState({})
 
-  // Función para validar un campo individual
+  // Funciï¿½n para validar un campo individual
   const validateField = (name, value) => {
     const rule = VALIDATION_RULES[name]
     if (!rule) return null
 
-    // Campo requerido
-    if (rule.required && (!value || value === '')) {
+    // Campo requerido - permitir 0 como valor vÃ¡lido
+    if (rule.required && (value === '' || value === null || value === undefined)) {
       return 'Este campo es obligatorio'
     }
 
-    // Validación de números
+    // Validaciï¿½n de nï¿½meros
     if (rule.type === 'number') {
       const numValue = parseInt(value, 10)
       
       if (value !== '' && isNaN(numValue)) {
-        return 'Debe ser un número válido'
+        return 'Debe ser un nï¿½mero vï¿½lido'
       }
       
       if (!isNaN(numValue)) {
         if (rule.integer && !Number.isInteger(numValue)) {
-          return 'Debe ser un número entero'
+          return 'Debe ser un nï¿½mero entero'
         }
         
         if (rule.min !== undefined && numValue < rule.min) {
-          return `El valor mínimo es ${rule.min}`
+          return `El valor mï¿½nimo es ${rule.min}`
         }
         
         if (rule.max !== undefined && numValue > rule.max) {
-          return `El valor máximo es ${rule.max}`
+          return `El valor mï¿½ximo es ${rule.max}`
         }
       }
     }
 
-    // Validación de texto
+    // Validaciï¿½n de texto
     if (rule.type === 'text' && value) {
       if (rule.minLength && value.length < rule.minLength) {
-        return `Mínimo ${rule.minLength} caracteres`
+        return `Mï¿½nimo ${rule.minLength} caracteres`
       }
       
       if (rule.maxLength && value.length > rule.maxLength) {
-        return `Máximo ${rule.maxLength} caracteres`
+        return `Mï¿½ximo ${rule.maxLength} caracteres`
       }
     }
 
-    // Validación de fecha
+    // Validaciï¿½n de fecha
     if (rule.type === 'date' && value) {
       const selectedDate = new Date(value)
       const today = new Date()
@@ -77,14 +77,14 @@ export const useForm = (initialState = {}) => {
       maxDate.setFullYear(maxDate.getFullYear() + 1)
       
       if (selectedDate > maxDate) {
-        return 'La fecha no puede ser más de un año en el futuro'
+        return 'La fecha no puede ser mï¿½s de un aï¿½o en el futuro'
       }
     }
 
     return null
   }
 
-  // Función para actualizar un campo
+  // Funciï¿½n para actualizar un campo
   const updateField = (name, value) => {
     setFormData(prev => ({
       ...prev,
@@ -105,15 +105,15 @@ export const useForm = (initialState = {}) => {
     }))
   }
 
-  // Función para validar todos los campos
+  // Funciï¿½n para validar todos los campos
   const validateAllFields = () => {
     const newErrors = {}
     let isValid = true
 
-    // Validar campos básicos
+    // Validar campos bï¿½sicos
     Object.keys(VALIDATION_RULES).forEach(fieldName => {
       if (['nombre_empleado', 'fecha_fin', 'cargo'].includes(fieldName)) {
-        return // Estos se validan dinámicamente
+        return // Estos se validan dinï¿½micamente
       }
       
       const error = validateField(fieldName, formData[fieldName])
@@ -123,7 +123,7 @@ export const useForm = (initialState = {}) => {
       }
     })
 
-    // Validar campos dinámicos de incidencias
+    // Validar campos dinï¿½micos de incidencias
     if (formData.cantidad_incidencias > 0) {
       for (let i = 0; i < formData.cantidad_incidencias; i++) {
         const incidencia = formData.incidencias[i] || {}
@@ -139,7 +139,7 @@ export const useForm = (initialState = {}) => {
       }
     }
 
-    // Validar campos dinámicos de ingresos/retiros
+    // Validar campos dinï¿½micos de ingresos/retiros
     if (formData.cantidad_ingresos_retiros > 0) {
       for (let i = 0; i < formData.cantidad_ingresos_retiros; i++) {
         const movimiento = formData.ingresos_retiros[i] || {}
@@ -159,7 +159,7 @@ export const useForm = (initialState = {}) => {
     return isValid
   }
 
-  // Función para actualizar campos dinámicos
+  // Funciï¿½n para actualizar campos dinï¿½micos
   const updateDynamicField = (section, index, field, value) => {
     setFormData(prev => {
       const newData = { ...prev }
@@ -172,7 +172,7 @@ export const useForm = (initialState = {}) => {
       return newData
     })
 
-    // Validar el campo dinámico
+    // Validar el campo dinï¿½mico
     const error = validateField(field, value)
     setErrors(prev => ({
       ...prev,
@@ -187,7 +187,7 @@ export const useForm = (initialState = {}) => {
       const newIncidencias = [...formData.incidencias]
       
       if (formData.cantidad_incidencias > newIncidencias.length) {
-        // Agregar nuevas incidencias vacías
+        // Agregar nuevas incidencias vacï¿½as
         for (let i = newIncidencias.length; i < formData.cantidad_incidencias; i++) {
           newIncidencias.push({
             tipo_incidencia: '',
@@ -208,7 +208,7 @@ export const useForm = (initialState = {}) => {
       const newMovimientos = [...formData.ingresos_retiros]
       
       if (formData.cantidad_ingresos_retiros > newMovimientos.length) {
-        // Agregar nuevos movimientos vacíos
+        // Agregar nuevos movimientos vacï¿½os
         for (let i = newMovimientos.length; i < formData.cantidad_ingresos_retiros; i++) {
           newMovimientos.push({
             nombre_empleado: '',
@@ -225,7 +225,7 @@ export const useForm = (initialState = {}) => {
     }
   }, [formData.cantidad_incidencias, formData.cantidad_ingresos_retiros])
 
-  // Función para resetear el formulario
+  // Funciï¿½n para resetear el formulario
   const resetForm = () => {
     setFormData({
       administrador: '',
@@ -233,8 +233,8 @@ export const useForm = (initialState = {}) => {
       horas_diarias: '',
       personal_staff: '',
       personal_base: '',
-      cantidad_incidencias: 0,
-      cantidad_ingresos_retiros: 0,
+      cantidad_incidencias: '',
+      cantidad_ingresos_retiros: '',
       incidencias: [],
       ingresos_retiros: []
     })

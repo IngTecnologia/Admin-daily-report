@@ -20,20 +20,31 @@ const NumberInput = ({
       return
     }
     
-    // Remover ceros iniciales excepto si es solo "0"
-    if (inputValue.length > 1 && inputValue.startsWith('0')) {
-      inputValue = inputValue.replace(/^0+/, '')
-      if (inputValue === '') inputValue = '0'
+    // Permitir solo números
+    if (!/^\d+$/.test(inputValue)) {
+      return
     }
     
-    // Convertir a número y validar límites
+    // Convertir a número
     const numValue = parseInt(inputValue, 10)
     
     if (isNaN(numValue)) return
     
+    // Validar límites
     if (numValue < min || numValue > max) return
     
-    onChange(numValue.toString())
+    // Si el valor es 0 y min es 0, permitir
+    if (numValue === 0 && min === 0) {
+      onChange('0')
+      return
+    }
+    
+    // Remover ceros iniciales solo si el número es mayor que 0
+    if (numValue > 0 && inputValue.startsWith('0')) {
+      onChange(numValue.toString())
+    } else {
+      onChange(inputValue)
+    }
   }
 
   const handleIncrement = () => {
@@ -44,9 +55,10 @@ const NumberInput = ({
   }
 
   const handleDecrement = () => {
-    const currentValue = parseInt(value || '0', 10)
-    if (currentValue > min) {
-      onChange((currentValue - step).toString())
+    const currentValue = parseInt(value || min.toString(), 10)
+    const newValue = currentValue - step
+    if (newValue >= min) {
+      onChange(newValue.toString())
     }
   }
 
