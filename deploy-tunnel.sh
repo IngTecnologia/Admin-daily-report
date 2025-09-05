@@ -204,6 +204,9 @@ case $ACTION in
     log "⚙️  Configuración inicial para Cloudflare Tunnel..."
     check_docker
     setup_environment
+    git fetch origin 
+    git reset --hard origin/master
+    cp .env.tunnel 
     
     if [[ ! -f ".env.tunnel" ]] || [[ -z "$TUNNEL_TOKEN" ]]; then
         show_tunnel_instructions
