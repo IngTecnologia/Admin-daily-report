@@ -11,12 +11,15 @@ const ReportDetail = ({ report, onClose }) => {
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'America/Bogota'
     })
   }
 
   const formatDateOnly = (dateString) => {
-    return new Date(dateString).toLocaleDateString('es-ES')
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      timeZone: 'America/Bogota'
+    })
   }
 
   return (
@@ -57,7 +60,7 @@ const ReportDetail = ({ report, onClose }) => {
               color: 'var(--primary-red)',
               marginBottom: '0.5rem'
             }}>
-              =Ä Detalle del Reporte
+              =ï¿½ Detalle del Reporte
             </h2>
             <p style={{
               color: 'var(--neutral-gray)',
@@ -87,7 +90,7 @@ const ReportDetail = ({ report, onClose }) => {
         </div>
 
         <div style={{ padding: '2rem' }}>
-          {/* Información del administrador */}
+          {/* Informaciï¿½n del administrador */}
           <div style={{ marginBottom: '2rem' }}>
             <h3 style={{
               fontSize: '1.25rem',
@@ -98,7 +101,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              =d Información del Administrador
+              =d Informaciï¿½n del Administrador
             </h3>
             
             <div style={{
@@ -110,12 +113,12 @@ const ReportDetail = ({ report, onClose }) => {
               borderRadius: '8px'
             }}>
               <DetailField label="Administrador" value={report.administrador} />
-              <DetailField label="Cliente/Operación" value={report.cliente_operacion} />
+              <DetailField label="Cliente/Operaciï¿½n" value={report.cliente_operacion} />
               <DetailField label="Estado" value={report.estado || 'Completado'} />
             </div>
           </div>
 
-          {/* Información de personal */}
+          {/* Informaciï¿½n de personal */}
           <div style={{ marginBottom: '2rem' }}>
             <h3 style={{
               fontSize: '1.25rem',
@@ -126,7 +129,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              =e Información de Personal
+              =e Informaciï¿½n de Personal
             </h3>
             
             <div style={{
@@ -158,7 +161,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-                Incidencias ({report.cantidad_incidencias || 0})
+              ï¿½ Incidencias ({report.cantidad_incidencias || 0})
             </h3>
             
             {report.incidencias && report.incidencias.length > 0 ? (
@@ -278,7 +281,7 @@ const ReportDetail = ({ report, onClose }) => {
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
-                =Ý Hechos Relevantes
+                =ï¿½ Hechos Relevantes
               </h3>
               
               <div style={{

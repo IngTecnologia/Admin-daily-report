@@ -77,7 +77,8 @@ const ReportsList = ({ onViewReport }) => {
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZone: 'America/Bogota'
     })
   }
 
@@ -335,10 +336,10 @@ const ReportRow = ({ report, onViewReport }) => {
       
       <div>
         <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
-          {new Date(report.fecha_creacion || Date.now()).toLocaleDateString('es-ES')}
+          {new Date(report.fecha_creacion || Date.now()).toLocaleDateString('es-ES', { timeZone: 'America/Bogota' })}
         </div>
         <div style={{ color: 'var(--neutral-gray)', fontSize: '0.75rem' }}>
-          {new Date(report.fecha_creacion || Date.now()).toLocaleTimeString('es-ES')}
+          {new Date(report.fecha_creacion || Date.now()).toLocaleTimeString('es-ES', { timeZone: 'America/Bogota' })}
         </div>
       </div>
       

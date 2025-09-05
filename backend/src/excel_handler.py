@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime, date
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
+import pytz
 
 import openpyxl
 from openpyxl import Workbook
@@ -16,6 +17,13 @@ import pandas as pd
 
 from .config import settings, EXCEL_SCHEMA
 from .models import DailyReportCreate, DailyReportResponse, IncidentResponse, MovementResponse
+
+# Timezone de Bogotá (GMT-5)
+BOGOTA_TZ = pytz.timezone('America/Bogota')
+
+def get_bogota_now() -> datetime:
+    """Obtiene la fecha y hora actual en timezone de Bogotá"""
+    return datetime.now(BOGOTA_TZ)
 
 
 class ExcelHandler:
@@ -93,10 +101,10 @@ class ExcelHandler:
         
         # Configuraciones iniciales
         config_data = [
-            ["version_sistema", "1.0.0", "Version del sistema", datetime.now()],
-            ["max_reportes_dia", "10", "Maximo reportes por dia por admin", datetime.now()],
-            ["fecha_creacion", datetime.now().isoformat(), "Fecha de creacion del sistema", datetime.now()],
-            ["backup_enabled", "true", "Backups automaticos habilitados", datetime.now()],
+            ["version_sistema", "1.0.0", "Version del sistema", get_bogota_now()],
+            ["max_reportes_dia", "10", "Maximo reportes por dia por admin", get_bogota_now()],
+            ["fecha_creacion", get_bogota_now().isoformat(), "Fecha de creacion del sistema", get_bogota_now()],
+            ["backup_enabled", "true", "Backups automaticos habilitados", get_bogota_now()],
         ]
         
         # Agregar datos de configuracion
@@ -130,7 +138,7 @@ class ExcelHandler:
     
     def generate_report_id(self) -> str:
         """Generar ID unico para reporte segun formato especificado"""
-        today = datetime.now()
+        today = get_bogota_now()
         date_str = today.strftime("%Y%m%d")
         
         # Contar reportes del dia
@@ -143,7 +151,7 @@ class ExcelHandler:
         """Guardar reporte completo en Excel"""
         try:
             report_id = self.generate_report_id()
-            timestamp = datetime.now()
+            timestamp = get_bogota_now()
             
             # Guardar reporte principal
             self._save_main_report(report_id, report, timestamp, client_info)
@@ -305,6 +313,10 @@ class ExcelHandler:
                 # Verificar fecha
                 fecha_creacion = row_dict.get('Fecha_Creacion')
                 if isinstance(fecha_creacion, datetime):
+                    # Convertir a timezone de Bogotá si no tiene timezone
+                    if fecha_creacion.tzinfo is None:
+                        fecha_creacion = BOGOTA_TZ.localize(fecha_creacion)
+                    fecha_creacion = fecha_creacion.astimezone(BOGOTA_TZ)
                     if fecha_creacion.date() == target_date:
                         reports.append(row_dict)
                 elif isinstance(fecha_creacion, str):
@@ -364,7 +376,7 @@ class ExcelHandler:
     def get_analytics_data(self) -> Dict[str, Any]:
         """Obtener datos para analytics del dashboard"""
         try:
-            today = date.today()
+            today = get_bogota_now().date()
             all_reports = self.get_all_reports()
             reports_today = self.get_reports_by_date(today)
             
@@ -384,6 +396,10 @@ class ExcelHandler:
             for report in all_reports:
                 fecha_creacion = report.get('Fecha_Creacion')
                 if isinstance(fecha_creacion, datetime):
+                    # Convertir a timezone de Bogotá si no tiene timezone
+                    if fecha_creacion.tzinfo is None:
+                        fecha_creacion = BOGOTA_TZ.localize(fecha_creacion)
+                    fecha_creacion = fecha_creacion.astimezone(BOGOTA_TZ)
                     if fecha_creacion.month == current_month and fecha_creacion.year == current_year:
                         incidencias_mes += report.get('Cantidad_Incidencias', 0)
             
@@ -418,7 +434,7 @@ class ExcelHandler:
     def backup_file(self) -> bool:
         """Crear backup del archivo Excel"""
         try:
-            backup_name = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{self.file_path.name}"
+            backup_name = f"backup_{get_bogota_now().strftime('%Y%m%d_%H%M%S')}_{self.file_path.name}"
             backup_path = self.file_path.parent / "backups" / backup_name
             backup_path.parent.mkdir(exist_ok=True)
             
