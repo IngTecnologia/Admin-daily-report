@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Frontend - React + Nginx
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "10000:80"  # Puerto para Cloudflare
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - admin-daily-report
+    environment:
+      - NODE_ENV=production
+      - REACT_APP_API_URL=https://reportediario.inemec.com:10001/api/v1
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend - FastAPI + Python
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "10001:8001"  # Puerto interno para API
+    restart: unless-stopped
+    networks:
+      - admin-daily-report
+    environment:
+      - PYTHONPATH=/app
+      - PORT=8001
+      - CORS_ORIGINS=["http://localhost:10000","https://reportediario.inemec.com:10000","https://reportediario.inemec.com"]
+    volumes:
+      # Persistir datos de Excel
+      - ./data:/app/data
+      # Logs
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  admin-daily-report:
+    driver: bridge
+
+volumes:
+  # Volumen para datos persistentes
+  admin_data:
+    driver: local

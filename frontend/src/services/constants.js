@@ -102,7 +102,7 @@ export const VALIDATION_RULES = {
 
 // Configuracion de API
 export const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? 'http://localhost:8001/api/v1'  // En produccion Docker
+  ? (process.env.REACT_APP_API_URL || 'http://localhost:10001/api/v1')  // En produccion
   : 'http://localhost:8001/api/v1'  // En desarrollo
 
 export const API_ENDPOINTS = {

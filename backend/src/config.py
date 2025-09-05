@@ -25,8 +25,11 @@ class Settings(BaseSettings):
     cors_origins: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",  # Vite dev server
-        "http://localhost:4501",  # Frontend en Docker
+        "http://localhost:4501",  # Frontend en Docker desarrollo
+        "http://localhost:10000", # Frontend en producción
         "http://frontend:80",     # Docker internal
+        "https://reportediario.inemec.com", # Dominio de producción
+        "https://reportediario.inemec.com:10000", # Con puerto específico
     ]
     cors_methods: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     cors_headers: List[str] = ["*"]
