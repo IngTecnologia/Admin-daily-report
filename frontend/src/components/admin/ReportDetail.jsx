@@ -63,7 +63,7 @@ const ReportDetail = ({ report, onClose }) => {
               color: 'var(--neutral-gray)',
               fontSize: '0.875rem'
             }}>
-              ID: {report.id} " Creado: {formatDate(report.fecha_creacion)}
+              ID: {report.id} • Creado: {formatDate(report.fecha_creacion)}
             </p>
           </div>
           
@@ -198,7 +198,7 @@ const ReportDetail = ({ report, onClose }) => {
                 textAlign: 'center',
                 color: 'var(--success-green)'
               }}>
-                 No hay incidencias reportadas
+                ✅ No hay incidencias reportadas
               </div>
             )}
           </div>
@@ -261,7 +261,7 @@ const ReportDetail = ({ report, onClose }) => {
                 textAlign: 'center',
                 color: 'var(--success-green)'
               }}>
-                 No hay movimientos de personal reportados
+                ✅ No hay movimientos de personal reportados
               </div>
             )}
           </div>

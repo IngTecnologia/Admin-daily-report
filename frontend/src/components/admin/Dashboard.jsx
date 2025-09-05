@@ -86,10 +86,10 @@ const Dashboard = () => {
         alignItems: 'center',
         gap: '0.5rem'
       }}>
-        =� Dashboard de M�tricas
+        📊 Dashboard de Métricas
       </h2>
 
-      {/* M�tricas principales */}
+      {/* Métricas principales */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -97,15 +97,15 @@ const Dashboard = () => {
         marginBottom: '3rem'
       }}>
         <StatCard
-          icon="=�"
+          icon="📅"
           title="Reportes Hoy"
           value={stats.reportesHoy}
           color="var(--success-green)"
-          subtitle="Reportes del d�a actual"
+          subtitle="Reportes del día actual"
         />
         
         <StatCard
-          icon="=�"
+          icon="📅"
           title="Total Reportes"
           value={stats.totalReportes}
           color="var(--primary-red)"
@@ -113,7 +113,7 @@ const Dashboard = () => {
         />
         
         <StatCard
-          icon="�"
+          icon="⚠️"
           title="Total Incidencias"
           value={stats.totalIncidencias}
           color="var(--warning-yellow)"
@@ -121,7 +121,7 @@ const Dashboard = () => {
         />
         
         <StatCard
-          icon="="
+          icon="🔄"
           title="Movimientos de Personal"
           value={stats.totalMovimientos}
           color="var(--accent-orange)"
@@ -129,7 +129,7 @@ const Dashboard = () => {
         />
         
         <StatCard
-          icon="=e"
+          icon="👥"
           title="Administradores Activos"
           value={stats.administradoresActivos}
           color="var(--neutral-gray)"
@@ -137,7 +137,7 @@ const Dashboard = () => {
         />
         
         <StatCard
-          icon="�"
+          icon="⚠️"
           title="Promedio Horas Diarias"
           value={stats.promedioHorasDiarias?.toFixed(1) || '0.0'}
           color="var(--primary-red)"
@@ -145,7 +145,7 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Resumen r�pido */}
+      {/* Resumen rápido */}
       <div style={{
         backgroundColor: '#f0fdf4',
         border: '1px solid #bbf7d0',
@@ -158,7 +158,7 @@ const Dashboard = () => {
           color: 'var(--success-green)',
           marginBottom: '1rem'
         }}>
-          =� Resumen del Sistema
+          ✅ Resumen del Sistema
         </h3>
         
         <div style={{
@@ -171,7 +171,7 @@ const Dashboard = () => {
             <strong>Estado del Sistema:</strong> Operacional
           </div>
           <div>
-            <strong>�ltima Actualizaci�n:</strong> {new Date().toLocaleString('es-ES')}
+            <strong>Última Actualización:</strong> {new Date().toLocaleString('es-ES')}
           </div>
           <div>
             <strong>Base de Datos:</strong> Excel ({stats.totalReportes} registros)
