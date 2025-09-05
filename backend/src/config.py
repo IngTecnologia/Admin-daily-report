@@ -1,5 +1,5 @@
 """
-Configuracion del sistema Admin Daily Report
+Configuracion del sistema Admin Daily Report para Cloudflare Tunnel
 """
 import os
 from pathlib import Path
@@ -18,18 +18,25 @@ class Settings(BaseSettings):
     # Configuracion del servidor
     host: str = "0.0.0.0"
     port: int = 8001
-    debug: bool = True
-    reload: bool = True
+    debug: bool = False
+    reload: bool = False
     
-    # Configuracion de CORS
+    # Configuracion de CORS para Cloudflare Tunnel
     cors_origins: List[str] = [
+        # Dominios del túnel de Cloudflare
+        "https://reportediario.inemec.com",
+        "https://api.reportediario.inemec.com",
+        # Para desarrollo local
         "http://localhost:3000",
         "http://localhost:5173",  # Vite dev server
-        "http://localhost:4501",  # Frontend en Docker desarrollo
-        "http://localhost:10000", # Frontend en producción
+        "http://localhost:4501",  # Frontend local
+        "http://localhost:8001",  # Backend local
+        # Variaciones para testing
         "http://frontend:80",     # Docker internal
-        "https://reportediario.inemec.com", # Dominio de producción
-        "https://reportediario.inemec.com:10000", # Con puerto específico
+        "http://backend:8001",    # Docker internal
+        # Cloudflare tunnel internals
+        "https://*.cfargotunnel.com",
+        "https://*.trycloudflare.com"
     ]
     cors_methods: List[str] = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
     cors_headers: List[str] = ["*"]
@@ -84,6 +91,12 @@ class Settings(BaseSettings):
     redoc_url: str = "/redoc"
     openapi_url: str = "/openapi.json"
     
+    # Configuración específica para Cloudflare Tunnel
+    tunnel_mode: bool = True
+    frontend_domain: str = "reportediario.inemec.com"
+    api_domain: str = "api.reportediario.inemec.com"
+    use_https: bool = True
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -94,9 +107,24 @@ class Settings(BaseSettings):
         # Crear directorios si no existen
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.logs_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Agregar CORS dinámicamente desde variables de entorno si están definidas
+        env_cors = os.getenv('CORS_ORIGINS')
+        if env_cors:
+            try:
+                import json
+                additional_origins = json.loads(env_cors)
+                self.cors_origins.extend(additional_origins)
+                # Remover duplicados manteniendo orden
+                self.cors_origins = list(dict.fromkeys(self.cors_origins))
+            except (json.JSONDecodeError, TypeError):
+                # Si no es JSON válido, intentar como string separado por comas
+                additional_origins = [origin.strip() for origin in env_cors.split(',')]
+                self.cors_origins.extend(additional_origins)
+                self.cors_origins = list(dict.fromkeys(self.cors_origins))
 
 
-# Configuraci�n de constantes seg�n el README
+# Configuración de constantes según el README
 ADMINISTRATORS = [
     "Adriana Robayo",
     "Angela Ramirez", 

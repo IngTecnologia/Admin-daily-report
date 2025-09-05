@@ -100,14 +100,35 @@ export const VALIDATION_RULES = {
   }
 }
 
-// Configuracion de API
-export const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:8001/api/v1'  // En desarrollo local
-  : (process.env.REACT_APP_API_URL || 'http://localhost:10001/api/v1')  // En produccion
+// Configuracion de API para Cloudflare Tunnel
+const getApiBaseUrl = () => {
+  // En desarrollo local
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8001/api/v1'
+  }
+  
+  // En producción con Cloudflare Tunnel
+  // El túnel expone el backend en api.reportediario.inemec.com
+  if (window.location.hostname === 'reportediario.inemec.com') {
+    return 'https://api.reportediario.inemec.com/api/v1'
+  }
+  
+  // Fallback desde variable de entorno
+  return process.env.REACT_APP_API_URL || 'https://api.reportediario.inemec.com/api/v1'
+}
+
+export const API_BASE_URL = getApiBaseUrl()
 
 export const API_ENDPOINTS = {
   REPORTES: '/reportes',
   ADMIN_REPORTES: '/admin/reportes',
   ADMIN_ANALYTICS: '/admin/analytics',
   ADMIN_EXPORT: '/admin/export'
+}
+
+// Configuración específica para túnel
+export const TUNNEL_CONFIG = {
+  FRONTEND_URL: 'https://reportediario.inemec.com',
+  API_URL: 'https://api.reportediario.inemec.com',
+  WEBSOCKET_URL: 'wss://api.reportediario.inemec.com'
 }

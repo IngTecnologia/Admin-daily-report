@@ -1,57 +1,56 @@
 version: '3.8'
 
 services:
-  # Frontend - React + Nginx
+  # Frontend - React + Nginx (SIN PUERTOS EXPUESTOS)
   frontend:
     build: 
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "10000:80"  # Puerto para Cloudflare
-    depends_on:
-      - backend
+    # NO EXPONEMOS PUERTOS - el túnel maneja todo
     restart: unless-stopped
     networks:
-      - admin-daily-report
+      - tunnel-network
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_URL=https://reportediario.inemec.com:10001/api/v1
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - REACT_APP_API_URL=https://api.reportediario.inemec.com/api/v1
 
-  # Backend - FastAPI + Python
+  # Backend - FastAPI + Python (SIN PUERTOS EXPUESTOS)
   backend:
     build: 
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "10001:8001"  # Puerto interno para API
+    # NO EXPONEMOS PUERTOS - el túnel maneja todo
     restart: unless-stopped
     networks:
-      - admin-daily-report
+      - tunnel-network
     environment:
       - PYTHONPATH=/app
       - PORT=8001
-      - CORS_ORIGINS=["http://localhost:10000","https://reportediario.inemec.com:10000","https://reportediario.inemec.com"]
+      # CORS para subdominios del túnel
+      - CORS_ORIGINS=["https://reportediario.inemec.com","https://api.reportediario.inemec.com","http://localhost:3000","http://localhost:5173"]
     volumes:
       # Persistir datos de Excel
       - ./data:/app/data
-      # Logs
       - ./logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+
+  # Cloudflare Tunnel - LA MAGIA SUCEDE AQUÍ
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-tunnel
+    restart: unless-stopped
+    networks:
+      - tunnel-network
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run
+    depends_on:
+      - frontend
+      - backend
 
 networks:
-  admin-daily-report:
+  tunnel-network:
     driver: bridge
 
 volumes:
-  # Volumen para datos persistentes
   admin_data:
     driver: local
