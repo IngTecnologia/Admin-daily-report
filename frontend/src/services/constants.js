@@ -101,9 +101,9 @@ export const VALIDATION_RULES = {
 }
 
 // Configuracion de API
-export const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? (process.env.REACT_APP_API_URL || 'http://localhost:10001/api/v1')  // En produccion
-  : 'http://localhost:8001/api/v1'  // En desarrollo
+export const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8001/api/v1'  // En desarrollo local
+  : (process.env.REACT_APP_API_URL || 'http://localhost:10001/api/v1')  // En produccion
 
 export const API_ENDPOINTS = {
   REPORTES: '/reportes',

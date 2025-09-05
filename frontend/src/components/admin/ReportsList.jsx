@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../../services/constants'
+import { adaptReportsListData } from '../../services/dataAdapter'
 
 const ReportsList = ({ onViewReport }) => {
   const [reports, setReports] = useState([])
@@ -35,7 +36,8 @@ const ReportsList = ({ onViewReport }) => {
       }
       
       const data = await response.json()
-      setReports(data.reports || data)
+      const adaptedData = adaptReportsListData(data.reports || data)
+      setReports(adaptedData)
       setTotalPages(data.totalPages || 1)
       setError(null)
     } catch (err) {

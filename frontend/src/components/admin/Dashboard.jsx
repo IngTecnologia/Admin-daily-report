@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../../services/constants'
+import { adaptAnalyticsData } from '../../services/dataAdapter'
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -28,7 +29,8 @@ const Dashboard = () => {
       }
       
       const data = await response.json()
-      setStats(data)
+      const adaptedData = adaptAnalyticsData(data)
+      setStats(adaptedData)
       setError(null)
     } catch (err) {
       setError(err.message)
@@ -54,7 +56,7 @@ const Dashboard = () => {
   if (error) {
     return (
       <div className="alert alert-error" style={{ margin: '2rem 0' }}>
-          {error}
+        ï¿½ {error}
         <button 
           onClick={fetchDashboardData}
           style={{
@@ -84,10 +86,10 @@ const Dashboard = () => {
         alignItems: 'center',
         gap: '0.5rem'
       }}>
-        =Ê Dashboard de Métricas
+        =ï¿½ Dashboard de Mï¿½tricas
       </h2>
 
-      {/* Métricas principales */}
+      {/* Mï¿½tricas principales */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -95,15 +97,15 @@ const Dashboard = () => {
         marginBottom: '3rem'
       }}>
         <StatCard
-          icon="=Ý"
+          icon="=ï¿½"
           title="Reportes Hoy"
           value={stats.reportesHoy}
           color="var(--success-green)"
-          subtitle="Reportes del día actual"
+          subtitle="Reportes del dï¿½a actual"
         />
         
         <StatCard
-          icon="=Ë"
+          icon="=ï¿½"
           title="Total Reportes"
           value={stats.totalReportes}
           color="var(--primary-red)"
@@ -111,7 +113,7 @@ const Dashboard = () => {
         />
         
         <StatCard
-          icon=" "
+          icon="ï¿½"
           title="Total Incidencias"
           value={stats.totalIncidencias}
           color="var(--warning-yellow)"
@@ -135,7 +137,7 @@ const Dashboard = () => {
         />
         
         <StatCard
-          icon="ð"
+          icon="ï¿½"
           title="Promedio Horas Diarias"
           value={stats.promedioHorasDiarias?.toFixed(1) || '0.0'}
           color="var(--primary-red)"
@@ -143,7 +145,7 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* Resumen rápido */}
+      {/* Resumen rï¿½pido */}
       <div style={{
         backgroundColor: '#f0fdf4',
         border: '1px solid #bbf7d0',
@@ -156,7 +158,7 @@ const Dashboard = () => {
           color: 'var(--success-green)',
           marginBottom: '1rem'
         }}>
-          =È Resumen del Sistema
+          =ï¿½ Resumen del Sistema
         </h3>
         
         <div style={{
@@ -169,7 +171,7 @@ const Dashboard = () => {
             <strong>Estado del Sistema:</strong> Operacional
           </div>
           <div>
-            <strong>Última Actualización:</strong> {new Date().toLocaleString('es-ES')}
+            <strong>ï¿½ltima Actualizaciï¿½n:</strong> {new Date().toLocaleString('es-ES')}
           </div>
           <div>
             <strong>Base de Datos:</strong> Excel ({stats.totalReportes} registros)
