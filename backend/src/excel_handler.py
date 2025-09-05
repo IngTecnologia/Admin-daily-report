@@ -22,8 +22,9 @@ from .models import DailyReportCreate, DailyReportResponse, IncidentResponse, Mo
 BOGOTA_TZ = pytz.timezone('America/Bogota')
 
 def get_bogota_now() -> datetime:
-    """Obtiene la fecha y hora actual en timezone de Bogotá"""
-    return datetime.now(BOGOTA_TZ)
+    """Obtiene la fecha y hora actual en timezone de Bogotá (sin timezone para Excel)"""
+    # Excel no soporta timezones, convertir a naive datetime
+    return datetime.now(BOGOTA_TZ).replace(tzinfo=None)
 
 
 class ExcelHandler:
