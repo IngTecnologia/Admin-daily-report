@@ -32,7 +32,7 @@ const Header = () => {
     <header className="app-header">
       <div className="header-content">
         <Link to="/" className="logo">
-          📊 Admin Daily Report
+          📊 Reporte Diario Administrativo
         </Link>
         
         <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -61,7 +61,7 @@ const Header = () => {
                 background: isAdminSection ? '#fff3e0' : 'transparent'
               }}
             >
-              ⚙️ Admin Panel
+              ⚙️ Panel de Administración
             </Link>
           )}
 
