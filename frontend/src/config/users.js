@@ -8,7 +8,7 @@ export const USERS = [
   {
     id: 1,
     username: 'administrador@inemec-pyc.com',
-    password: 'admonpc2025',
+    password: 'admonpyc2025',
     fullName: 'Adriana Robayo',
     role: 'form_user',
     area: 'Consorcio P&C'
