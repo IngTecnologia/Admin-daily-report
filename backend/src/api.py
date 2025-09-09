@@ -18,6 +18,7 @@ from .models import (
     ReportFilter, AnalyticsResponse, HealthCheck
 )
 from .excel_handler import excel_handler
+from .email_service import email_service
 
 
 # Configurar logging
@@ -148,7 +149,7 @@ async def create_daily_report(
         # Obtener informacion del cliente
         client_info = get_client_info(request)
         
-        # Validar limite de reportes por dia (regla de negocio)
+        # Obtener reportes existentes del día (información para el frontend)
         today = date.today()
         existing_reports = excel_handler.get_reports_by_date(today)
         admin_reports_today = [
@@ -156,23 +157,24 @@ async def create_daily_report(
             if r.get('Administrador') == report.administrador.value
         ]
         
-        if len(admin_reports_today) >= settings.max_reportes_per_admin_per_day:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"El administrador {report.administrador.value} ya ha enviado su reporte diario"
-            )
-        
         # Guardar reporte
         saved_report = excel_handler.save_report(report, client_info)
         
         logger.info(f"Reporte creado: {saved_report.id} por {report.administrador.value}")
         
+        # Preparar mensaje informativo
+        message = "Reporte creado exitosamente"
+        if len(admin_reports_today) > 0:
+            message += f" (Reporte #{len(admin_reports_today) + 1} del día)"
+        
         return ReportCreateResponse(
             success=True,
-            message="Reporte creado exitosamente",
+            message=message,
             data={
                 "id": saved_report.id,
-                "fecha_creacion": saved_report.fecha_creacion.isoformat()
+                "fecha_creacion": saved_report.fecha_creacion.isoformat(),
+                "reportes_del_dia": len(admin_reports_today) + 1,
+                "es_primer_reporte": len(admin_reports_today) == 0
             }
         )
         
@@ -378,6 +380,113 @@ async def export_data(
         )
 
 
+# Endpoint para verificar reportes del día por administrador
+@app.get(
+    f"{settings.api_v1_prefix}/reportes/admin/{{admin_name}}/today",
+    summary="Verificar reportes del día por administrador",
+    description="Obtener información sobre reportes enviados hoy por un administrador específico"
+)
+async def check_admin_today_reports(admin_name: str):
+    """Verificar reportes enviados hoy por un administrador específico"""
+    try:
+        today = date.today()
+        existing_reports = excel_handler.get_reports_by_date(today)
+        admin_reports_today = [
+            r for r in existing_reports 
+            if r.get('Administrador', '').lower() == admin_name.lower()
+        ]
+        
+        return APIResponse(
+            success=True,
+            message=f"Información de reportes del día para {admin_name}",
+            data={
+                "administrador": admin_name,
+                "fecha": today.isoformat(),
+                "reportes_enviados": len(admin_reports_today),
+                "ha_reportado": len(admin_reports_today) > 0,
+                "reportes": [
+                    {
+                        "id": r.get('ID'),
+                        "hora": r.get('Fecha_Creacion'),
+                        "estado": r.get('Estado', 'Completado')
+                    } for r in admin_reports_today
+                ]
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error verificando reportes del administrador {admin_name}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno del servidor al verificar reportes"
+        )
+
+
+# Endpoint para eliminar un reporte específico (solo del mismo día)
+@app.delete(
+    f"{settings.api_v1_prefix}/reportes/{{report_id}}",
+    summary="Eliminar un reporte específico",
+    description="Eliminar un reporte del mismo día (solo permitido para reportes creados hoy)"
+)
+async def delete_report(report_id: str, request: Request):
+    """Eliminar un reporte específico del mismo día"""
+    try:
+        # Obtener información del cliente para auditoría
+        client_info = get_client_info(request)
+        
+        # Verificar que el reporte existe
+        all_reports = excel_handler.get_all_reports()
+        report_to_delete = next((r for r in all_reports if r.get('ID') == report_id), None)
+        
+        if not report_to_delete:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Reporte {report_id} no encontrado"
+            )
+        
+        # Verificar que el reporte es del día actual
+        report_date = report_to_delete.get('Fecha_Creacion')
+        if isinstance(report_date, str):
+            report_date = datetime.fromisoformat(report_date.replace('Z', '+00:00')).date()
+        elif isinstance(report_date, datetime):
+            report_date = report_date.date()
+        
+        today = date.today()
+        if report_date != today:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Solo se pueden eliminar reportes del día actual. El reporte {report_id} es de {report_date}"
+            )
+        
+        # Eliminar el reporte usando el excel_handler
+        success = excel_handler.delete_report(report_id)
+        
+        if success:
+            logger.info(f"Reporte eliminado: {report_id} por IP {client_info['ip']}")
+            return APIResponse(
+                success=True,
+                message=f"Reporte {report_id} eliminado exitosamente",
+                data={
+                    "id_eliminado": report_id,
+                    "fecha_eliminacion": datetime.now().isoformat()
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error eliminando el reporte"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error eliminando reporte {report_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno del servidor al eliminar el reporte"
+        )
+
+
 # Endpoint para obtener configuraciones/constantes
 @app.get(
     f"{settings.api_v1_prefix}/config",
@@ -449,7 +558,157 @@ async def root():
                 "GET /api/v1/admin/reportes": "Obtener lista de reportes", 
                 "GET /api/v1/admin/analytics": "Obtener metricas dashboard",
                 "GET /api/v1/config": "Obtener configuraciones del sistema",
+                "POST /api/v1/notifications/test-email": "Probar conexion de email",
+                "POST /api/v1/notifications/send-reminder/{admin}": "Enviar recordatorio",
+                "POST /api/v1/notifications/send-bulk-reminders": "Recordatorios masivos",
                 "GET /health": "Health check"
             }
         }
     )
+
+
+# Endpoints de notificaciones por correo
+@app.post(
+    f"{settings.api_v1_prefix}/notifications/test-email",
+    summary="Probar conexión de email",
+    description="Probar la conexión SMTP del servicio de email"
+)
+async def test_email_connection():
+    """Probar conexión de email"""
+    try:
+        success, message = email_service.test_connection()
+        return APIResponse(
+            success=success,
+            message=message,
+            data={"smtp_server": email_service.smtp_server}
+        )
+    except Exception as e:
+        logger.error(f"Error probando conexión de email: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno probando conexión de email"
+        )
+
+
+@app.post(
+    f"{settings.api_v1_prefix}/notifications/send-reminder/{{admin_name}}",
+    summary="Enviar recordatorio a administrador específico",
+    description="Enviar recordatorio de reporte diario a un administrador específico"
+)
+async def send_admin_reminder(admin_name: str):
+    """Enviar recordatorio a administrador específico"""
+    try:
+        # Obtener estado actual de reportes del administrador
+        today = date.today()
+        existing_reports = excel_handler.get_reports_by_date(today)
+        admin_reports_today = [
+            r for r in existing_reports 
+            if r.get('Administrador', '').lower() == admin_name.lower()
+        ]
+        
+        report_status = {
+            "administrador": admin_name,
+            "fecha": today.isoformat(),
+            "reportes_enviados": len(admin_reports_today),
+            "ha_reportado": len(admin_reports_today) > 0,
+            "reportes": [
+                {
+                    "id": r.get('ID'),
+                    "hora": r.get('Fecha_Creacion'),
+                    "estado": r.get('Estado', 'Completado')
+                } for r in admin_reports_today
+            ]
+        }
+        
+        # Enviar recordatorio
+        success, message = email_service.send_daily_reminder(admin_name, report_status)
+        
+        if success:
+            logger.info(f"Recordatorio enviado a {admin_name}")
+            return APIResponse(
+                success=True,
+                message=message,
+                data={
+                    "administrador": admin_name,
+                    "estado_reporte": report_status
+                }
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=message
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error enviando recordatorio a {admin_name}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno enviando recordatorio"
+        )
+
+
+@app.post(
+    f"{settings.api_v1_prefix}/notifications/send-bulk-reminders",
+    summary="Enviar recordatorios masivos",
+    description="Enviar recordatorios a todos los administradores que no han reportado"
+)
+async def send_bulk_reminders():
+    """Enviar recordatorios masivos a administradores pendientes"""
+    try:
+        today = date.today()
+        existing_reports = excel_handler.get_reports_by_date(today)
+        
+        # Preparar estados para cada administrador
+        admin_statuses = {}
+        
+        # Obtener lista de todos los administradores
+        all_admins = list(email_service.admin_emails.keys())
+        
+        for admin_name in all_admins:
+            admin_reports_today = [
+                r for r in existing_reports 
+                if r.get('Administrador', '').lower() == admin_name.lower()
+            ]
+            
+            admin_statuses[admin_name] = {
+                "administrador": admin_name,
+                "fecha": today.isoformat(),
+                "reportes_enviados": len(admin_reports_today),
+                "ha_reportado": len(admin_reports_today) > 0,
+                "reportes": [
+                    {
+                        "id": r.get('ID'),
+                        "hora": r.get('Fecha_Creacion'),
+                        "estado": r.get('Estado', 'Completado')
+                    } for r in admin_reports_today
+                ]
+            }
+        
+        # Enviar solo a los que no han reportado (o enviar confirmación a los que sí)
+        results = email_service.send_bulk_reminders(admin_statuses)
+        
+        successful_sends = [admin for admin, (success, _) in results.items() if success]
+        failed_sends = [admin for admin, (success, _) in results.items() if not success]
+        
+        logger.info(f"Recordatorios enviados: {len(successful_sends)} exitosos, {len(failed_sends)} fallidos")
+        
+        return APIResponse(
+            success=True,
+            message=f"Proceso completado: {len(successful_sends)} exitosos, {len(failed_sends)} fallidos",
+            data={
+                "total_enviados": len(successful_sends),
+                "total_fallidos": len(failed_sends),
+                "resultados": results,
+                "administradores_exitosos": successful_sends,
+                "administradores_fallidos": failed_sends
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Error enviando recordatorios masivos: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno enviando recordatorios masivos"
+        )

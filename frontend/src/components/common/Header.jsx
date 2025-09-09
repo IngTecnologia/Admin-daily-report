@@ -1,13 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 
 const Header = () => {
   const location = useLocation()
-  const { user, logout, hasAdminAccess } = useAuth()
+  const navigate = useNavigate()
+  const { user, logout, hasAdminAccess, getSessionInfo, isSessionExpired } = useAuth()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [sessionInfo, setSessionInfo] = useState(null)
   const menuRef = useRef(null)
   const isAdminSection = location.pathname.startsWith('/admin')
+
+  // Actualizar información de sesión cada minuto
+  useEffect(() => {
+    const updateSessionInfo = () => {
+      if (user) {
+        setSessionInfo(getSessionInfo())
+      }
+    }
+
+    updateSessionInfo()
+    const interval = setInterval(updateSessionInfo, 60000) // Cada minuto
+
+    return () => clearInterval(interval)
+  }, [user, getSessionInfo])
+
+  // Verificar si perdió permisos de admin y está en sección admin
+  useEffect(() => {
+    if (isAdminSection && !hasAdminAccess()) {
+      // Redirigir al home si perdió permisos de admin
+      navigate('/', { replace: true })
+    }
+  }, [isAdminSection, hasAdminAccess, navigate])
 
   const handleLogout = () => {
     logout()
@@ -119,6 +143,23 @@ const Header = () => {
                   }}>
                     {user?.role === 'admin_user' ? 'Administrador' : 'Usuario'}
                   </div>
+                  {sessionInfo && (
+                    <div style={{ 
+                      color: sessionInfo.timeLeft < 30 * 60 * 1000 ? 'var(--error-red)' : 'var(--neutral-gray)', 
+                      fontSize: '0.7rem',
+                      marginTop: '0.25rem'
+                    }}>
+                      ⏰ Sesión expira: {sessionInfo.expiresAt.toLocaleTimeString('es-CO', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                      {sessionInfo.timeLeft < 30 * 60 * 1000 && (
+                        <div style={{ color: 'var(--warning-yellow)', fontSize: '0.65rem' }}>
+                          ⚠️ Expira pronto
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
                 <button

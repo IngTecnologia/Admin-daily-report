@@ -447,6 +447,86 @@ class ExcelHandler:
         except Exception as e:
             print(f"Error creando backup: {e}")
             return False
+    
+    def delete_report(self, report_id: str) -> bool:
+        """
+        Eliminar un reporte y sus registros relacionados
+        
+        Args:
+            report_id: ID del reporte a eliminar
+            
+        Returns:
+            bool: True si se eliminó correctamente, False en caso contrario
+        """
+        try:
+            # Crear backup antes de eliminar
+            if not self.backup_file():
+                print("Advertencia: No se pudo crear backup antes de eliminar")
+            
+            workbook = openpyxl.load_workbook(self.file_path)
+            
+            # Eliminar de la hoja principal de reportes
+            reportes_sheet = workbook[self.sheets["reportes"]]
+            report_row_to_delete = None
+            
+            for row_idx, row in enumerate(reportes_sheet.iter_rows(min_row=2), start=2):
+                if row[0].value == report_id:  # Columna A contiene el ID
+                    report_row_to_delete = row_idx
+                    break
+            
+            if report_row_to_delete is None:
+                print(f"Reporte {report_id} no encontrado en la hoja de reportes")
+                workbook.close()
+                return False
+            
+            # Eliminar la fila del reporte
+            reportes_sheet.delete_rows(report_row_to_delete, 1)
+            print(f"Reporte {report_id} eliminado de la hoja de reportes")
+            
+            # Eliminar incidencias relacionadas
+            if "incidencias" in self.sheets and self.sheets["incidencias"] in workbook.sheetnames:
+                incidencias_sheet = workbook[self.sheets["incidencias"]]
+                rows_to_delete = []
+                
+                for row_idx, row in enumerate(incidencias_sheet.iter_rows(min_row=2), start=2):
+                    if row[0].value == report_id:  # Columna A contiene ID_Reporte
+                        rows_to_delete.append(row_idx)
+                
+                # Eliminar filas en orden inverso para no afectar indices
+                for row_idx in sorted(rows_to_delete, reverse=True):
+                    incidencias_sheet.delete_rows(row_idx, 1)
+                
+                print(f"Eliminadas {len(rows_to_delete)} incidencias del reporte {report_id}")
+            
+            # Eliminar movimientos de personal relacionados
+            if "ingresos_retiros" in self.sheets and self.sheets["ingresos_retiros"] in workbook.sheetnames:
+                movimientos_sheet = workbook[self.sheets["ingresos_retiros"]]
+                rows_to_delete = []
+                
+                for row_idx, row in enumerate(movimientos_sheet.iter_rows(min_row=2), start=2):
+                    if row[0].value == report_id:  # Columna A contiene ID_Reporte
+                        rows_to_delete.append(row_idx)
+                
+                # Eliminar filas en orden inverso para no afectar indices
+                for row_idx in sorted(rows_to_delete, reverse=True):
+                    movimientos_sheet.delete_rows(row_idx, 1)
+                
+                print(f"Eliminados {len(rows_to_delete)} movimientos del reporte {report_id}")
+            
+            # Guardar cambios
+            workbook.save(self.file_path)
+            workbook.close()
+            
+            print(f"Reporte {report_id} y todos sus registros relacionados eliminados exitosamente")
+            return True
+            
+        except Exception as e:
+            print(f"Error eliminando reporte {report_id}: {e}")
+            try:
+                workbook.close()
+            except:
+                pass
+            return False
 
 
 # Instancia global del manejador

@@ -1,5 +1,6 @@
 import React from 'react'
 import DailyReportForm from '../components/form/DailyReportForm'
+import TodayReportsStatus from '../components/form/TodayReportsStatus'
 
 const Home = () => {
   return (
@@ -25,6 +26,7 @@ const Home = () => {
           </p>
         </div>
         
+        <TodayReportsStatus />
         <DailyReportForm />
       </div>
     </div>

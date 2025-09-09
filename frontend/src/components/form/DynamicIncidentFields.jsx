@@ -28,13 +28,23 @@ const DynamicIncidentFields = ({ index, incident, errors, updateDynamicField }) 
           Incidencia #{index + 1}
         </h4>
         
-        {incident.tipo_incidencia && incident.nombre_empleado && (
+        {incident.tipo_incidencia && incident.nombre_empleado && incident.fecha_fin && (
           <div style={{
             fontSize: '0.875rem',
             color: 'var(--success-green)',
             fontWeight: '500'
           }}>
             ✅ Completo
+          </div>
+        )}
+        {(incident.tipo_incidencia || incident.nombre_empleado || incident.fecha_fin) && 
+         !(incident.tipo_incidencia && incident.nombre_empleado && incident.fecha_fin) && (
+          <div style={{
+            fontSize: '0.875rem',
+            color: 'var(--warning-yellow)',
+            fontWeight: '500'
+          }}>
+            ⚠️ Incompleto
           </div>
         )}
       </div>

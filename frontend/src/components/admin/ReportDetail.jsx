@@ -60,7 +60,7 @@ const ReportDetail = ({ report, onClose }) => {
               color: 'var(--primary-red)',
               marginBottom: '0.5rem'
             }}>
-              =� Detalle del Reporte
+              📋 Detalle del Reporte
             </h2>
             <p style={{
               color: 'var(--neutral-gray)',
@@ -101,7 +101,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              =d Informaci�n del Administrador
+              👤 Información del Administrador
             </h3>
             
             <div style={{
@@ -113,7 +113,7 @@ const ReportDetail = ({ report, onClose }) => {
               borderRadius: '8px'
             }}>
               <DetailField label="Administrador" value={report.administrador} />
-              <DetailField label="Cliente/Operaci�n" value={report.cliente_operacion} />
+              <DetailField label="Cliente/Operación" value={report.cliente_operacion} />
               <DetailField label="Estado" value={report.estado || 'Completado'} />
             </div>
           </div>
@@ -129,7 +129,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              =e Informaci�n de Personal
+              👥 Información de Personal
             </h3>
             
             <div style={{
