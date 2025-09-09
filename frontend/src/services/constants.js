@@ -28,16 +28,16 @@ export const CLIENT_OPERATIONS = [
 ]
 
 export const INCIDENT_TYPES = [
-  'Incapacidad Médica Por Enfermedad Común',
-  'Incapacidad Médica por Enfermedad Laboral',
-  'Permiso por Cita Médica',
+  'Incapacidad Medica Por Enfermedad Comun',
+  'Incapacidad Medica por Enfermedad Laboral',
+  'Permiso por Cita Medica',
   'Licencia de Maternidad',
   'Licencia de paternidad',
   'Permiso por Luto',
-  'Permiso por Calamidad Doméstica',
+  'Permiso por Calamidad Domestica',
   'Vacaciones',
   'Compensatorios',
-  'Día de la Familia',
+  'Dia de la Familia',
   'Suspensiones de contrato',
   'Permisos no remunerados'
 ]
