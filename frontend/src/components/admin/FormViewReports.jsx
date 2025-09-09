@@ -28,7 +28,7 @@ const FormViewReports = ({ onViewReport }) => {
       const response = await fetch(`${API_BASE_URL}/admin/reportes?${queryParams}`)
       if (response.ok) {
         const data = await response.json()
-        setReports(data.data || [])
+        setReports(Array.isArray(data) ? data : (data.data || []))
         setError(null)
       } else {
         throw new Error('Error cargando reportes')
@@ -56,7 +56,7 @@ const FormViewReports = ({ onViewReport }) => {
   const getTodayReports = () => {
     const today = new Date().toISOString().split('T')[0]
     return reports.filter(report => {
-      const reportDate = new Date(report.fecha_creacion).toISOString().split('T')[0]
+      const reportDate = new Date(report.Fecha_Creacion).toISOString().split('T')[0]
       return reportDate === today
     })
   }
@@ -64,7 +64,7 @@ const FormViewReports = ({ onViewReport }) => {
   const groupReportsByAdmin = (reportsList) => {
     const grouped = {}
     reportsList.forEach(report => {
-      const admin = report.administrador
+      const admin = report.Administrador
       if (!grouped[admin]) {
         grouped[admin] = []
       }
@@ -110,8 +110,8 @@ const FormViewReports = ({ onViewReport }) => {
     )
   }
 
-  const todayReports = getTodayReports()
-  const groupedReports = groupReportsByAdmin(todayReports)
+  const filteredReports = reports
+  const groupedReports = groupReportsByAdmin(filteredReports)
 
   return (
     <div>
@@ -160,7 +160,7 @@ const FormViewReports = ({ onViewReport }) => {
               }}
             >
               <option value="">Todos los administradores</option>
-              {[...new Set(reports.map(r => r.administrador))].map(admin => (
+              {[...new Set(reports.map(r => r.Administrador))].map(admin => (
                 <option key={admin} value={admin}>{admin}</option>
               ))}
             </select>
@@ -187,7 +187,7 @@ const FormViewReports = ({ onViewReport }) => {
               }}
             >
               <option value="">Todas las operaciones</option>
-              {[...new Set(reports.map(r => r.cliente_operacion))].map(cliente => (
+              {[...new Set(reports.map(r => r.Cliente_Operacion))].map(cliente => (
                 <option key={cliente} value={cliente}>{cliente}</option>
               ))}
             </select>
@@ -296,7 +296,7 @@ const FormViewReports = ({ onViewReport }) => {
           alignItems: 'center',
           gap: '0.75rem'
         }}>
-          📋 Reportes del Día - Vista Formulario
+          📋 Reportes - Vista Formulario
         </h2>
 
         {Object.keys(groupedReports).length === 0 ? (
@@ -330,14 +330,14 @@ const AdminReportSection = ({ admin, reports, onViewReport }) => {
   const [expanded, setExpanded] = useState(true)
 
   // Calcular totales del administrador
-  const totalHoras = reports.reduce((sum, r) => sum + (r.horas_diarias || 0), 0)
-  const totalPersonalStaff = reports.reduce((sum, r) => sum + (r.personal_staff || 0), 0)
-  const totalPersonalBase = reports.reduce((sum, r) => sum + (r.personal_base || 0), 0)
-  const totalIncidencias = reports.reduce((sum, r) => sum + (r.cantidad_incidencias || 0), 0)
-  const totalMovimientos = reports.reduce((sum, r) => sum + (r.cantidad_ingresos_retiros || 0), 0)
+  const totalHoras = reports.reduce((sum, r) => sum + (r.Horas_Diarias || 0), 0)
+  const totalPersonalStaff = reports.reduce((sum, r) => sum + (r.Personal_Staff || 0), 0)
+  const totalPersonalBase = reports.reduce((sum, r) => sum + (r.Personal_Base || 0), 0)
+  const totalIncidencias = reports.reduce((sum, r) => sum + (r.Cantidad_Incidencias || 0), 0)
+  const totalMovimientos = reports.reduce((sum, r) => sum + (r.Cantidad_Ingresos_Retiros || 0), 0)
 
   // Obtener cliente/operación (suponiendo que es consistente para cada admin)
-  const clienteOperacion = reports[0]?.cliente_operacion || 'N/A'
+  const clienteOperacion = reports[0]?.Cliente_Operacion || 'N/A'
 
   return (
     <div style={{
@@ -428,7 +428,7 @@ const AdminReportSection = ({ admin, reports, onViewReport }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {reports.map(report => (
                   report.incidencias && report.incidencias.map((incidencia, idx) => (
-                    <IncidenciaItem key={`${report.id}-${idx}`} incidencia={incidencia} reportId={report.id} />
+                    <IncidenciaItem key={`${report.ID}-${idx}`} incidencia={incidencia} reportId={report.ID} />
                   ))
                 ))}
               </div>
@@ -456,7 +456,7 @@ const AdminReportSection = ({ admin, reports, onViewReport }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {reports.map(report => (
                   report.ingresos_retiros && report.ingresos_retiros.map((movimiento, idx) => (
-                    <MovimientoItem key={`${report.id}-${idx}`} movimiento={movimiento} reportId={report.id} />
+                    <MovimientoItem key={`${report.ID}-${idx}`} movimiento={movimiento} reportId={report.ID} />
                   ))
                 ))}
               </div>
@@ -478,7 +478,7 @@ const AdminReportSection = ({ admin, reports, onViewReport }) => {
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {reports.map(report => (
-                <ReportItem key={report.id} report={report} onViewReport={onViewReport} />
+                <ReportItem key={report.ID} report={report} onViewReport={onViewReport} />
               ))}
             </div>
           </div>
@@ -561,10 +561,10 @@ const ReportItem = ({ report, onViewReport }) => (
   }}>
     <div>
       <div style={{ fontWeight: '500', color: 'var(--dark-text)', fontSize: '0.875rem' }}>
-        📄 {report.id}
+        📄 {report.ID}
       </div>
       <div style={{ color: 'var(--neutral-gray)', fontSize: '0.75rem' }}>
-        {new Date(report.fecha_creacion).toLocaleString('es-CO')}
+        {new Date(report.Fecha_Creacion).toLocaleString('es-CO')}
       </div>
     </div>
     <button
