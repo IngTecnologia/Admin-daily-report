@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Dashboard from '../components/admin/Dashboard'
 import ReportsList from '../components/admin/ReportsList'
 import ReportDetail from '../components/admin/ReportDetail'
+import FormViewReports from '../components/admin/FormViewReports'
 
 const Admin = () => {
   const [currentView, setCurrentView] = useState('dashboard')
@@ -37,6 +38,12 @@ const Admin = () => {
         icon="📋"
         label="Lista de Reportes"
       />
+      <NavButton
+        active={currentView === 'formview'}
+        onClick={() => setCurrentView('formview')}
+        icon="📝"
+        label="Vista Formulario"
+      />
     </div>
   )
 
@@ -46,6 +53,8 @@ const Admin = () => {
         return <Dashboard />
       case 'reports':
         return <ReportsList onViewReport={handleViewReport} />
+      case 'formview':
+        return <FormViewReports onViewReport={handleViewReport} />
       default:
         return <Dashboard />
     }
