@@ -11,7 +11,7 @@ import os
 from typing import Dict, Any, Tuple, List
 from datetime import datetime, date, time
 import asyncio
-from config import settings
+from .config import settings
 
 class EmailService:
     def __init__(self):
