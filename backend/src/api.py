@@ -199,8 +199,8 @@ async def create_daily_report(
 async def get_reports(
     administrador: Optional[str] = None,
     cliente: Optional[str] = None,
-    fecha_inicio: Optional[date] = None,
-    fecha_fin: Optional[date] = None,
+    fecha_inicio: Optional[str] = None,
+    fecha_fin: Optional[str] = None,
     page: int = 1,
     limit: int = 20
 ) -> List[Dict[str, Any]]:
@@ -228,9 +228,17 @@ async def get_reports(
         if cliente:
             filters['cliente'] = cliente
         if fecha_inicio:
-            filters['fecha_inicio'] = fecha_inicio
+            try:
+                fecha_inicio_parsed = datetime.fromisoformat(fecha_inicio).date()
+                filters['fecha_inicio'] = fecha_inicio_parsed
+            except (ValueError, TypeError):
+                logger.warning(f"Fecha inicio inválida: {fecha_inicio}")
         if fecha_fin:
-            filters['fecha_fin'] = fecha_fin
+            try:
+                fecha_fin_parsed = datetime.fromisoformat(fecha_fin).date()
+                filters['fecha_fin'] = fecha_fin_parsed
+            except (ValueError, TypeError):
+                logger.warning(f"Fecha fin inválida: {fecha_fin}")
         
         # Obtener reportes
         all_reports = excel_handler.get_all_reports(filters)

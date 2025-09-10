@@ -428,7 +428,12 @@ const AdminReportSection = ({ admin, reports, onViewReport }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {reports.map(report => (
                   report.incidencias && report.incidencias.map((incidencia, idx) => (
-                    <IncidenciaItem key={`${report.ID}-${idx}`} incidencia={incidencia} reportId={report.ID} />
+                    <IncidenciaItem 
+                      key={`${report.ID}-${idx}`} 
+                      incidencia={incidencia} 
+                      reportId={report.ID} 
+                      reportDate={report.Fecha_Creacion}
+                    />
                   ))
                 ))}
               </div>
@@ -456,7 +461,12 @@ const AdminReportSection = ({ admin, reports, onViewReport }) => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {reports.map(report => (
                   report.ingresos_retiros && report.ingresos_retiros.map((movimiento, idx) => (
-                    <MovimientoItem key={`${report.ID}-${idx}`} movimiento={movimiento} reportId={report.ID} />
+                    <MovimientoItem 
+                      key={`${report.ID}-${idx}`} 
+                      movimiento={movimiento} 
+                      reportId={report.ID} 
+                      reportDate={report.Fecha_Creacion}
+                    />
                   ))
                 ))}
               </div>
@@ -506,7 +516,7 @@ const InfoCard = ({ label, value, icon }) => (
   </div>
 )
 
-const IncidenciaItem = ({ incidencia, reportId }) => (
+const IncidenciaItem = ({ incidencia, reportId, reportDate }) => (
   <div style={{
     backgroundColor: 'white',
     border: '1px solid #fed7aa',
@@ -521,12 +531,12 @@ const IncidenciaItem = ({ incidencia, reportId }) => (
       {incidencia.nombre_empleado} • Fin: {new Date(incidencia.fecha_fin).toLocaleDateString('es-CO')}
     </div>
     <div style={{ fontSize: '0.75rem', color: 'var(--neutral-gray)', marginTop: '0.25rem' }}>
-      Reporte: {reportId}
+      📅 Reportado: {new Date(reportDate).toLocaleDateString('es-CO')} • Reporte: {reportId}
     </div>
   </div>
 )
 
-const MovimientoItem = ({ movimiento, reportId }) => (
+const MovimientoItem = ({ movimiento, reportId, reportDate }) => (
   <div style={{
     backgroundColor: 'white',
     border: '1px solid #bae6fd',
@@ -544,7 +554,7 @@ const MovimientoItem = ({ movimiento, reportId }) => (
       {movimiento.nombre_empleado} • {movimiento.cargo}
     </div>
     <div style={{ fontSize: '0.75rem', color: 'var(--neutral-gray)', marginTop: '0.25rem' }}>
-      Reporte: {reportId}
+      📅 Reportado: {new Date(reportDate).toLocaleDateString('es-CO')} • Reporte: {reportId}
     </div>
   </div>
 )

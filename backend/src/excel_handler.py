@@ -364,14 +364,46 @@ class ExcelHandler:
     
     def _apply_filters(self, report: Dict, filters: Dict) -> bool:
         """Aplicar filtros a un reporte"""
-        # Implementar logica de filtros segun necesidades del admin panel
+        # Filtro por administrador
         if filters.get('administrador') and report.get('Administrador') != filters['administrador']:
             return False
         
+        # Filtro por cliente/operacion
         if filters.get('cliente') and report.get('Cliente_Operacion') != filters['cliente']:
             return False
+        
+        # Filtros de fecha
+        if filters.get('fecha_inicio') or filters.get('fecha_fin'):
+            try:
+                # Obtener fecha del reporte (solo fecha, sin hora)
+                report_datetime = report.get('Fecha_Creacion')
+                if isinstance(report_datetime, str):
+                    report_datetime = datetime.fromisoformat(report_datetime.replace('Z', '+00:00'))
+                elif not isinstance(report_datetime, datetime):
+                    return False
+                
+                report_date = report_datetime.date()
+                
+                # Filtro fecha inicio
+                if filters.get('fecha_inicio'):
+                    fecha_inicio = filters['fecha_inicio']
+                    if isinstance(fecha_inicio, str):
+                        fecha_inicio = datetime.fromisoformat(fecha_inicio).date()
+                    if report_date < fecha_inicio:
+                        return False
+                
+                # Filtro fecha fin
+                if filters.get('fecha_fin'):
+                    fecha_fin = filters['fecha_fin']
+                    if isinstance(fecha_fin, str):
+                        fecha_fin = datetime.fromisoformat(fecha_fin).date()
+                    if report_date > fecha_fin:
+                        return False
+                        
+            except (ValueError, TypeError):
+                # Si hay error procesando fechas, incluir el reporte
+                pass
             
-        # Agregar mas filtros segun se necesiten
         return True
     
     def get_analytics_data(self) -> Dict[str, Any]:

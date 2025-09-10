@@ -66,7 +66,7 @@ const ReportDetail = ({ report, onClose }) => {
               color: 'var(--neutral-gray)',
               fontSize: '0.875rem'
             }}>
-              ID: {report.id} • Creado: {formatDate(report.fecha_creacion)}
+              ID: {report.ID} • Creado: {formatDate(report.Fecha_Creacion)}
             </p>
           </div>
           
@@ -85,12 +85,12 @@ const ReportDetail = ({ report, onClose }) => {
             onMouseEnter={(e) => e.target.style.backgroundColor = '#f3f4f6'}
             onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
           >
-            
+            ✕
           </button>
         </div>
 
         <div style={{ padding: '2rem' }}>
-          {/* Informaci�n del administrador */}
+          {/* Información del administrador */}
           <div style={{ marginBottom: '2rem' }}>
             <h3 style={{
               fontSize: '1.25rem',
@@ -112,13 +112,13 @@ const ReportDetail = ({ report, onClose }) => {
               padding: '1.5rem',
               borderRadius: '8px'
             }}>
-              <DetailField label="Administrador" value={report.administrador} />
-              <DetailField label="Cliente/Operación" value={report.cliente_operacion} />
-              <DetailField label="Estado" value={report.estado || 'Completado'} />
+              <DetailField label="Administrador" value={report.Administrador} />
+              <DetailField label="Cliente/Operación" value={report.Cliente_Operacion} />
+              <DetailField label="Estado" value={report.Estado || 'Completado'} />
             </div>
           </div>
 
-          {/* Informaci�n de personal */}
+          {/* Información de personal */}
           <div style={{ marginBottom: '2rem' }}>
             <h3 style={{
               fontSize: '1.25rem',
@@ -140,12 +140,12 @@ const ReportDetail = ({ report, onClose }) => {
               padding: '1.5rem',
               borderRadius: '8px'
             }}>
-              <DetailField label="Horas Diarias" value={`${report.horas_diarias} horas`} />
-              <DetailField label="Personal Staff" value={report.personal_staff || 0} />
-              <DetailField label="Personal Base" value={report.personal_base || 0} />
+              <DetailField label="Horas Diarias" value={`${report.Horas_Diarias} horas`} />
+              <DetailField label="Personal Staff" value={report.Personal_Staff || 0} />
+              <DetailField label="Personal Base" value={report.Personal_Base || 0} />
               <DetailField 
                 label="Total Personal" 
-                value={(report.personal_staff || 0) + (report.personal_base || 0)} 
+                value={(report.Personal_Staff || 0) + (report.Personal_Base || 0)} 
               />
             </div>
           </div>
@@ -161,7 +161,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              � Incidencias ({report.cantidad_incidencias || 0})
+              📋 Incidencias ({report.Cantidad_Incidencias || 0})
             </h3>
             
             {report.incidencias && report.incidencias.length > 0 ? (
@@ -201,7 +201,7 @@ const ReportDetail = ({ report, onClose }) => {
                 textAlign: 'center',
                 color: 'var(--success-green)'
               }}>
-                ✅ No hay incidencias reportadas
+                ✅ No hay incidencias reportadas
               </div>
             )}
           </div>
@@ -217,7 +217,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              = Movimientos de Personal ({report.cantidad_ingresos_retiros || 0})
+              🔄 Movimientos de Personal ({report.Cantidad_Ingresos_Retiros || 0})
             </h3>
             
             {report.ingresos_retiros && report.ingresos_retiros.length > 0 ? (
@@ -264,13 +264,13 @@ const ReportDetail = ({ report, onClose }) => {
                 textAlign: 'center',
                 color: 'var(--success-green)'
               }}>
-                ✅ No hay movimientos de personal reportados
+                ✅ No hay movimientos de personal reportados
               </div>
             )}
           </div>
 
           {/* Hechos relevantes */}
-          {report.hechos_relevantes && (
+          {report.Hechos_Relevantes && (
             <div style={{ marginBottom: '2rem' }}>
               <h3 style={{
                 fontSize: '1.25rem',
@@ -281,7 +281,7 @@ const ReportDetail = ({ report, onClose }) => {
                 alignItems: 'center',
                 gap: '0.5rem'
               }}>
-                =� Hechos Relevantes
+                📝 Hechos Relevantes
               </h3>
               
               <div style={{
@@ -296,7 +296,7 @@ const ReportDetail = ({ report, onClose }) => {
                   color: 'var(--dark-text)',
                   margin: 0
                 }}>
-                  {report.hechos_relevantes}
+                  {report.Hechos_Relevantes}
                 </p>
               </div>
             </div>
