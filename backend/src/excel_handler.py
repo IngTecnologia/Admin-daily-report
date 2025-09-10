@@ -414,22 +414,15 @@ class ExcelHandler:
             
             incidents = []
             headers = [cell.value for cell in sheet[1]]
-            # Debug temporal - eliminar después
-            from loguru import logger as temp_logger
-            temp_logger.info(f"DEBUG incidencias headers: {headers}")
             
-            row_count = 0
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 if row[0] is None:  # Fila vacía
                     break
                     
-                row_count += 1
                 row_dict = dict(zip(headers, row))
-                print(f"DEBUG incidencia fila {row_count}: {row_dict}")
                 
                 # Filtrar solo las incidencias de este reporte
                 if row_dict.get('ID_Reporte') == report_id:
-                    print(f"DEBUG encontrada incidencia para {report_id}"):
                     incidents.append({
                         'tipo': row_dict.get('Tipo_Incidencia'),
                         'nombre_empleado': row_dict.get('Nombre_Empleado'),
