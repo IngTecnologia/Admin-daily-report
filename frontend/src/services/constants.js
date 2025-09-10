@@ -108,13 +108,14 @@ const getApiBaseUrl = () => {
   }
   
   // En producción con Cloudflare Tunnel
-  // El túnel expone el backend en api.reportediario.inemec.com
+  // SOLUCIÓN TEMPORAL: Usar proxy de nginx en lugar de subdominio separado
+  // porque api.reportediario.inemec.com no funciona correctamente
   if (window.location.hostname === 'reportediario2.inemec.com') {
-    return 'https://api.reportediario.inemec.com/api/v1'
+    return 'https://reportediario2.inemec.com/api/v1'
   }
   
-  // Fallback desde variable de entorno
-  return process.env.REACT_APP_API_URL || 'https://api.reportediario.inemec.com/api/v1'
+  // Fallback: intentar usar el proxy de nginx
+  return 'https://reportediario2.inemec.com/api/v1'
 }
 
 export const API_BASE_URL = getApiBaseUrl()
