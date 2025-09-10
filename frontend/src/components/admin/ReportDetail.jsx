@@ -1,9 +1,69 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { API_BASE_URL } from '../../services/constants'
 
 const ReportDetail = ({ report, onClose }) => {
+  const [detailedReport, setDetailedReport] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (report && report.ID) {
+      fetchReportDetails(report.ID)
+    }
+  }, [report])
+
+  const fetchReportDetails = async (reportId) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`${API_BASE_URL}/admin/reportes/${reportId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setDetailedReport(data)
+        setError(null)
+      } else {
+        throw new Error('Error cargando detalles del reporte')
+      }
+    } catch (err) {
+      console.error('Error fetching report details:', err)
+      setError(err.message)
+      setDetailedReport(report) // Fallback al reporte básico
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (!report) {
     return null
   }
+
+  if (loading) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000
+      }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderRadius: '12px',
+          padding: '3rem',
+          textAlign: 'center'
+        }}>
+          <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⏳</div>
+          <div>Cargando detalles del reporte...</div>
+        </div>
+      </div>
+    )
+  }
+
+  const reportToShow = detailedReport || report
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('es-ES', {
@@ -66,7 +126,7 @@ const ReportDetail = ({ report, onClose }) => {
               color: 'var(--neutral-gray)',
               fontSize: '0.875rem'
             }}>
-              ID: {report.ID} • Creado: {formatDate(report.Fecha_Creacion)}
+              ID: {reportToShow.ID} • Creado: {formatDate(reportToShow.Fecha_Creacion)}
             </p>
           </div>
           
@@ -112,9 +172,9 @@ const ReportDetail = ({ report, onClose }) => {
               padding: '1.5rem',
               borderRadius: '8px'
             }}>
-              <DetailField label="Administrador" value={report.Administrador} />
-              <DetailField label="Cliente/Operación" value={report.Cliente_Operacion} />
-              <DetailField label="Estado" value={report.Estado || 'Completado'} />
+              <DetailField label="Administrador" value={reportToShow.Administrador} />
+              <DetailField label="Cliente/Operación" value={reportToShow.Cliente_Operacion} />
+              <DetailField label="Estado" value={reportToShow.Estado || 'Completado'} />
             </div>
           </div>
 
@@ -140,12 +200,12 @@ const ReportDetail = ({ report, onClose }) => {
               padding: '1.5rem',
               borderRadius: '8px'
             }}>
-              <DetailField label="Horas Diarias" value={`${report.Horas_Diarias} horas`} />
-              <DetailField label="Personal Staff" value={report.Personal_Staff || 0} />
-              <DetailField label="Personal Base" value={report.Personal_Base || 0} />
+              <DetailField label="Horas Diarias" value={`${reportToShow.Horas_Diarias} horas`} />
+              <DetailField label="Personal Staff" value={reportToShow.Personal_Staff || 0} />
+              <DetailField label="Personal Base" value={reportToShow.Personal_Base || 0} />
               <DetailField 
                 label="Total Personal" 
-                value={(report.Personal_Staff || 0) + (report.Personal_Base || 0)} 
+                value={(reportToShow.Personal_Staff || 0) + (reportToShow.Personal_Base || 0)} 
               />
             </div>
           </div>
@@ -161,22 +221,22 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              📋 Incidencias ({report.Cantidad_Incidencias || 0})
+              📋 Incidencias ({reportToShow.Cantidad_Incidencias || 0})
             </h3>
             
-            {report.incidencias && report.incidencias.length > 0 ? (
+            {reportToShow.incidencias && reportToShow.incidencias.length > 0 ? (
               <div style={{
                 backgroundColor: '#fffbeb',
                 border: '1px solid #fed7aa',
                 borderRadius: '8px',
                 overflow: 'hidden'
               }}>
-                {report.incidencias.map((incidencia, index) => (
+                {reportToShow.incidencias.map((incidencia, index) => (
                   <div 
                     key={index}
                     style={{
                       padding: '1rem',
-                      borderBottom: index < report.incidencias.length - 1 ? '1px solid #fed7aa' : 'none'
+                      borderBottom: index < reportToShow.incidencias.length - 1 ? '1px solid #fed7aa' : 'none'
                     }}
                   >
                     <div style={{
@@ -217,22 +277,22 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              🔄 Movimientos de Personal ({report.Cantidad_Ingresos_Retiros || 0})
+              🔄 Movimientos de Personal ({reportToShow.Cantidad_Ingresos_Retiros || 0})
             </h3>
             
-            {report.ingresos_retiros && report.ingresos_retiros.length > 0 ? (
+            {reportToShow.ingresos_retiros && reportToShow.ingresos_retiros.length > 0 ? (
               <div style={{
                 backgroundColor: '#f0f9ff',
                 border: '1px solid #bae6fd',
                 borderRadius: '8px',
                 overflow: 'hidden'
               }}>
-                {report.ingresos_retiros.map((movimiento, index) => (
+                {reportToShow.ingresos_retiros.map((movimiento, index) => (
                   <div 
                     key={index}
                     style={{
                       padding: '1rem',
-                      borderBottom: index < report.ingresos_retiros.length - 1 ? '1px solid #bae6fd' : 'none'
+                      borderBottom: index < reportToShow.ingresos_retiros.length - 1 ? '1px solid #bae6fd' : 'none'
                     }}
                   >
                     <div style={{
@@ -270,7 +330,7 @@ const ReportDetail = ({ report, onClose }) => {
           </div>
 
           {/* Hechos relevantes */}
-          {report.Hechos_Relevantes && (
+          {reportToShow.Hechos_Relevantes && (
             <div style={{ marginBottom: '2rem' }}>
               <h3 style={{
                 fontSize: '1.25rem',
@@ -296,7 +356,7 @@ const ReportDetail = ({ report, onClose }) => {
                   color: 'var(--dark-text)',
                   margin: 0
                 }}>
-                  {report.Hechos_Relevantes}
+                  {reportToShow.Hechos_Relevantes}
                 </p>
               </div>
             </div>

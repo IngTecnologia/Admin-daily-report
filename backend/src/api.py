@@ -282,10 +282,15 @@ async def get_report_details(report_id: str) -> Dict[str, Any]:
                 detail=f"Reporte {report_id} no encontrado"
             )
         
-        # TODO: Agregar detalles de incidencias y movimientos
-        # Por ahora retornamos el reporte basico
+        # Obtener detalles de incidencias y movimientos
+        incidents = excel_handler.get_report_incidents(report_id)
+        movements = excel_handler.get_report_movements(report_id)
         
-        logger.info(f"Detalles de reporte obtenidos: {report_id}")
+        # Agregar detalles al reporte
+        report['incidencias'] = incidents
+        report['ingresos_retiros'] = movements
+        
+        logger.info(f"Detalles de reporte obtenidos: {report_id} con {len(incidents)} incidencias y {len(movements)} movimientos")
         return report
         
     except HTTPException:

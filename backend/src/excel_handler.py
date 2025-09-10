@@ -406,6 +406,73 @@ class ExcelHandler:
             
         return True
     
+    def get_report_incidents(self, report_id: str) -> List[Dict[str, Any]]:
+        """Obtener incidencias de un reporte específico"""
+        try:
+            workbook = openpyxl.load_workbook(self.file_path)
+            sheet = workbook[self.sheets["incidencias"]]
+            
+            incidents = []
+            headers = [cell.value for cell in sheet[1]]
+            # Debug temporal - eliminar después
+            from loguru import logger as temp_logger
+            temp_logger.info(f"DEBUG incidencias headers: {headers}")
+            
+            row_count = 0
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                if row[0] is None:  # Fila vacía
+                    break
+                    
+                row_count += 1
+                row_dict = dict(zip(headers, row))
+                print(f"DEBUG incidencia fila {row_count}: {row_dict}")
+                
+                # Filtrar solo las incidencias de este reporte
+                if row_dict.get('ID_Reporte') == report_id:
+                    print(f"DEBUG encontrada incidencia para {report_id}"):
+                    incidents.append({
+                        'tipo': row_dict.get('Tipo_Incidencia'),
+                        'nombre_empleado': row_dict.get('Nombre_Empleado'),
+                        'fecha_fin': row_dict.get('Fecha_Fin_Novedad'),
+                        'fecha_registro': row_dict.get('Fecha_Registro')
+                    })
+            
+            return incidents
+            
+        except Exception as e:
+            print(f"Error obteniendo incidencias del reporte {report_id}: {e}")
+            return []
+    
+    def get_report_movements(self, report_id: str) -> List[Dict[str, Any]]:
+        """Obtener movimientos de personal de un reporte específico"""
+        try:
+            workbook = openpyxl.load_workbook(self.file_path)
+            sheet = workbook[self.sheets["ingresos_retiros"]]
+            
+            movements = []
+            headers = [cell.value for cell in sheet[1]]
+            
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                if row[0] is None:  # Fila vacía
+                    break
+                    
+                row_dict = dict(zip(headers, row))
+                
+                # Filtrar solo los movimientos de este reporte
+                if row_dict.get('ID_Reporte') == report_id:
+                    movements.append({
+                        'nombre_empleado': row_dict.get('Nombre_Empleado'),
+                        'cargo': row_dict.get('Cargo'),
+                        'estado': row_dict.get('Estado'),
+                        'fecha_registro': row_dict.get('Fecha_Registro')
+                    })
+            
+            return movements
+            
+        except Exception as e:
+            print(f"Error obteniendo movimientos del reporte {report_id}: {e}")
+            return []
+    
     def get_analytics_data(self) -> Dict[str, Any]:
         """Obtener datos para analytics del dashboard"""
         try:
