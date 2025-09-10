@@ -7,8 +7,8 @@ const ReportDetail = ({ report, onClose }) => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    if (report && report.ID) {
-      fetchReportDetails(report.ID)
+    if (report && (report.ID || report.id)) {
+      fetchReportDetails(report.ID || report.id)
     }
   }, [report])
 
@@ -126,7 +126,7 @@ const ReportDetail = ({ report, onClose }) => {
               color: 'var(--neutral-gray)',
               fontSize: '0.875rem'
             }}>
-              ID: {reportToShow.ID} • Creado: {formatDate(reportToShow.Fecha_Creacion)}
+              ID: {reportToShow.ID || reportToShow.id} • Creado: {formatDate(reportToShow.Fecha_Creacion || reportToShow.fecha_creacion)}
             </p>
           </div>
           
@@ -172,9 +172,9 @@ const ReportDetail = ({ report, onClose }) => {
               padding: '1.5rem',
               borderRadius: '8px'
             }}>
-              <DetailField label="Administrador" value={reportToShow.Administrador} />
-              <DetailField label="Cliente/Operación" value={reportToShow.Cliente_Operacion} />
-              <DetailField label="Estado" value={reportToShow.Estado || 'Completado'} />
+              <DetailField label="Administrador" value={reportToShow.Administrador || reportToShow.administrador} />
+              <DetailField label="Cliente/Operación" value={reportToShow.Cliente_Operacion || reportToShow.cliente_operacion} />
+              <DetailField label="Estado" value={reportToShow.Estado || reportToShow.estado || 'Completado'} />
             </div>
           </div>
 
@@ -200,12 +200,12 @@ const ReportDetail = ({ report, onClose }) => {
               padding: '1.5rem',
               borderRadius: '8px'
             }}>
-              <DetailField label="Horas Diarias" value={`${reportToShow.Horas_Diarias} horas`} />
-              <DetailField label="Personal Staff" value={reportToShow.Personal_Staff || 0} />
-              <DetailField label="Personal Base" value={reportToShow.Personal_Base || 0} />
+              <DetailField label="Horas Diarias" value={`${reportToShow.Horas_Diarias || reportToShow.horas_diarias} horas`} />
+              <DetailField label="Personal Staff" value={reportToShow.Personal_Staff || reportToShow.personal_staff || 0} />
+              <DetailField label="Personal Base" value={reportToShow.Personal_Base || reportToShow.personal_base || 0} />
               <DetailField 
                 label="Total Personal" 
-                value={(reportToShow.Personal_Staff || 0) + (reportToShow.Personal_Base || 0)} 
+                value={(reportToShow.Personal_Staff || reportToShow.personal_staff || 0) + (reportToShow.Personal_Base || reportToShow.personal_base || 0)} 
               />
             </div>
           </div>
@@ -221,7 +221,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              📋 Incidencias ({reportToShow.Cantidad_Incidencias || 0})
+              📋 Incidencias ({reportToShow.Cantidad_Incidencias || reportToShow.cantidad_incidencias || 0})
             </h3>
             
             {reportToShow.incidencias && reportToShow.incidencias.length > 0 ? (
@@ -277,7 +277,7 @@ const ReportDetail = ({ report, onClose }) => {
               alignItems: 'center',
               gap: '0.5rem'
             }}>
-              🔄 Movimientos de Personal ({reportToShow.Cantidad_Ingresos_Retiros || 0})
+              🔄 Movimientos de Personal ({reportToShow.Cantidad_Ingresos_Retiros || reportToShow.cantidad_ingresos_retiros || 0})
             </h3>
             
             {reportToShow.ingresos_retiros && reportToShow.ingresos_retiros.length > 0 ? (
@@ -330,7 +330,7 @@ const ReportDetail = ({ report, onClose }) => {
           </div>
 
           {/* Hechos relevantes */}
-          {reportToShow.Hechos_Relevantes && (
+          {(reportToShow.Hechos_Relevantes || reportToShow.hechos_relevantes) && (
             <div style={{ marginBottom: '2rem' }}>
               <h3 style={{
                 fontSize: '1.25rem',
@@ -356,7 +356,7 @@ const ReportDetail = ({ report, onClose }) => {
                   color: 'var(--dark-text)',
                   margin: 0
                 }}>
-                  {reportToShow.Hechos_Relevantes}
+                  {reportToShow.Hechos_Relevantes || reportToShow.hechos_relevantes}
                 </p>
               </div>
             </div>
