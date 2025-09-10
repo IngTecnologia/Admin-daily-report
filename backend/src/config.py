@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     # Configuracion de CORS para Cloudflare Tunnel
     cors_origins: List[str] = [
         # Dominios del túnel de Cloudflare
-        "https://reportediario.inemec.com",
+        "https://reportediario2.inemec.com",
         "https://api.reportediario.inemec.com",
         # Para desarrollo local
         "http://localhost:3000",
@@ -93,7 +93,7 @@ class Settings(BaseSettings):
     
     # Configuración específica para Cloudflare Tunnel
     tunnel_mode: bool = True
-    frontend_domain: str = "reportediario.inemec.com"
+    frontend_domain: str = "reportediario2.inemec.com"
     api_domain: str = "api.reportediario.inemec.com"
     use_https: bool = True
     

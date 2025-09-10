@@ -109,7 +109,7 @@ const getApiBaseUrl = () => {
   
   // En producción con Cloudflare Tunnel
   // El túnel expone el backend en api.reportediario.inemec.com
-  if (window.location.hostname === 'reportediario.inemec.com') {
+  if (window.location.hostname === 'reportediario2.inemec.com') {
     return 'https://api.reportediario.inemec.com/api/v1'
   }
   
@@ -128,7 +128,7 @@ export const API_ENDPOINTS = {
 
 // Configuración específica para túnel
 export const TUNNEL_CONFIG = {
-  FRONTEND_URL: 'https://reportediario.inemec.com',
+  FRONTEND_URL: 'https://reportediario2.inemec.com',
   API_URL: 'https://api.reportediario.inemec.com',
   WEBSOCKET_URL: 'wss://api.reportediario.inemec.com'
 }
