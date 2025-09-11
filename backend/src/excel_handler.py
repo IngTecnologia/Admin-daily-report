@@ -719,18 +719,38 @@ class ExcelHandler:
                     incidencias_sheet.delete_rows(row_idx, 1)
                 
                 # Agregar las nuevas incidencias
-                for incident in incidents:
+                from datetime import datetime
+                current_time = datetime.now()
+                
+                for index, incident in enumerate(incidents, 1):
                     # Manejar tanto objetos Pydantic como diccionarios
                     if hasattr(incident, 'dict'):
                         incident_dict = incident.dict()
                     else:
                         incident_dict = incident
                     
+                    # Extraer valores y manejar enums
+                    tipo_incidencia = incident_dict.get('tipo', '')
+                    if hasattr(tipo_incidencia, 'value'):
+                        tipo_incidencia = tipo_incidencia.value
+                    elif isinstance(tipo_incidencia, str):
+                        # Si viene como string, mantenerlo tal como está
+                        # Ya debería venir como el valor correcto desde el frontend
+                        tipo_incidencia = tipo_incidencia
+                    
+                    fecha_fin = incident_dict.get('fecha_fin', '')
+                    if isinstance(fecha_fin, str) and fecha_fin:
+                        # Convertir string de fecha a datetime para Excel
+                        from datetime import datetime
+                        fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d')
+                    
                     new_row = [
                         report_id,
-                        incident_dict.get('tipo', ''),
-                        incident_dict.get('nombre_empleado', ''),
-                        incident_dict.get('fecha_fin', '')
+                        index,  # Numero_Incidencia secuencial
+                        tipo_incidencia,  # Tipo_Incidencia como texto
+                        incident_dict.get('nombre_empleado', ''),  # Nombre_Empleado
+                        fecha_fin,  # Fecha_Fin_Novedad
+                        current_time  # Fecha_Registro
                     ]
                     incidencias_sheet.append(new_row)
                 
@@ -782,18 +802,32 @@ class ExcelHandler:
                     movimientos_sheet.delete_rows(row_idx, 1)
                 
                 # Agregar los nuevos movimientos
-                for movement in movements:
+                from datetime import datetime
+                current_time = datetime.now()
+                
+                for index, movement in enumerate(movements, 1):
                     # Manejar tanto objetos Pydantic como diccionarios
                     if hasattr(movement, 'dict'):
                         movement_dict = movement.dict()
                     else:
                         movement_dict = movement
                     
+                    # Extraer estado y manejar enums
+                    estado = movement_dict.get('estado', '')
+                    if hasattr(estado, 'value'):
+                        estado = estado.value
+                    elif isinstance(estado, str):
+                        # Si viene como string, mantenerlo tal como está
+                        # Ya debería venir como el valor correcto desde el frontend
+                        estado = estado
+                    
                     new_row = [
                         report_id,
-                        movement_dict.get('nombre_empleado', ''),
-                        movement_dict.get('cargo', ''),
-                        movement_dict.get('estado', '')
+                        index,  # Numero_Movimiento secuencial
+                        movement_dict.get('nombre_empleado', ''),  # Nombre_Empleado
+                        movement_dict.get('cargo', ''),  # Cargo
+                        estado,  # Estado limpio
+                        current_time  # Fecha_Registro
                     ]
                     movimientos_sheet.append(new_row)
                 
