@@ -720,11 +720,17 @@ class ExcelHandler:
                 
                 # Agregar las nuevas incidencias
                 for incident in incidents:
+                    # Manejar tanto objetos Pydantic como diccionarios
+                    if hasattr(incident, 'dict'):
+                        incident_dict = incident.dict()
+                    else:
+                        incident_dict = incident
+                    
                     new_row = [
                         report_id,
-                        incident.get('tipo', ''),
-                        incident.get('nombre_empleado', ''),
-                        incident.get('fecha_fin', '')
+                        incident_dict.get('tipo', ''),
+                        incident_dict.get('nombre_empleado', ''),
+                        incident_dict.get('fecha_fin', '')
                     ]
                     incidencias_sheet.append(new_row)
                 
@@ -777,11 +783,17 @@ class ExcelHandler:
                 
                 # Agregar los nuevos movimientos
                 for movement in movements:
+                    # Manejar tanto objetos Pydantic como diccionarios
+                    if hasattr(movement, 'dict'):
+                        movement_dict = movement.dict()
+                    else:
+                        movement_dict = movement
+                    
                     new_row = [
                         report_id,
-                        movement.get('nombre_empleado', ''),
-                        movement.get('cargo', ''),
-                        movement.get('estado', '')
+                        movement_dict.get('nombre_empleado', ''),
+                        movement_dict.get('cargo', ''),
+                        movement_dict.get('estado', '')
                     ]
                     movimientos_sheet.append(new_row)
                 
