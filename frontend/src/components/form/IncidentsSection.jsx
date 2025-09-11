@@ -46,7 +46,7 @@ const IncidentsSection = ({ formData, errors, updateField, updateDynamicField })
               fontSize: '0.875rem',
               color: 'var(--warning-yellow)'
             }}>
-              📝 Se generaran {formData.cantidad_incidencias} formularios de incidencia
+              📝 Se generarán {formData.cantidad_incidencias} formularios de incidencia
             </div>
           )}
         </div>

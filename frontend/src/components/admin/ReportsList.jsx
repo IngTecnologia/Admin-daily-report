@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../../services/constants'
-import { adaptReportsListData } from '../../services/dataAdapter'
 
 const ReportsList = ({ onViewReport }) => {
   const [reports, setReports] = useState([])
@@ -9,8 +8,8 @@ const ReportsList = ({ onViewReport }) => {
   const [filters, setFilters] = useState({
     administrador: '',
     cliente: '',
-    fechaInicio: '',
-    fechaFin: '',
+    fecha_inicio: '',
+    fecha_fin: '',
     page: 1,
     limit: 20
   })
@@ -36,8 +35,7 @@ const ReportsList = ({ onViewReport }) => {
       }
       
       const data = await response.json()
-      const adaptedData = adaptReportsListData(data.reports || data)
-      setReports(adaptedData)
+      setReports(Array.isArray(data) ? data : (data.data || []))
       setTotalPages(data.totalPages || 1)
       setError(null)
     } catch (err) {
@@ -64,8 +62,8 @@ const ReportsList = ({ onViewReport }) => {
     setFilters({
       administrador: '',
       cliente: '',
-      fechaInicio: '',
-      fechaFin: '',
+      fecha_inicio: '',
+      fecha_fin: '',
       page: 1,
       limit: 20
     })
@@ -166,8 +164,8 @@ const ReportsList = ({ onViewReport }) => {
             </label>
             <input
               type="date"
-              value={filters.fechaInicio}
-              onChange={(e) => handleFilterChange('fechaInicio', e.target.value)}
+              value={filters.fecha_inicio}
+              onChange={(e) => handleFilterChange('fecha_inicio', e.target.value)}
               className="form-input"
               style={{ width: '100%' }}
             />
@@ -179,8 +177,8 @@ const ReportsList = ({ onViewReport }) => {
             </label>
             <input
               type="date"
-              value={filters.fechaFin}
-              onChange={(e) => handleFilterChange('fechaFin', e.target.value)}
+              value={filters.fecha_fin}
+              onChange={(e) => handleFilterChange('fecha_fin', e.target.value)}
               className="form-input"
               style={{ width: '100%' }}
             />
@@ -271,7 +269,7 @@ const ReportsList = ({ onViewReport }) => {
           {/* Filas de datos */}
           {reports.map((report, index) => (
             <ReportRow 
-              key={report.id || index}
+              key={report.ID || index}
               report={report}
               onViewReport={onViewReport}
             />
@@ -336,27 +334,27 @@ const ReportRow = ({ report, onViewReport }) => {
       
       <div>
         <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
-          {new Date(report.fecha_creacion || Date.now()).toLocaleDateString('es-ES', { timeZone: 'America/Bogota' })}
+          {new Date(report.Fecha_Creacion || Date.now()).toLocaleDateString('es-ES', { timeZone: 'America/Bogota' })}
         </div>
         <div style={{ color: 'var(--neutral-gray)', fontSize: '0.75rem' }}>
-          {new Date(report.fecha_creacion || Date.now()).toLocaleTimeString('es-ES', { timeZone: 'America/Bogota' })}
+          {new Date(report.Fecha_Creacion || Date.now()).toLocaleTimeString('es-ES', { timeZone: 'America/Bogota' })}
         </div>
       </div>
       
       <div style={{ fontWeight: '500' }}>
-        {report.administrador}
+        {report.Administrador}
       </div>
       
       <div>
-        {report.cliente_operacion}
+        {report.Cliente_Operacion}
       </div>
       
       <div>
         <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem' }}>
-          <span>⏰ {report.horas_diarias}h</span>
-          <span>👥 {(report.personal_staff || 0) + (report.personal_base || 0)}</span>
-          <span>⚠️ {report.cantidad_incidencias || 0}</span>
-          <span>🔄 {report.cantidad_ingresos_retiros || 0}</span>
+          <span>⏰ {report.Horas_Diarias}h</span>
+          <span>👥 {(report.Personal_Staff || 0) + (report.Personal_Base || 0)}</span>
+          <span>⚠️ {report.Cantidad_Incidencias || 0}</span>
+          <span>🔄 {report.Cantidad_Ingresos_Retiros || 0}</span>
         </div>
       </div>
       
