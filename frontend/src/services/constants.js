@@ -56,7 +56,9 @@ export const VALIDATION_RULES = {
     type: 'number', 
     min: 1, 
     max: 24, 
-    integer: true 
+    integer: false,
+    decimal: true,
+    maxDecimals: 1
   },
   personal_staff: { 
     required: true, 

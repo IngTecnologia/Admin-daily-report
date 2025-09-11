@@ -20,10 +20,12 @@ const PersonnelInfoSection = ({ formData, errors, updateField }) => {
             id="horas_diarias"
             min={1}
             max={24}
+            step={0.5}
+            allowDecimal={true}
             value={formData.horas_diarias}
             onChange={(value) => updateField('horas_diarias', value)}
             className={`form-input ${errors.horas_diarias ? 'error' : ''}`}
-            placeholder="Ej: 8"
+            placeholder="Ej: 8.5"
             required
           />
           {errors.horas_diarias && (

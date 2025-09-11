@@ -54,7 +54,7 @@ const DailyReportForm = () => {
       const submitData = {
         administrador: administrador,
         cliente_operacion: cliente_operacion,
-        horas_diarias: parseInt(formData.horas_diarias, 10),
+        horas_diarias: parseFloat(formData.horas_diarias),
         personal_staff: parseInt(formData.personal_staff, 10),
         personal_base: parseInt(formData.personal_base, 10),
         incidencias: formData.incidencias.filter(inc => inc.tipo_incidencia && inc.nombre_empleado && inc.fecha_fin).map(inc => ({

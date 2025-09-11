@@ -9,7 +9,8 @@ const NumberInput = ({
   placeholder = "", 
   className = "", 
   required = false,
-  step = 1
+  step = 1,
+  allowDecimal = false
 }) => {
   const handleInputChange = (e) => {
     let inputValue = e.target.value
@@ -20,27 +21,45 @@ const NumberInput = ({
       return
     }
     
-    // Permitir solo números
-    if (!/^\d+$/.test(inputValue)) {
+    // Validar formato según si permite decimales o no
+    let regex = allowDecimal ? /^\d*\.?\d*$/ : /^\d+$/
+    
+    // Permitir solo números (y punto decimal si está habilitado)
+    if (!regex.test(inputValue)) {
       return
+    }
+    
+    // Para decimales, permitir un solo punto
+    if (allowDecimal && inputValue.includes('.')) {
+      const parts = inputValue.split('.')
+      if (parts.length > 2) return // Más de un punto
+      if (parts[1] && parts[1].length > 1) return // Más de un decimal
     }
     
     // Convertir a número
-    const numValue = parseInt(inputValue, 10)
+    const numValue = allowDecimal ? parseFloat(inputValue) : parseInt(inputValue, 10)
     
-    if (isNaN(numValue)) return
+    if (isNaN(numValue) && inputValue !== '.') return
     
-    // Validar límites
-    if (numValue < min || numValue > max) return
-    
-    // Si el valor es 0 y min es 0, permitir
-    if (numValue === 0 && min === 0) {
-      onChange('0')
+    // Permitir punto solo al final para facilitar entrada
+    if (inputValue === '.') {
+      onChange('0.')
       return
     }
     
-    // Remover ceros iniciales solo si el número es mayor que 0
-    if (numValue > 0 && inputValue.startsWith('0')) {
+    // Validar límites solo si tenemos un número completo
+    if (!isNaN(numValue)) {
+      if (numValue < min || numValue > max) return
+    }
+    
+    // Si el valor es 0 y min es 0, permitir
+    if (numValue === 0 && min === 0) {
+      onChange(allowDecimal ? '0' : '0')
+      return
+    }
+    
+    // Para enteros, remover ceros iniciales
+    if (!allowDecimal && numValue > 0 && inputValue.startsWith('0')) {
       onChange(numValue.toString())
     } else {
       onChange(inputValue)
@@ -48,24 +67,29 @@ const NumberInput = ({
   }
 
   const handleIncrement = () => {
-    const currentValue = parseInt(value || '0', 10)
-    if (currentValue < max) {
-      onChange((currentValue + step).toString())
+    const currentValue = allowDecimal ? parseFloat(value || '0') : parseInt(value || '0', 10)
+    const newValue = currentValue + step
+    if (newValue <= max) {
+      onChange(allowDecimal ? newValue.toString() : newValue.toString())
     }
   }
 
   const handleDecrement = () => {
-    const currentValue = parseInt(value || min.toString(), 10)
+    const currentValue = allowDecimal ? parseFloat(value || min.toString()) : parseInt(value || min.toString(), 10)
     const newValue = currentValue - step
     if (newValue >= min) {
-      onChange(newValue.toString())
+      onChange(allowDecimal ? newValue.toString() : newValue.toString())
     }
   }
 
   const handleBlur = () => {
     // Si el campo está vacío al perder foco, asignar valor mínimo
     if (value === '' || value === undefined) {
-      onChange(min.toString())
+      onChange(allowDecimal ? min.toString() : min.toString())
+    }
+    // Si termina en punto, añadir un 0
+    if (allowDecimal && value && value.endsWith('.')) {
+      onChange(value + '0')
     }
   }
 
@@ -107,7 +131,7 @@ const NumberInput = ({
         <button
           type="button"
           onClick={handleIncrement}
-          disabled={parseInt(value || '0', 10) >= max}
+          disabled={allowDecimal ? parseFloat(value || '0') >= max : parseInt(value || '0', 10) >= max}
           style={{
             flex: 1,
             border: 'none',
@@ -133,7 +157,7 @@ const NumberInput = ({
         <button
           type="button"
           onClick={handleDecrement}
-          disabled={parseInt(value || '0', 10) <= min}
+          disabled={allowDecimal ? parseFloat(value || '0') <= min : parseInt(value || '0', 10) <= min}
           style={{
             flex: 1,
             border: 'none',

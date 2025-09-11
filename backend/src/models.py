@@ -143,11 +143,11 @@ class DailyReportCreate(BaseModel):
     """Modelo para crear un reporte diario"""
     administrador: AdministratorEnum = Field(..., description="Administrador que reporta")
     cliente_operacion: ClientOperationEnum = Field(..., description="Cliente/Operacion")
-    horas_diarias: int = Field(
+    horas_diarias: float = Field(
         ..., 
-        ge=1, 
-        le=24, 
-        description="Horas trabajadas en el dia (1-24)"
+        ge=1.0, 
+        le=24.0, 
+        description="Horas trabajadas en el dia (1-24, decimales permitidos)"
     )
     personal_staff: int = Field(
         ..., 
@@ -194,7 +194,7 @@ class DailyReportResponse(BaseModel):
     fecha_creacion: datetime = Field(..., description="Fecha y hora de creacion")
     administrador: str
     cliente_operacion: str
-    horas_diarias: int
+    horas_diarias: float
     personal_staff: int
     personal_base: int
     cantidad_incidencias: int = Field(..., description="Numero total de incidencias")
