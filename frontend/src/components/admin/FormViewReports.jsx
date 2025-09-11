@@ -267,7 +267,7 @@ const FormViewReports = ({ onViewReport }) => {
               fontSize: '0.875rem'
             }}
           >
-            🗑️ Limpiar filtros
+            🗑 Limpiar filtros
           </button>
           <span style={{ 
             marginLeft: 'auto', 

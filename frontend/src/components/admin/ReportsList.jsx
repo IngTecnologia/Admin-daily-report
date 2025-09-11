@@ -109,103 +109,172 @@ const ReportsList = ({ onViewReport }) => {
 
       {/* Filtros */}
       <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
+        backgroundColor: '#f8f9fa',
         padding: '1.5rem',
-        marginBottom: '2rem'
+        borderRadius: '8px',
+        marginBottom: '2rem',
+        border: '1px solid #e9ecef'
       }}>
-        <h3 style={{
-          fontSize: '1.25rem',
-          fontWeight: '600',
-          color: 'var(--dark-text)',
-          marginBottom: '1rem'
+        <h3 style={{ 
+          marginBottom: '1rem', 
+          color: 'var(--primary-red)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
         }}>
           🔍 Filtros de Búsqueda
         </h3>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
           gap: '1rem',
           marginBottom: '1rem'
         }}>
           <div>
-            <label style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.5rem', 
+              fontWeight: '500',
+              fontSize: '0.875rem'
+            }}>
               Administrador
             </label>
-            <input
-              type="text"
+            <select
               value={filters.administrador}
               onChange={(e) => handleFilterChange('administrador', e.target.value)}
-              placeholder="Nombre del administrador..."
-              className="form-input"
-              style={{ width: '100%' }}
-            />
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                fontSize: '0.875rem'
+              }}
+            >
+              <option value="">Todos los administradores</option>
+              {[...new Set(reports.map(r => r.Administrador))].map(admin => (
+                <option key={admin} value={admin}>{admin}</option>
+              ))}
+            </select>
           </div>
 
           <div>
-            <label style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.5rem', 
+              fontWeight: '500',
+              fontSize: '0.875rem'
+            }}>
               Cliente/Operación
             </label>
-            <input
-              type="text"
+            <select
               value={filters.cliente}
               onChange={(e) => handleFilterChange('cliente', e.target.value)}
-              placeholder="Cliente o operación..."
-              className="form-input"
-              style={{ width: '100%' }}
-            />
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                fontSize: '0.875rem'
+              }}
+            >
+              <option value="">Todas las operaciones</option>
+              {[...new Set(reports.map(r => r.Cliente_Operacion))].map(cliente => (
+                <option key={cliente} value={cliente}>{cliente}</option>
+              ))}
+            </select>
           </div>
 
           <div>
-            <label style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-              Fecha Inicio
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.5rem', 
+              fontWeight: '500',
+              fontSize: '0.875rem'
+            }}>
+              Fecha desde
             </label>
             <input
               type="date"
               value={filters.fecha_inicio}
               onChange={(e) => handleFilterChange('fecha_inicio', e.target.value)}
-              className="form-input"
-              style={{ width: '100%' }}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                fontSize: '0.875rem'
+              }}
             />
           </div>
 
           <div>
-            <label style={{ fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-              Fecha Fin
+            <label style={{ 
+              display: 'block', 
+              marginBottom: '0.5rem', 
+              fontWeight: '500',
+              fontSize: '0.875rem'
+            }}>
+              Fecha hasta
             </label>
             <input
               type="date"
               value={filters.fecha_fin}
               onChange={(e) => handleFilterChange('fecha_fin', e.target.value)}
-              className="form-input"
-              style={{ width: '100%' }}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '4px',
+                fontSize: '0.875rem'
+              }}
             />
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button
-            onClick={clearFilters}
-            className="btn btn-secondary"
+            onClick={() => handleFilterChange('fecha_inicio', new Date().toISOString().split('T')[0])}
+            style={{
+              padding: '0.5rem 1rem',
+              background: 'var(--primary-red)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.875rem'
+            }}
           >
-            🗑️ Limpiar Filtros
+            📅 Solo hoy
           </button>
-          
           <button
-            onClick={fetchReports}
-            className="btn btn-primary"
+            onClick={() => setFilters({ ...filters, fecha_inicio: '', fecha_fin: '', administrador: '', cliente: '' })}
+            style={{
+              padding: '0.5rem 1rem',
+              background: '#6b7280',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '0.875rem'
+            }}
           >
-            🔍 Buscar
+            🗑 Limpiar filtros
           </button>
+          <span style={{ 
+            marginLeft: 'auto', 
+            fontSize: '0.875rem', 
+            color: 'var(--neutral-gray)' 
+          }}>
+            {reports.length} reportes encontrados
+          </span>
         </div>
       </div>
 
       {/* Error */}
       {error && (
         <div className="alert alert-error" style={{ marginBottom: '2rem' }}>
-          ⚠️ {error}
+          ⚠ {error}
           <button 
             onClick={fetchReports}
             style={{
@@ -353,7 +422,7 @@ const ReportRow = ({ report, onViewReport }) => {
         <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem' }}>
           <span>⏰ {report.Horas_Diarias}h</span>
           <span>👥 {(report.Personal_Staff || 0) + (report.Personal_Base || 0)}</span>
-          <span>⚠️ {report.Cantidad_Incidencias || 0}</span>
+          <span>⚠ {report.Cantidad_Incidencias || 0}</span>
           <span>🔄 {report.Cantidad_Ingresos_Retiros || 0}</span>
         </div>
       </div>

@@ -113,7 +113,7 @@ const Dashboard = () => {
         />
         
         <StatCard
-          icon="⚠️"
+          icon="⚠"
           title="Total Incidencias"
           value={stats.totalIncidencias}
           color="var(--warning-yellow)"
@@ -137,7 +137,7 @@ const Dashboard = () => {
         />
         
         <StatCard
-          icon="⚠️"
+          icon="⚠"
           title="Promedio Horas Diarias"
           value={stats.promedioHorasDiarias?.toFixed(1) || '0.0'}
           color="var(--primary-red)"
