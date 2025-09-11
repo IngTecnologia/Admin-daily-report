@@ -127,7 +127,7 @@ const TodayReportsStatus = () => {
             <strong>¡Buen día!</strong> Aún no has enviado tu reporte diario.
             <br />
             <small style={{ opacity: 0.8 }}>
-              Fecha: {new Date(reportsInfo.fecha).toLocaleDateString('es-CO')}
+              Fecha: {new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })}
             </small>
           </div>
         </div>
@@ -152,7 +152,7 @@ const TodayReportsStatus = () => {
           </strong>
         </div>
         <small style={{ opacity: 0.8 }}>
-          Fecha: {new Date(reportsInfo.fecha).toLocaleDateString('es-CO')}
+          Fecha: {new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })}
         </small>
       </div>
 
