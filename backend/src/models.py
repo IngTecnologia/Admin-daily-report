@@ -138,6 +138,37 @@ class MovementResponse(MovementCreate):
     fecha_registro: Optional[datetime] = None
 
 
+# Modelos para actualizaciones (sin validaciones restrictivas)
+class IncidentUpdate(BaseModel):
+    """Modelo para actualizar incidencias (sin validación de fecha)"""
+    tipo: Optional[IncidentTypeEnum] = Field(None, description="Tipo de incidencia")
+    nombre_empleado: Optional[str] = Field(
+        None,
+        min_length=3,
+        max_length=100,
+        description="Nombre completo del empleado"
+    )
+    fecha_fin: Optional[date] = Field(None, description="Fecha de fin de la novedad")
+    # No validaciones restrictivas de fecha para permitir edición de datos históricos
+
+
+class MovementUpdate(BaseModel):
+    """Modelo para actualizar movimientos (sin validaciones restrictivas)"""
+    nombre_empleado: Optional[str] = Field(
+        None,
+        min_length=3,
+        max_length=100,
+        description="Nombre completo del empleado"
+    )
+    cargo: Optional[str] = Field(
+        None,
+        min_length=2,
+        max_length=50,
+        description="Cargo del empleado"
+    )
+    estado: Optional[EmployeeStatusEnum] = Field(None, description="Estado: Ingreso o Retiro")
+
+
 # Modelo principal del reporte
 class DailyReportCreate(BaseModel):
     """Modelo para crear un reporte diario"""
@@ -211,11 +242,11 @@ class DailyReportUpdate(BaseModel):
         max_length=2000, 
         description="Hechos relevantes del dia"
     )
-    incidencias: Optional[List[IncidentCreate]] = Field(
+    incidencias: Optional[List[IncidentUpdate]] = Field(
         None,
         description="Lista de incidencias actualizadas"
     )
-    ingresos_retiros: Optional[List[MovementCreate]] = Field(
+    ingresos_retiros: Optional[List[MovementUpdate]] = Field(
         None,
         description="Lista de movimientos de personal actualizados"
     )

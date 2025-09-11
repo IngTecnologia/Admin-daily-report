@@ -73,13 +73,27 @@ app.add_middleware(
 # Handler para errores de validacion
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logger.error(f"Error de validacion en {request.method} {request.url}: {exc.errors()}")
+    # Serializar errores de manera segura
+    safe_errors = []
+    for error in exc.errors():
+        safe_error = {
+            "type": error.get("type"),
+            "loc": error.get("loc"),
+            "msg": error.get("msg"),
+            "input": error.get("input")
+        }
+        # Convertir ctx con objetos no serializables
+        if "ctx" in error:
+            safe_error["ctx"] = {k: str(v) for k, v in error["ctx"].items()}
+        safe_errors.append(safe_error)
+    
+    logger.error(f"Error de validacion en {request.method} {request.url}: {safe_errors}")
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "detail": "Error de validacion",
-            "errors": exc.errors(),
-            "body": exc.body
+            "errors": safe_errors,
+            "message": "Datos de entrada inválidos"
         }
     )
 

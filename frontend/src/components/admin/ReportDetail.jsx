@@ -22,7 +22,21 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
       if (response.ok) {
         const data = await response.json()
         setDetailedReport(data)
-        setEditData(data) // Inicializar datos de edición
+        
+        // Preparar datos de edición con formatos correctos
+        const editableData = {
+          ...data,
+          // Asegurar que las incidencias mantengan sus fechas
+          incidencias: data.incidencias ? data.incidencias.map(inc => ({
+            ...inc,
+            // Convertir fecha a formato YYYY-MM-DD si es necesario
+            fecha_fin: inc.fecha_fin ? (inc.fecha_fin.includes('T') ? inc.fecha_fin.split('T')[0] : inc.fecha_fin) : ''
+          })) : [],
+          // Asegurar que los movimientos se preserven
+          ingresos_retiros: data.ingresos_retiros || []
+        }
+        
+        setEditData(editableData)
         setError(null)
       } else {
         throw new Error('Error cargando detalles del reporte')
@@ -31,7 +45,18 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
       console.error('Error fetching report details:', err)
       setError(err.message)
       setDetailedReport(report) // Fallback al reporte básico
-      setEditData(report)
+      
+      // Preparar datos de fallback con formatos correctos
+      const fallbackData = {
+        ...report,
+        incidencias: report.incidencias ? report.incidencias.map(inc => ({
+          ...inc,
+          fecha_fin: inc.fecha_fin ? (inc.fecha_fin.includes('T') ? inc.fecha_fin.split('T')[0] : inc.fecha_fin) : ''
+        })) : [],
+        ingresos_retiros: report.ingresos_retiros || []
+      }
+      
+      setEditData(fallbackData)
     } finally {
       setLoading(false)
     }
@@ -306,44 +331,85 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
 
           {/* Incidencias */}
           <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{
-              fontSize: '1.25rem',
-              fontWeight: '600',
-              color: 'var(--dark-text)',
-              marginBottom: '1rem',
+            <div style={{
               display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              gap: '0.5rem'
+              marginBottom: '1rem'
             }}>
-              📋 Incidencias ({reportToShow.Cantidad_Incidencias || reportToShow.cantidad_incidencias || 0})
-            </h3>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: 'var(--dark-text)',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                📋 Incidencias ({(editData.incidencias || reportToShow.incidencias || []).length})
+              </h3>
+              
+              {isEditing && (
+                <button
+                  onClick={() => {
+                    const newIncidencias = [...(editData.incidencias || [])]
+                    newIncidencias.push({
+                      tipo: '',
+                      nombre_empleado: '',
+                      fecha_fin: ''
+                    })
+                    setEditData(prev => ({ ...prev, incidencias: newIncidencias }))
+                  }}
+                  style={{
+                    background: 'var(--success-green)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
+                  title="Agregar nueva incidencia"
+                >
+                  ➕ Agregar
+                </button>
+              )}
+            </div>
             
-            {reportToShow.incidencias && reportToShow.incidencias.length > 0 ? (
+            {((isEditing ? editData.incidencias : reportToShow.incidencias) || []).length > 0 ? (
               <div style={{
                 backgroundColor: '#fffbeb',
                 border: '1px solid #fed7aa',
                 borderRadius: '8px',
                 overflow: 'hidden'
               }}>
-                {reportToShow.incidencias.map((incidencia, index) => (
+                {((isEditing ? editData.incidencias : reportToShow.incidencias) || []).map((incidencia, index) => (
                   <div 
                     key={index}
                     style={{
                       padding: '1rem',
-                      borderBottom: index < reportToShow.incidencias.length - 1 ? '1px solid #fed7aa' : 'none'
+                      borderBottom: index < ((isEditing ? editData.incidencias : reportToShow.incidencias) || []).length - 1 ? '1px solid #fed7aa' : 'none'
                     }}
                   >
                     {isEditing ? (
                       <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr 1fr',
+                        display: 'flex',
+                        flexDirection: 'column',
                         gap: '1rem',
                         fontSize: '0.875rem'
                       }}>
-                        <div>
-                          <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
-                            Tipo de Incidencia
-                          </label>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr 1fr',
+                          gap: '1rem'
+                        }}>
+                          <div>
+                            <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
+                              Tipo de Incidencia
+                            </label>
                           <select
                             value={(editData.incidencias && editData.incidencias[index] && editData.incidencias[index].tipo) || incidencia.tipo || ''}
                             onChange={(e) => {
@@ -413,6 +479,38 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
                             }}
                           />
                         </div>
+                        </div>
+                        
+                        {/* Botón de eliminar incidencia */}
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          paddingTop: '0.5rem',
+                          borderTop: '1px solid #fed7aa'
+                        }}>
+                          <button
+                            onClick={() => {
+                              const newIncidencias = [...(editData.incidencias || [])]
+                              newIncidencias.splice(index, 1)
+                              setEditData(prev => ({ ...prev, incidencias: newIncidencias }))
+                            }}
+                            style={{
+                              background: 'var(--error-red)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              padding: '0.25rem 0.75rem',
+                              fontSize: '0.8rem',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem'
+                            }}
+                            title="Eliminar esta incidencia"
+                          >
+                            🗑️ Eliminar
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div style={{
@@ -445,44 +543,85 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
 
           {/* Movimientos de personal */}
           <div style={{ marginBottom: '2rem' }}>
-            <h3 style={{
-              fontSize: '1.25rem',
-              fontWeight: '600',
-              color: 'var(--dark-text)',
-              marginBottom: '1rem',
+            <div style={{
               display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
-              gap: '0.5rem'
+              marginBottom: '1rem'
             }}>
-              🔄 Movimientos de Personal ({reportToShow.Cantidad_Ingresos_Retiros || reportToShow.cantidad_ingresos_retiros || 0})
-            </h3>
+              <h3 style={{
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: 'var(--dark-text)',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
+                🔄 Movimientos de Personal ({(editData.ingresos_retiros || reportToShow.ingresos_retiros || []).length})
+              </h3>
+              
+              {isEditing && (
+                <button
+                  onClick={() => {
+                    const newMovimientos = [...(editData.ingresos_retiros || [])]
+                    newMovimientos.push({
+                      nombre_empleado: '',
+                      cargo: '',
+                      estado: ''
+                    })
+                    setEditData(prev => ({ ...prev, ingresos_retiros: newMovimientos }))
+                  }}
+                  style={{
+                    background: 'var(--success-green)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
+                  title="Agregar nuevo movimiento"
+                >
+                  ➕ Agregar
+                </button>
+              )}
+            </div>
             
-            {reportToShow.ingresos_retiros && reportToShow.ingresos_retiros.length > 0 ? (
+            {((isEditing ? editData.ingresos_retiros : reportToShow.ingresos_retiros) || []).length > 0 ? (
               <div style={{
                 backgroundColor: '#f0f9ff',
                 border: '1px solid #bae6fd',
                 borderRadius: '8px',
                 overflow: 'hidden'
               }}>
-                {reportToShow.ingresos_retiros.map((movimiento, index) => (
+                {((isEditing ? editData.ingresos_retiros : reportToShow.ingresos_retiros) || []).map((movimiento, index) => (
                   <div 
                     key={index}
                     style={{
                       padding: '1rem',
-                      borderBottom: index < reportToShow.ingresos_retiros.length - 1 ? '1px solid #bae6fd' : 'none'
+                      borderBottom: index < ((isEditing ? editData.ingresos_retiros : reportToShow.ingresos_retiros) || []).length - 1 ? '1px solid #bae6fd' : 'none'
                     }}
                   >
                     {isEditing ? (
                       <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr 1fr',
+                        display: 'flex',
+                        flexDirection: 'column',
                         gap: '1rem',
                         fontSize: '0.875rem'
                       }}>
-                        <div>
-                          <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
-                            Nombre del Empleado
-                          </label>
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: '1fr 1fr 1fr',
+                          gap: '1rem'
+                        }}>
+                          <div>
+                            <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
+                              Nombre del Empleado
+                            </label>
                           <input
                             type="text"
                             value={(editData.ingresos_retiros && editData.ingresos_retiros[index] && editData.ingresos_retiros[index].nombre_empleado) || movimiento.nombre_empleado || ''}
@@ -552,6 +691,38 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
                               <option key={status} value={status}>{status}</option>
                             ))}
                           </select>
+                        </div>
+                        </div>
+                        
+                        {/* Botón de eliminar movimiento */}
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'flex-end',
+                          paddingTop: '0.5rem',
+                          borderTop: '1px solid #bae6fd'
+                        }}>
+                          <button
+                            onClick={() => {
+                              const newMovimientos = [...(editData.ingresos_retiros || [])]
+                              newMovimientos.splice(index, 1)
+                              setEditData(prev => ({ ...prev, ingresos_retiros: newMovimientos }))
+                            }}
+                            style={{
+                              background: 'var(--error-red)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              padding: '0.25rem 0.75rem',
+                              fontSize: '0.8rem',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem'
+                            }}
+                            title="Eliminar este movimiento"
+                          >
+                            🗑️ Eliminar
+                          </button>
                         </div>
                       </div>
                     ) : (
