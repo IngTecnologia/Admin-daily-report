@@ -23,8 +23,8 @@ export const useForm = (initialState = {}) => {
     const rule = VALIDATION_RULES[name]
     if (!rule) return null
 
-    // Campo requerido - permitir 0 como valor válido
-    if (rule.required && (value === '' || value === null || value === undefined)) {
+    // Campo requerido - permitir 0 como valor válido y valores vacíos si allowEmpty está habilitado
+    if (rule.required && !rule.allowEmpty && (value === '' || value === null || value === undefined)) {
       return 'Este campo es obligatorio'
     }
 

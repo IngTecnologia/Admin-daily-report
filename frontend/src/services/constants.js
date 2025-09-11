@@ -73,16 +73,18 @@ export const VALIDATION_RULES = {
     integer: true 
   },
   cantidad_incidencias: {
-    required: true,
+    required: false,
     type: 'number',
     min: 0,
-    integer: true
+    integer: true,
+    allowEmpty: true
   },
   cantidad_ingresos_retiros: {
-    required: true,
+    required: false,
     type: 'number',
     min: 0,
-    integer: true
+    integer: true,
+    allowEmpty: true
   },
   nombre_empleado: {
     required: true,

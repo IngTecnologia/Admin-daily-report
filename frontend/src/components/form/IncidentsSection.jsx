@@ -19,7 +19,7 @@ const IncidentsSection = ({ formData, errors, updateField, updateDynamicField })
           <label htmlFor="cantidad_incidencias" className="form-label">
             Cantidad de personal con incidencias *
             <small style={{ display: 'block', fontWeight: 'normal', color: 'var(--neutral-gray)' }}>
-              Ingrese 0 si no hay incidencias
+              Dejar vacío si no hay incidencias
             </small>
           </label>
           <NumberInput
@@ -29,14 +29,15 @@ const IncidentsSection = ({ formData, errors, updateField, updateDynamicField })
             value={formData.cantidad_incidencias}
             onChange={handleQuantityChange}
             className={`form-input ${errors.cantidad_incidencias ? 'error' : ''}`}
-            placeholder="Ej: 2"
-            required
+            placeholder="Dejar vacío = 0"
+            allowEmpty={true}
+            required={false}
           />
           {errors.cantidad_incidencias && (
             <span className="error-message">{errors.cantidad_incidencias}</span>
           )}
           
-          {formData.cantidad_incidencias > 0 && (
+          {(parseInt(formData.cantidad_incidencias) || 0) > 0 && (
             <div style={{
               marginTop: '0.5rem',
               padding: '0.5rem',
@@ -46,14 +47,14 @@ const IncidentsSection = ({ formData, errors, updateField, updateDynamicField })
               fontSize: '0.875rem',
               color: 'var(--warning-yellow)'
             }}>
-              📝 Se generarán {formData.cantidad_incidencias} formularios de incidencia
+              📝 Se generarán {parseInt(formData.cantidad_incidencias) || 0} formularios de incidencia
             </div>
           )}
         </div>
       </div>
 
       {/* Campos dinamicos de incidencias */}
-      {formData.cantidad_incidencias > 0 && (
+      {(parseInt(formData.cantidad_incidencias) || 0) > 0 && (
         <div className="dynamic-section">
           <h3 style={{ 
             fontSize: '1.25rem', 
@@ -61,11 +62,11 @@ const IncidentsSection = ({ formData, errors, updateField, updateDynamicField })
             color: 'var(--primary-red)',
             marginBottom: '1rem'
           }}>
-            📋 Detalles de Incidencias ({formData.cantidad_incidencias})
+            📋 Detalles de Incidencias ({parseInt(formData.cantidad_incidencias) || 0})
           </h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {Array.from({ length: formData.cantidad_incidencias }, (_, index) => (
+            {Array.from({ length: parseInt(formData.cantidad_incidencias) || 0 }, (_, index) => (
               <DynamicIncidentFields
                 key={index}
                 index={index}

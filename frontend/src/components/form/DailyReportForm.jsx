@@ -57,12 +57,12 @@ const DailyReportForm = () => {
         horas_diarias: parseFloat(formData.horas_diarias),
         personal_staff: parseInt(formData.personal_staff, 10),
         personal_base: parseInt(formData.personal_base, 10),
-        incidencias: formData.incidencias.filter(inc => inc.tipo_incidencia && inc.nombre_empleado && inc.fecha_fin).map(inc => ({
+        incidencias: (formData.incidencias || []).filter(inc => inc.tipo_incidencia && inc.nombre_empleado && inc.fecha_fin).map(inc => ({
           tipo: inc.tipo_incidencia,
           nombre_empleado: inc.nombre_empleado,
           fecha_fin: inc.fecha_fin
         })),
-        ingresos_retiros: formData.ingresos_retiros.filter(mov => mov.nombre_empleado && mov.cargo && mov.estado).map(mov => ({
+        ingresos_retiros: (formData.ingresos_retiros || []).filter(mov => mov.nombre_empleado && mov.cargo && mov.estado).map(mov => ({
           nombre_empleado: mov.nombre_empleado,
           cargo: mov.cargo,
           estado: mov.estado

@@ -18,7 +18,7 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
           <label htmlFor="cantidad_ingresos_retiros" className="form-label">
             Cantidad de ingresos o retiros *
             <small style={{ display: 'block', fontWeight: 'normal', color: 'var(--neutral-gray)' }}>
-              Ingrese 0 si no hay movimientos de personal
+              Dejar vacío si no hay movimientos de personal
             </small>
           </label>
           <NumberInput
@@ -28,14 +28,15 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
             value={formData.cantidad_ingresos_retiros}
             onChange={handleQuantityChange}
             className={`form-input ${errors.cantidad_ingresos_retiros ? 'error' : ''}`}
-            placeholder="Ej: 3"
-            required
+            placeholder="Dejar vacío = 0"
+            allowEmpty={true}
+            required={false}
           />
           {errors.cantidad_ingresos_retiros && (
             <span className="error-message">{errors.cantidad_ingresos_retiros}</span>
           )}
           
-          {formData.cantidad_ingresos_retiros > 0 && (
+          {(parseInt(formData.cantidad_ingresos_retiros) || 0) > 0 && (
             <div style={{
               marginTop: '0.5rem',
               padding: '0.5rem',
@@ -45,14 +46,14 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
               fontSize: '0.875rem',
               color: 'var(--primary-red)'
             }}>
-              📝 Se generarán {formData.cantidad_ingresos_retiros} formularios de movimiento
+              📝 Se generarán {parseInt(formData.cantidad_ingresos_retiros) || 0} formularios de movimiento
             </div>
           )}
         </div>
       </div>
 
       {/* Campos dinámicos de ingresos/retiros */}
-      {formData.cantidad_ingresos_retiros > 0 && (
+      {(parseInt(formData.cantidad_ingresos_retiros) || 0) > 0 && (
         <div className="dynamic-section">
           <h3 style={{ 
             fontSize: '1.25rem', 
@@ -60,11 +61,11 @@ const HiringRetirementsSection = ({ formData, errors, updateField, updateDynamic
             color: 'var(--primary-red)',
             marginBottom: '1rem'
           }}>
-            📋 Movimientos de Personal ({formData.cantidad_ingresos_retiros})
+            📋 Movimientos de Personal ({parseInt(formData.cantidad_ingresos_retiros) || 0})
           </h3>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {Array.from({ length: formData.cantidad_ingresos_retiros }, (_, index) => (
+            {Array.from({ length: parseInt(formData.cantidad_ingresos_retiros) || 0 }, (_, index) => (
               <DynamicHiringFields
                 key={index}
                 index={index}

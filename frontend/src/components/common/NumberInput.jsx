@@ -10,7 +10,8 @@ const NumberInput = ({
   className = "", 
   required = false,
   step = 1,
-  allowDecimal = false
+  allowDecimal = false,
+  allowEmpty = false
 }) => {
   const handleInputChange = (e) => {
     let inputValue = e.target.value
@@ -83,8 +84,8 @@ const NumberInput = ({
   }
 
   const handleBlur = () => {
-    // Si el campo está vacío al perder foco, asignar valor mínimo
-    if (value === '' || value === undefined) {
+    // Si allowEmpty es true, no asignar valor mínimo automáticamente
+    if (!allowEmpty && (value === '' || value === undefined)) {
       onChange(allowDecimal ? min.toString() : min.toString())
     }
     // Si termina en punto, añadir un 0
