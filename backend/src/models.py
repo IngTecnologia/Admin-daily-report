@@ -188,6 +188,31 @@ class DailyReportCreate(BaseModel):
         return v
 
 
+class DailyReportUpdate(BaseModel):
+    """Modelo para actualizar un reporte diario (solo campos editables)"""
+    horas_diarias: Optional[float] = Field(
+        None, 
+        ge=1.0, 
+        le=24.0, 
+        description="Horas trabajadas en el dia (1-24, decimales permitidos)"
+    )
+    personal_staff: Optional[int] = Field(
+        None, 
+        ge=0, 
+        description="Cantidad de personal staff"
+    )
+    personal_base: Optional[int] = Field(
+        None, 
+        ge=0, 
+        description="Cantidad de personal base"
+    )
+    hechos_relevantes: Optional[str] = Field(
+        None, 
+        max_length=2000, 
+        description="Hechos relevantes del dia"
+    )
+
+
 class DailyReportResponse(BaseModel):
     """Modelo de respuesta para reportes diarios"""
     id: str = Field(..., description="ID unico del reporte")

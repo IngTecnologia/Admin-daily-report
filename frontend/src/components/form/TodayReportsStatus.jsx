@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { API_BASE_URL } from '../../services/constants'
+import ReportDetail from '../admin/ReportDetail'
 
-const TodayReportsStatus = () => {
+const TodayReportsStatus = ({ onReportsChange }) => {
   const { user } = useAuth()
   const [reportsInfo, setReportsInfo] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [deleting, setDeleting] = useState(null) // ID del reporte que se está eliminando
+  const [selectedReport, setSelectedReport] = useState(null) // Reporte seleccionado para ver detalle
 
   const fetchTodayReports = async () => {
     if (!user?.fullName) return
@@ -33,36 +34,41 @@ const TodayReportsStatus = () => {
     }
   }
 
-  const deleteReport = async (reportId) => {
-    if (!confirm(`¿Estás seguro de que deseas eliminar el reporte ${reportId}?`)) {
-      return
-    }
-
+  const handleViewReport = async (reportId) => {
     try {
-      setDeleting(reportId)
-      const response = await fetch(`${API_BASE_URL}/reportes/${reportId}`, {
-        method: 'DELETE'
-      })
-
+      const response = await fetch(`${API_BASE_URL}/admin/reportes/${reportId}`)
       if (response.ok) {
-        // Recargar la información de reportes después de eliminar
-        await fetchTodayReports()
-        alert('Reporte eliminado exitosamente')
+        const reportData = await response.json()
+        setSelectedReport(reportData)
       } else {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Error eliminando el reporte')
+        throw new Error('Error cargando detalles del reporte')
       }
     } catch (err) {
-      console.error('Error deleting report:', err)
-      alert(`Error eliminando el reporte: ${err.message}`)
-    } finally {
-      setDeleting(null)
+      console.error('Error fetching report details:', err)
+      alert(`Error cargando el reporte: ${err.message}`)
     }
+  }
+
+  const handleCloseReportDetail = () => {
+    setSelectedReport(null)
+  }
+
+  const handleReportUpdated = () => {
+    // Recargar la información de reportes después de editar
+    fetchTodayReports()
+    setSelectedReport(null)
   }
 
   useEffect(() => {
     fetchTodayReports()
   }, [user?.fullName])
+
+  // Notify parent component when reports status changes
+  useEffect(() => {
+    if (onReportsChange && reportsInfo !== null) {
+      onReportsChange(reportsInfo.ha_reportado || false)
+    }
+  }, [reportsInfo, onReportsChange])
 
   if (loading) {
     return (
@@ -189,31 +195,26 @@ const TodayReportsStatus = () => {
                   })}
                 </span>
                 <button
-                  onClick={() => deleteReport(reporte.id)}
-                  disabled={deleting === reporte.id}
+                  onClick={() => handleViewReport(reporte.id)}
                   style={{
-                    background: deleting === reporte.id ? '#ccc' : 'var(--error-red)',
+                    background: 'var(--primary-red)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '3px',
                     padding: '0.25rem 0.5rem',
                     fontSize: '0.7rem',
-                    cursor: deleting === reporte.id ? 'not-allowed' : 'pointer',
+                    cursor: 'pointer',
                     transition: 'background-color 0.2s'
                   }}
                   onMouseEnter={(e) => {
-                    if (deleting !== reporte.id) {
-                      e.target.style.backgroundColor = '#b91c1c'
-                    }
+                    e.target.style.backgroundColor = '#b91c1c'
                   }}
                   onMouseLeave={(e) => {
-                    if (deleting !== reporte.id) {
-                      e.target.style.backgroundColor = 'var(--error-red)'
-                    }
+                    e.target.style.backgroundColor = 'var(--primary-red)'
                   }}
-                  title={`Eliminar reporte ${reporte.id}`}
+                  title={`Ver detalle del reporte ${reporte.id}`}
                 >
-                  {deleting === reporte.id ? '⏳' : '🗑️'}
+                  👁️
                 </button>
               </div>
             ))}
@@ -228,9 +229,18 @@ const TodayReportsStatus = () => {
         borderRadius: '4px',
         fontSize: '0.875rem'
       }}>
-        ℹ️ <strong>Nota:</strong> Puedes enviar múltiples reportes si es necesario. 
-        Los reportes adicionales se numerarán automáticamente.
+        ℹ️ <strong>Nota:</strong> Haz clic en 👁️ para ver los detalles del reporte y editarlo si es necesario.
       </div>
+
+      {/* Modal de detalle del reporte */}
+      {selectedReport && (
+        <ReportDetail 
+          report={selectedReport}
+          onClose={handleCloseReportDetail}
+          allowEdit={true}
+          onReportUpdated={handleReportUpdated}
+        />
+      )}
     </div>
   )
 }

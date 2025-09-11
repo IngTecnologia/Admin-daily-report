@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../../services/constants'
 
-const ReportDetail = ({ report, onClose }) => {
+const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) => {
   const [detailedReport, setDetailedReport] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editData, setEditData] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (report && (report.ID || report.id)) {
@@ -19,6 +22,7 @@ const ReportDetail = ({ report, onClose }) => {
       if (response.ok) {
         const data = await response.json()
         setDetailedReport(data)
+        setEditData(data) // Inicializar datos de edición
         setError(null)
       } else {
         throw new Error('Error cargando detalles del reporte')
@@ -27,9 +31,63 @@ const ReportDetail = ({ report, onClose }) => {
       console.error('Error fetching report details:', err)
       setError(err.message)
       setDetailedReport(report) // Fallback al reporte básico
+      setEditData(report)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleEdit = () => {
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditData(detailedReport) // Restaurar datos originales
+  }
+
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      const response = await fetch(`${API_BASE_URL}/admin/reportes/${detailedReport.ID || detailedReport.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          horas_diarias: parseFloat(editData.Horas_Diarias || editData.horas_diarias),
+          personal_staff: parseInt(editData.Personal_Staff || editData.personal_staff),
+          personal_base: parseInt(editData.Personal_Base || editData.personal_base),
+          hechos_relevantes: editData.Hechos_Relevantes || editData.hechos_relevantes || '',
+          // Incidencias e ingresos_retiros se manejarían por separado si es necesario
+        })
+      })
+
+      if (response.ok) {
+        const updatedReport = await response.json()
+        setDetailedReport(updatedReport)
+        setEditData(updatedReport)
+        setIsEditing(false)
+        if (onReportUpdated) {
+          onReportUpdated()
+        }
+        alert('Reporte actualizado exitosamente')
+      } else {
+        throw new Error('Error guardando los cambios')
+      }
+    } catch (err) {
+      console.error('Error saving report:', err)
+      alert(`Error guardando los cambios: ${err.message}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleFieldChange = (field, value) => {
+    setEditData(prev => ({
+      ...prev,
+      [field]: value
+    }))
   }
 
   if (!report) {
@@ -200,13 +258,48 @@ const ReportDetail = ({ report, onClose }) => {
               padding: '1.5rem',
               borderRadius: '8px'
             }}>
-              <DetailField label="Horas Diarias" value={`${reportToShow.Horas_Diarias || reportToShow.horas_diarias} horas`} />
-              <DetailField label="Personal Staff" value={reportToShow.Personal_Staff || reportToShow.personal_staff || 0} />
-              <DetailField label="Personal Base" value={reportToShow.Personal_Base || reportToShow.personal_base || 0} />
-              <DetailField 
-                label="Total Personal" 
-                value={(reportToShow.Personal_Staff || reportToShow.personal_staff || 0) + (reportToShow.Personal_Base || reportToShow.personal_base || 0)} 
-              />
+              {isEditing ? (
+                <>
+                  <EditableField 
+                    label="Horas Diarias" 
+                    value={editData.Horas_Diarias || editData.horas_diarias}
+                    type="number"
+                    step="0.5"
+                    min="1"
+                    max="24"
+                    onChange={(value) => handleFieldChange('Horas_Diarias', value)}
+                    suffix=" horas"
+                  />
+                  <EditableField 
+                    label="Personal Staff" 
+                    value={editData.Personal_Staff || editData.personal_staff || 0}
+                    type="number"
+                    min="0"
+                    onChange={(value) => handleFieldChange('Personal_Staff', value)}
+                  />
+                  <EditableField 
+                    label="Personal Base" 
+                    value={editData.Personal_Base || editData.personal_base || 0}
+                    type="number"
+                    min="0"
+                    onChange={(value) => handleFieldChange('Personal_Base', value)}
+                  />
+                  <DetailField 
+                    label="Total Personal" 
+                    value={(parseInt(editData.Personal_Staff || editData.personal_staff || 0)) + (parseInt(editData.Personal_Base || editData.personal_base || 0))} 
+                  />
+                </>
+              ) : (
+                <>
+                  <DetailField label="Horas Diarias" value={`${reportToShow.Horas_Diarias || reportToShow.horas_diarias} horas`} />
+                  <DetailField label="Personal Staff" value={reportToShow.Personal_Staff || reportToShow.personal_staff || 0} />
+                  <DetailField label="Personal Base" value={reportToShow.Personal_Base || reportToShow.personal_base || 0} />
+                  <DetailField 
+                    label="Total Personal" 
+                    value={(reportToShow.Personal_Staff || reportToShow.personal_staff || 0) + (reportToShow.Personal_Base || reportToShow.personal_base || 0)} 
+                  />
+                </>
+              )}
             </div>
           </div>
 
@@ -330,7 +423,7 @@ const ReportDetail = ({ report, onClose }) => {
           </div>
 
           {/* Hechos relevantes */}
-          {(reportToShow.Hechos_Relevantes || reportToShow.hechos_relevantes) && (
+          {(reportToShow.Hechos_Relevantes || reportToShow.hechos_relevantes || isEditing) && (
             <div style={{ marginBottom: '2rem' }}>
               <h3 style={{
                 fontSize: '1.25rem',
@@ -344,21 +437,59 @@ const ReportDetail = ({ report, onClose }) => {
                 📝 Hechos Relevantes
               </h3>
               
-              <div style={{
-                backgroundColor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                borderRadius: '8px',
-                padding: '1.5rem'
-              }}>
-                <p style={{
-                  fontSize: '0.875rem',
-                  lineHeight: '1.6',
-                  color: 'var(--dark-text)',
-                  margin: 0
+              {isEditing ? (
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '1rem'
                 }}>
-                  {reportToShow.Hechos_Relevantes || reportToShow.hechos_relevantes}
-                </p>
-              </div>
+                  <textarea
+                    value={editData.Hechos_Relevantes || editData.hechos_relevantes || ''}
+                    onChange={(e) => setEditData(prev => ({
+                      ...prev,
+                      Hechos_Relevantes: e.target.value,
+                      hechos_relevantes: e.target.value
+                    }))}
+                    placeholder="Ingrese los hechos relevantes..."
+                    style={{
+                      width: '100%',
+                      minHeight: '120px',
+                      padding: '0.75rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '0.875rem',
+                      lineHeight: '1.5',
+                      fontFamily: 'inherit',
+                      resize: 'vertical',
+                      outline: 'none',
+                      transition: 'border-color 0.2s'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'var(--primary-red)'
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#d1d5db'
+                    }}
+                  />
+                </div>
+              ) : (
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '1.5rem'
+                }}>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    lineHeight: '1.6',
+                    color: 'var(--dark-text)',
+                    margin: 0
+                  }}>
+                    {reportToShow.Hechos_Relevantes || reportToShow.hechos_relevantes || 'No hay hechos relevantes registrados'}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -370,9 +501,38 @@ const ReportDetail = ({ report, onClose }) => {
             paddingTop: '1rem',
             borderTop: '1px solid #e5e7eb'
           }}>
+            {allowEdit && !isEditing && (
+              <button
+                onClick={handleEdit}
+                className="btn btn-primary"
+              >
+                ✏️ Editar Reporte
+              </button>
+            )}
+            
+            {isEditing && (
+              <>
+                <button
+                  onClick={handleCancelEdit}
+                  className="btn btn-secondary"
+                  disabled={saving}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="btn btn-primary"
+                  disabled={saving}
+                >
+                  {saving ? '⏳ Guardando...' : '💾 Guardar Cambios'}
+                </button>
+              </>
+            )}
+            
             <button
               onClick={onClose}
               className="btn btn-secondary"
+              disabled={saving}
             >
               Cerrar
             </button>
@@ -401,6 +561,47 @@ const DetailField = ({ label, value, valueStyle = {} }) => {
         ...valueStyle
       }}>
         {value || 'No especificado'}
+      </div>
+    </div>
+  )
+}
+
+const EditableField = ({ label, value, onChange, type = "text", suffix = "", ...inputProps }) => {
+  return (
+    <div>
+      <div style={{
+        fontSize: '0.75rem',
+        fontWeight: '500',
+        color: 'var(--neutral-gray)',
+        marginBottom: '0.25rem'
+      }}>
+        {label}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <input
+          type={type}
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            color: 'var(--dark-text)',
+            border: '1px solid #d1d5db',
+            borderRadius: '4px',
+            padding: '0.5rem',
+            flex: 1,
+            maxWidth: '120px'
+          }}
+          {...inputProps}
+        />
+        {suffix && (
+          <span style={{
+            fontSize: '0.875rem',
+            color: 'var(--neutral-gray)'
+          }}>
+            {suffix}
+          </span>
+        )}
       </div>
     </div>
   )

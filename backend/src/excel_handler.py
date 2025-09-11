@@ -620,6 +620,73 @@ class ExcelHandler:
                 pass
             return False
 
+    def update_report(self, report_id: str, update_data: Dict[str, Any]) -> bool:
+        """
+        Actualizar un reporte existente
+        
+        Args:
+            report_id: ID del reporte a actualizar
+            update_data: Diccionario con los campos a actualizar y sus nuevos valores
+            
+        Returns:
+            bool: True si se actualizó correctamente, False en caso contrario
+        """
+        try:
+            # Crear backup antes de actualizar
+            if not self.backup_file():
+                print("Advertencia: No se pudo crear backup antes de actualizar")
+            
+            workbook = openpyxl.load_workbook(self.file_path)
+            
+            # Encontrar el reporte en la hoja principal
+            reportes_sheet = workbook[self.sheets["reportes"]]
+            report_row_to_update = None
+            header_row = None
+            
+            # Obtener encabezados de la primera fila
+            header_row = [cell.value for cell in reportes_sheet[1]]
+            
+            # Buscar la fila del reporte
+            for row_idx, row in enumerate(reportes_sheet.iter_rows(min_row=2), start=2):
+                if row[0].value == report_id:  # Columna A contiene el ID
+                    report_row_to_update = row_idx
+                    break
+            
+            if report_row_to_update is None:
+                print(f"Reporte {report_id} no encontrado en la hoja de reportes")
+                workbook.close()
+                return False
+            
+            # Actualizar los campos especificados
+            for field_name, new_value in update_data.items():
+                # Encontrar el índice de la columna para este campo
+                column_index = None
+                for idx, header in enumerate(header_row):
+                    if header == field_name:
+                        column_index = idx + 1  # openpyxl usa índices base 1
+                        break
+                
+                if column_index is not None:
+                    reportes_sheet.cell(row=report_row_to_update, column=column_index).value = new_value
+                    print(f"Actualizado {field_name} = {new_value} en reporte {report_id}")
+                else:
+                    print(f"Campo {field_name} no encontrado en los encabezados")
+            
+            # Guardar cambios
+            workbook.save(self.file_path)
+            workbook.close()
+            
+            print(f"Reporte {report_id} actualizado exitosamente")
+            return True
+            
+        except Exception as e:
+            print(f"Error actualizando reporte {report_id}: {e}")
+            try:
+                workbook.close()
+            except:
+                pass
+            return False
+
 
 # Instancia global del manejador
 excel_handler = ExcelHandler()

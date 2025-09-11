@@ -11,7 +11,7 @@ import RelevantFactsSection from './RelevantFactsSection'
 import Loading from '../common/Loading'
 import Alert from '../common/Alert'
 
-const DailyReportForm = () => {
+const DailyReportForm = ({ isDisabled = false }) => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const {
@@ -121,6 +121,93 @@ const DailyReportForm = () => {
             Redirigiendo a la página de confirmación...
           </p>
           <Loading />
+        </div>
+      </div>
+    )
+  }
+
+  if (isDisabled) {
+    return (
+      <div className="form-card" style={{ position: 'relative' }}>
+        {/* Overlay de formulario deshabilitado */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.05)',
+          borderRadius: '12px',
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <div style={{
+            backgroundColor: '#fff8dc',
+            border: '2px solid #ffd700',
+            borderRadius: '8px',
+            padding: '2rem',
+            textAlign: 'center',
+            maxWidth: '400px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📝</div>
+            <h3 style={{ 
+              color: 'var(--warning-yellow)', 
+              marginBottom: '1rem', 
+              fontSize: '1.5rem' 
+            }}>
+              Formulario No Disponible
+            </h3>
+            <p style={{ 
+              color: 'var(--dark-text)', 
+              lineHeight: '1.5',
+              marginBottom: '1rem' 
+            }}>
+              Ya has enviado tu reporte diario. Para realizar cambios, utiliza el botón de editar en la sección superior.
+            </p>
+            <div style={{
+              padding: '0.75rem',
+              backgroundColor: '#f0f9ff',
+              border: '1px solid #bae6fd',
+              borderRadius: '6px',
+              fontSize: '0.875rem',
+              color: 'var(--primary-red)'
+            }}>
+              💡 <strong>Consejo:</strong> Puedes editar tu reporte existente haciendo clic en el ícono 👁️ arriba
+            </div>
+          </div>
+        </div>
+
+        {/* Formulario deshabilitado (solo visual) */}
+        <div style={{ opacity: 0.3, pointerEvents: 'none' }}>
+          <div className="form-section">
+            <h2 className="section-title">
+              👤 Administrador: {user?.fullName}
+            </h2>
+            <div style={{
+              padding: '1rem',
+              backgroundColor: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '6px',
+              fontSize: '0.875rem'
+            }}>
+              <div style={{ color: 'var(--success-green)', fontWeight: '600' }}>
+                ✅ Cliente/Operación: {getClientForAdmin(user?.fullName || user?.username)}
+              </div>
+              <div style={{ color: 'var(--neutral-gray)', marginTop: '0.25rem' }}>
+                Usuario autenticado: {user?.username} • Área: {user?.area}
+              </div>
+            </div>
+          </div>
+          
+          <div className="form-section">
+            <h2 className="section-title">📊 Información de Personal</h2>
+            <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--neutral-gray)' }}>
+              Formulario deshabilitado - Ya has enviado tu reporte diario
+            </div>
+          </div>
         </div>
       </div>
     )

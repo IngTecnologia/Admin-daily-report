@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 
 from .config import settings
 from .models import (
-    DailyReportCreate, DailyReportResponse, APIResponse, ReportCreateResponse,
+    DailyReportCreate, DailyReportUpdate, DailyReportResponse, APIResponse, ReportCreateResponse,
     ReportFilter, AnalyticsResponse, HealthCheck
 )
 from .excel_handler import excel_handler
@@ -300,6 +300,88 @@ async def get_report_details(report_id: str) -> Dict[str, Any]:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al obtener detalles del reporte"
+        )
+
+
+@app.put(
+    f"{settings.api_v1_prefix}/admin/reportes/{{report_id}}",
+    response_model=Dict[str, Any],
+    summary="Actualizar un reporte especifico",
+    description="Actualizar campos editables de un reporte existente"
+)
+async def update_report(report_id: str, report_update: DailyReportUpdate) -> Dict[str, Any]:
+    """
+    Actualizar un reporte especifico
+    
+    - **report_id**: ID unico del reporte (formato: RPT-YYYYMMDD-NNN)
+    - **report_update**: Datos a actualizar (solo campos permitidos)
+    """
+    try:
+        # Verificar que el reporte existe
+        all_reports = excel_handler.get_all_reports()
+        existing_report = next((r for r in all_reports if r.get('ID') == report_id), None)
+        
+        if not existing_report:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Reporte {report_id} no encontrado"
+            )
+        
+        # Verificar que el reporte es del día actual (solo permitir editar reportes del mismo día)
+        today = datetime.now().strftime('%Y%m%d')
+        if not report_id.startswith(f'RPT-{today}'):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Solo se pueden editar reportes del día actual"
+            )
+        
+        # Preparar datos de actualización (solo campos que no son None)
+        update_data = {}
+        if report_update.horas_diarias is not None:
+            update_data['Horas_Diarias'] = report_update.horas_diarias
+        if report_update.personal_staff is not None:
+            update_data['Personal_Staff'] = report_update.personal_staff
+        if report_update.personal_base is not None:
+            update_data['Personal_Base'] = report_update.personal_base
+        if report_update.hechos_relevantes is not None:
+            update_data['Hechos_Relevantes'] = report_update.hechos_relevantes
+        
+        if not update_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No se proporcionaron campos para actualizar"
+            )
+        
+        # Actualizar el reporte en Excel
+        success = excel_handler.update_report(report_id, update_data)
+        
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al actualizar el reporte en el archivo"
+            )
+        
+        # Obtener el reporte actualizado
+        updated_reports = excel_handler.get_all_reports()
+        updated_report = next((r for r in updated_reports if r.get('ID') == report_id), None)
+        
+        # Obtener detalles actualizados
+        incidents = excel_handler.get_report_incidents(report_id)
+        movements = excel_handler.get_report_movements(report_id)
+        
+        updated_report['incidencias'] = incidents
+        updated_report['ingresos_retiros'] = movements
+        
+        logger.info(f"Reporte actualizado exitosamente: {report_id}")
+        return updated_report
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error actualizando reporte {report_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error interno del servidor al actualizar el reporte"
         )
 
 

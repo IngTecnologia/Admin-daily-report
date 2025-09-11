@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import DailyReportForm from '../components/form/DailyReportForm'
 import TodayReportsStatus from '../components/form/TodayReportsStatus'
 
 const Home = () => {
+  const [hasReportsToday, setHasReportsToday] = useState(false)
+
   return (
     <div style={{ minHeight: 'calc(100vh - 80px)', padding: '2rem 0' }}>
       <div className="form-container">
@@ -26,8 +28,8 @@ const Home = () => {
           </p>
         </div>
         
-        <TodayReportsStatus />
-        <DailyReportForm />
+        <TodayReportsStatus onReportsChange={setHasReportsToday} />
+        <DailyReportForm isDisabled={hasReportsToday} />
       </div>
     </div>
   )
