@@ -687,6 +687,120 @@ class ExcelHandler:
                 pass
             return False
 
+    def update_report_incidents(self, report_id: str, incidents: List[Any]) -> bool:
+        """
+        Actualizar las incidencias de un reporte específico
+        
+        Args:
+            report_id: ID del reporte
+            incidents: Lista de incidencias actualizadas
+            
+        Returns:
+            bool: True si se actualizó correctamente
+        """
+        try:
+            # Crear backup antes de actualizar
+            if not self.backup_file():
+                print("Advertencia: No se pudo crear backup antes de actualizar incidencias")
+            
+            workbook = openpyxl.load_workbook(self.file_path)
+            
+            # Eliminar incidencias existentes del reporte
+            if "incidencias" in self.sheets and self.sheets["incidencias"] in workbook.sheetnames:
+                incidencias_sheet = workbook[self.sheets["incidencias"]]
+                rows_to_delete = []
+                
+                for row_idx, row in enumerate(incidencias_sheet.iter_rows(min_row=2), start=2):
+                    if row[0].value == report_id:  # Columna A contiene ID_Reporte
+                        rows_to_delete.append(row_idx)
+                
+                # Eliminar filas en orden inverso para no afectar índices
+                for row_idx in sorted(rows_to_delete, reverse=True):
+                    incidencias_sheet.delete_rows(row_idx, 1)
+                
+                # Agregar las nuevas incidencias
+                for incident in incidents:
+                    new_row = [
+                        report_id,
+                        incident.get('tipo', ''),
+                        incident.get('nombre_empleado', ''),
+                        incident.get('fecha_fin', '')
+                    ]
+                    incidencias_sheet.append(new_row)
+                
+                print(f"Actualizadas {len(incidents)} incidencias para reporte {report_id}")
+            
+            # Guardar cambios
+            workbook.save(self.file_path)
+            workbook.close()
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error actualizando incidencias del reporte {report_id}: {e}")
+            try:
+                workbook.close()
+            except:
+                pass
+            return False
+
+    def update_report_movements(self, report_id: str, movements: List[Any]) -> bool:
+        """
+        Actualizar los movimientos de personal de un reporte específico
+        
+        Args:
+            report_id: ID del reporte
+            movements: Lista de movimientos actualizados
+            
+        Returns:
+            bool: True si se actualizó correctamente
+        """
+        try:
+            # Crear backup antes de actualizar
+            if not self.backup_file():
+                print("Advertencia: No se pudo crear backup antes de actualizar movimientos")
+            
+            workbook = openpyxl.load_workbook(self.file_path)
+            
+            # Eliminar movimientos existentes del reporte
+            if "ingresos_retiros" in self.sheets and self.sheets["ingresos_retiros"] in workbook.sheetnames:
+                movimientos_sheet = workbook[self.sheets["ingresos_retiros"]]
+                rows_to_delete = []
+                
+                for row_idx, row in enumerate(movimientos_sheet.iter_rows(min_row=2), start=2):
+                    if row[0].value == report_id:  # Columna A contiene ID_Reporte
+                        rows_to_delete.append(row_idx)
+                
+                # Eliminar filas en orden inverso para no afectar índices
+                for row_idx in sorted(rows_to_delete, reverse=True):
+                    movimientos_sheet.delete_rows(row_idx, 1)
+                
+                # Agregar los nuevos movimientos
+                for movement in movements:
+                    new_row = [
+                        report_id,
+                        movement.get('nombre_empleado', ''),
+                        movement.get('cargo', ''),
+                        movement.get('estado', '')
+                    ]
+                    movimientos_sheet.append(new_row)
+                
+                print(f"Actualizados {len(movements)} movimientos para reporte {report_id}")
+            
+            # Guardar cambios
+            workbook.save(self.file_path)
+            workbook.close()
+            
+            return True
+            
+        except Exception as e:
+            print(f"Error actualizando movimientos del reporte {report_id}: {e}")
+            try:
+                workbook.close()
+            except:
+                pass
+            return False
+
 
 # Instancia global del manejador
 excel_handler = ExcelHandler()

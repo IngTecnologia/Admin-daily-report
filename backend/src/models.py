@@ -211,6 +211,14 @@ class DailyReportUpdate(BaseModel):
         max_length=2000, 
         description="Hechos relevantes del dia"
     )
+    incidencias: Optional[List[IncidentCreate]] = Field(
+        None,
+        description="Lista de incidencias actualizadas"
+    )
+    ingresos_retiros: Optional[List[MovementCreate]] = Field(
+        None,
+        description="Lista de movimientos de personal actualizados"
+    )
 
 
 class DailyReportResponse(BaseModel):

@@ -346,20 +346,43 @@ async def update_report(report_id: str, report_update: DailyReportUpdate) -> Dic
         if report_update.hechos_relevantes is not None:
             update_data['Hechos_Relevantes'] = report_update.hechos_relevantes
         
-        if not update_data:
+        # Verificar que al menos algo se va a actualizar
+        has_basic_updates = len(update_data) > 0
+        has_incidents = report_update.incidencias is not None
+        has_movements = report_update.ingresos_retiros is not None
+        
+        if not (has_basic_updates or has_incidents or has_movements):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No se proporcionaron campos para actualizar"
             )
         
-        # Actualizar el reporte en Excel
-        success = excel_handler.update_report(report_id, update_data)
+        # Actualizar el reporte principal si hay datos básicos
+        if has_basic_updates:
+            success = excel_handler.update_report(report_id, update_data)
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Error al actualizar el reporte en el archivo"
+                )
         
-        if not success:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error al actualizar el reporte en el archivo"
-            )
+        # Actualizar incidencias si se proporcionaron
+        if has_incidents:
+            success = excel_handler.update_report_incidents(report_id, report_update.incidencias)
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Error al actualizar las incidencias del reporte"
+                )
+        
+        # Actualizar movimientos si se proporcionaron
+        if has_movements:
+            success = excel_handler.update_report_movements(report_id, report_update.ingresos_retiros)
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Error al actualizar los movimientos del reporte"
+                )
         
         # Obtener el reporte actualizado
         updated_reports = excel_handler.get_all_reports()

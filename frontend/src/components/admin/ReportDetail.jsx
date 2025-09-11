@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { API_BASE_URL } from '../../services/constants'
+import { API_BASE_URL, INCIDENT_TYPES, EMPLOYEE_STATUSES } from '../../services/constants'
 
 const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) => {
   const [detailedReport, setDetailedReport] = useState(null)
@@ -59,7 +59,8 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
           personal_staff: parseInt(editData.Personal_Staff || editData.personal_staff),
           personal_base: parseInt(editData.Personal_Base || editData.personal_base),
           hechos_relevantes: editData.Hechos_Relevantes || editData.hechos_relevantes || '',
-          // Incidencias e ingresos_retiros se manejarían por separado si es necesario
+          incidencias: editData.incidencias || [],
+          ingresos_retiros: editData.ingresos_retiros || []
         })
       })
 
@@ -332,16 +333,99 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
                       borderBottom: index < reportToShow.incidencias.length - 1 ? '1px solid #fed7aa' : 'none'
                     }}
                   >
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                      gap: '1rem',
-                      fontSize: '0.875rem'
-                    }}>
-                      <DetailField label="Tipo" value={incidencia.tipo} />
-                      <DetailField label="Empleado" value={incidencia.nombre_empleado} />
-                      <DetailField label="Fecha Fin" value={formatDateOnly(incidencia.fecha_fin)} />
-                    </div>
+                    {isEditing ? (
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr 1fr',
+                        gap: '1rem',
+                        fontSize: '0.875rem'
+                      }}>
+                        <div>
+                          <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
+                            Tipo de Incidencia
+                          </label>
+                          <select
+                            value={(editData.incidencias && editData.incidencias[index] && editData.incidencias[index].tipo) || incidencia.tipo || ''}
+                            onChange={(e) => {
+                              const newIncidencias = [...(editData.incidencias || reportToShow.incidencias)]
+                              if (!newIncidencias[index]) newIncidencias[index] = {}
+                              newIncidencias[index] = { ...newIncidencias[index], tipo: e.target.value }
+                              setEditData(prev => ({ ...prev, incidencias: newIncidencias }))
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            <option value="">Seleccionar tipo</option>
+                            {INCIDENT_TYPES.map(type => (
+                              <option key={type} value={type}>{type}</option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
+                            Nombre del Empleado
+                          </label>
+                          <input
+                            type="text"
+                            value={(editData.incidencias && editData.incidencias[index] && editData.incidencias[index].nombre_empleado) || incidencia.nombre_empleado || ''}
+                            onChange={(e) => {
+                              const newIncidencias = [...(editData.incidencias || reportToShow.incidencias)]
+                              if (!newIncidencias[index]) newIncidencias[index] = {}
+                              newIncidencias[index] = { ...newIncidencias[index], nombre_empleado: e.target.value }
+                              setEditData(prev => ({ ...prev, incidencias: newIncidencias }))
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem'
+                            }}
+                            placeholder="Nombre completo"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
+                            Fecha Fin
+                          </label>
+                          <input
+                            type="date"
+                            value={(editData.incidencias && editData.incidencias[index] && editData.incidencias[index].fecha_fin) || incidencia.fecha_fin || ''}
+                            onChange={(e) => {
+                              const newIncidencias = [...(editData.incidencias || reportToShow.incidencias)]
+                              if (!newIncidencias[index]) newIncidencias[index] = {}
+                              newIncidencias[index] = { ...newIncidencias[index], fecha_fin: e.target.value }
+                              setEditData(prev => ({ ...prev, incidencias: newIncidencias }))
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem'
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '1rem',
+                        fontSize: '0.875rem'
+                      }}>
+                        <DetailField label="Tipo" value={incidencia.tipo} />
+                        <DetailField label="Empleado" value={incidencia.nombre_empleado} />
+                        <DetailField label="Fecha Fin" value={formatDateOnly(incidencia.fecha_fin)} />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -388,23 +472,107 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
                       borderBottom: index < reportToShow.ingresos_retiros.length - 1 ? '1px solid #bae6fd' : 'none'
                     }}
                   >
-                    <div style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                      gap: '1rem',
-                      fontSize: '0.875rem'
-                    }}>
-                      <DetailField label="Empleado" value={movimiento.nombre_empleado} />
-                      <DetailField label="Cargo" value={movimiento.cargo} />
-                      <DetailField 
-                        label="Estado" 
-                        value={movimiento.estado}
-                        valueStyle={{
-                          color: movimiento.estado === 'Ingreso' ? 'var(--success-green)' : 'var(--error-red)',
-                          fontWeight: '500'
-                        }}
-                      />
-                    </div>
+                    {isEditing ? (
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr 1fr',
+                        gap: '1rem',
+                        fontSize: '0.875rem'
+                      }}>
+                        <div>
+                          <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
+                            Nombre del Empleado
+                          </label>
+                          <input
+                            type="text"
+                            value={(editData.ingresos_retiros && editData.ingresos_retiros[index] && editData.ingresos_retiros[index].nombre_empleado) || movimiento.nombre_empleado || ''}
+                            onChange={(e) => {
+                              const newMovimientos = [...(editData.ingresos_retiros || reportToShow.ingresos_retiros)]
+                              if (!newMovimientos[index]) newMovimientos[index] = {}
+                              newMovimientos[index] = { ...newMovimientos[index], nombre_empleado: e.target.value }
+                              setEditData(prev => ({ ...prev, ingresos_retiros: newMovimientos }))
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem'
+                            }}
+                            placeholder="Nombre completo"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
+                            Cargo
+                          </label>
+                          <input
+                            type="text"
+                            value={(editData.ingresos_retiros && editData.ingresos_retiros[index] && editData.ingresos_retiros[index].cargo) || movimiento.cargo || ''}
+                            onChange={(e) => {
+                              const newMovimientos = [...(editData.ingresos_retiros || reportToShow.ingresos_retiros)]
+                              if (!newMovimientos[index]) newMovimientos[index] = {}
+                              newMovimientos[index] = { ...newMovimientos[index], cargo: e.target.value }
+                              setEditData(prev => ({ ...prev, ingresos_retiros: newMovimientos }))
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem'
+                            }}
+                            placeholder="Cargo del empleado"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label style={{ fontWeight: '500', color: 'var(--dark-text)', display: 'block', marginBottom: '0.25rem' }}>
+                            Estado
+                          </label>
+                          <select
+                            value={(editData.ingresos_retiros && editData.ingresos_retiros[index] && editData.ingresos_retiros[index].estado) || movimiento.estado || ''}
+                            onChange={(e) => {
+                              const newMovimientos = [...(editData.ingresos_retiros || reportToShow.ingresos_retiros)]
+                              if (!newMovimientos[index]) newMovimientos[index] = {}
+                              newMovimientos[index] = { ...newMovimientos[index], estado: e.target.value }
+                              setEditData(prev => ({ ...prev, ingresos_retiros: newMovimientos }))
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '0.5rem',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '4px',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            <option value="">Seleccionar estado</option>
+                            {EMPLOYEE_STATUSES.map(status => (
+                              <option key={status} value={status}>{status}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '1rem',
+                        fontSize: '0.875rem'
+                      }}>
+                        <DetailField label="Empleado" value={movimiento.nombre_empleado} />
+                        <DetailField label="Cargo" value={movimiento.cargo} />
+                        <DetailField 
+                          label="Estado" 
+                          value={movimiento.estado}
+                          valueStyle={{
+                            color: movimiento.estado === 'Ingreso' ? 'var(--success-green)' : 'var(--error-red)',
+                            fontWeight: '500'
+                          }}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
