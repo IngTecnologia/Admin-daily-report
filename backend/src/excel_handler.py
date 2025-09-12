@@ -966,8 +966,8 @@ class ExcelHandler:
             
             # Calcular estadísticas agregadas
             total_horas = sum(float(report.get('Horas_Diarias', 0)) for report in daily_reports)
-            total_staff = sum(int(report.get('Personal_Staff', 0)) for report in daily_reports)
-            total_base = sum(int(report.get('Personal_Base', 0)) for report in daily_reports)
+            total_staff = sum(int(float(report.get('Personal_Staff', 0)) if pd.notna(report.get('Personal_Staff', 0)) else 0) for report in daily_reports)
+            total_base = sum(int(float(report.get('Personal_Base', 0)) if pd.notna(report.get('Personal_Base', 0)) else 0) for report in daily_reports)
             promedio_horas = total_horas / len(daily_reports) if daily_reports else 0
             
             # Operaciones que reportaron
@@ -1116,8 +1116,8 @@ class ExcelHandler:
                 operaciones_data[cliente_operacion]['reportes'].append(report)
                 operaciones_data[cliente_operacion]['administradores'].add(administrador)
                 operaciones_data[cliente_operacion]['horas_diarias'] += float(report.get('Horas_Diarias', 0))
-                operaciones_data[cliente_operacion]['personal_staff'] += int(report.get('Personal_Staff', 0))
-                operaciones_data[cliente_operacion]['personal_base'] += int(report.get('Personal_Base', 0))
+                operaciones_data[cliente_operacion]['personal_staff'] += int(float(report.get('Personal_Staff', 0)) if pd.notna(report.get('Personal_Staff', 0)) else 0)
+                operaciones_data[cliente_operacion]['personal_base'] += int(float(report.get('Personal_Base', 0)) if pd.notna(report.get('Personal_Base', 0)) else 0)
                 
                 # Obtener incidencias de este reporte
                 incidencias_reporte = self.get_report_incidents(report_id)
@@ -1221,14 +1221,14 @@ class ExcelHandler:
             workbook.close()
             
             # Convertir columnas de fecha
-            reportes_df['Fecha_Reporte'] = pd.to_datetime(reportes_df['Fecha_Reporte']).dt.date
+            reportes_df['Fecha_Creacion'] = pd.to_datetime(reportes_df['Fecha_Creacion']).dt.date
             incidencias_df['Fecha_Registro'] = pd.to_datetime(incidencias_df['Fecha_Registro']).dt.date
             movimientos_df['Fecha_Registro'] = pd.to_datetime(movimientos_df['Fecha_Registro']).dt.date
             
             # Filtrar reportes por período
             period_reports = reportes_df[
-                (reportes_df['Fecha_Reporte'] >= fecha_inicio) & 
-                (reportes_df['Fecha_Reporte'] <= fecha_fin)
+                (reportes_df['Fecha_Creacion'] >= fecha_inicio) & 
+                (reportes_df['Fecha_Creacion'] <= fecha_fin)
             ]
             
             if period_reports.empty:
@@ -1251,15 +1251,15 @@ class ExcelHandler:
             
             # Calcular estadísticas agregadas
             promedio_horas_diarias = round(period_reports['Horas_Diarias'].mean(), 1)
-            total_personal_staff = period_reports['Personal_Staff'].sum()
-            total_personal_base = period_reports['Personal_Base'].sum()
+            total_personal_staff = int(period_reports['Personal_Staff'].fillna(0).sum())
+            total_personal_base = int(period_reports['Personal_Base'].fillna(0).sum())
             total_reportes = len(period_reports)
             
             # Operaciones que reportaron
             operaciones_reportadas = sorted(period_reports['Cliente_Operacion'].unique().tolist())
             
             # Obtener IDs de reportes del período
-            report_ids = period_reports['ID_Reporte'].tolist()
+            report_ids = period_reports['ID'].tolist()
             
             # Filtrar incidencias del período
             period_incidencias = incidencias_df[
@@ -1270,7 +1270,7 @@ class ExcelHandler:
             incidencias_with_origin = []
             for _, incidencia in period_incidencias.iterrows():
                 # Buscar el reporte padre para obtener administrador y operación
-                parent_report = period_reports[period_reports['ID_Reporte'] == incidencia['ID_Reporte']].iloc[0]
+                parent_report = period_reports[period_reports['ID'] == incidencia['ID_Reporte']].iloc[0]
                 
                 incidencias_with_origin.append({
                     "tipo": incidencia.get('Tipo_Incidencia', 'No especificado'),
@@ -1289,7 +1289,7 @@ class ExcelHandler:
             # Crear lista de movimientos con origen
             movimientos_with_origin = []
             for _, movimiento in period_movimientos.iterrows():
-                parent_report = period_reports[period_reports['ID_Reporte'] == movimiento['ID_Reporte']].iloc[0]
+                parent_report = period_reports[period_reports['ID'] == movimiento['ID_Reporte']].iloc[0]
                 
                 movimientos_with_origin.append({
                     "nombre_empleado": movimiento.get('Nombre_Empleado', 'No especificado'),
@@ -1308,7 +1308,7 @@ class ExcelHandler:
                         "hecho": str(reporte['Hechos_Relevantes']).strip(),
                         "administrador": reporte['Administrador'],
                         "cliente_operacion": reporte['Cliente_Operacion'],
-                        "fecha_registro": pd.to_datetime(reporte['Fecha_Reporte']).isoformat()
+                        "fecha_registro": pd.to_datetime(reporte['Fecha_Creacion']).isoformat()
                     })
             
             # Descripción del período
@@ -1321,9 +1321,9 @@ class ExcelHandler:
                 "fecha_inicio": fecha_inicio,
                 "fecha_fin": fecha_fin,
                 "periodo_descripcion": periodo_desc,
-                "promedio_horas_diarias": promedio_horas_diarias,
-                "total_personal_staff": int(total_personal_staff),
-                "total_personal_base": int(total_personal_base),
+                "promedio_horas_diarias": float(promedio_horas_diarias) if not pd.isna(promedio_horas_diarias) else 0.0,
+                "total_personal_staff": total_personal_staff,
+                "total_personal_base": total_personal_base,
                 "total_reportes": total_reportes,
                 "total_incidencias": len(incidencias_with_origin),
                 "total_movimientos": len(movimientos_with_origin),
@@ -1379,14 +1379,14 @@ class ExcelHandler:
             workbook.close()
             
             # Convertir columnas de fecha
-            reportes_df['Fecha_Reporte'] = pd.to_datetime(reportes_df['Fecha_Reporte']).dt.date
+            reportes_df['Fecha_Creacion'] = pd.to_datetime(reportes_df['Fecha_Creacion']).dt.date
             incidencias_df['Fecha_Registro'] = pd.to_datetime(incidencias_df['Fecha_Registro']).dt.date
             movimientos_df['Fecha_Registro'] = pd.to_datetime(movimientos_df['Fecha_Registro']).dt.date
             
             # Filtrar reportes por período
             period_reports = reportes_df[
-                (reportes_df['Fecha_Reporte'] >= fecha_inicio) & 
-                (reportes_df['Fecha_Reporte'] <= fecha_fin)
+                (reportes_df['Fecha_Creacion'] >= fecha_inicio) & 
+                (reportes_df['Fecha_Creacion'] <= fecha_fin)
             ]
             
             if period_reports.empty:
@@ -1417,7 +1417,7 @@ class ExcelHandler:
                 administradores = sorted(operacion_reports['Administrador'].unique().tolist())
                 
                 # Obtener IDs de reportes de esta operación
-                report_ids = operacion_reports['ID_Reporte'].tolist()
+                report_ids = operacion_reports['ID'].tolist()
                 
                 # Filtrar incidencias de esta operación en el período
                 operacion_incidencias = incidencias_df[
@@ -1427,7 +1427,7 @@ class ExcelHandler:
                 # Crear lista de incidencias con origen para esta operación
                 incidencias_with_origin = []
                 for _, incidencia in operacion_incidencias.iterrows():
-                    parent_report = operacion_reports[operacion_reports['ID_Reporte'] == incidencia['ID_Reporte']].iloc[0]
+                    parent_report = operacion_reports[operacion_reports['ID'] == incidencia['ID_Reporte']].iloc[0]
                     
                     incidencias_with_origin.append({
                         "tipo": incidencia.get('Tipo_Incidencia', 'No especificado'),
@@ -1446,7 +1446,7 @@ class ExcelHandler:
                 # Crear lista de movimientos con origen para esta operación
                 movimientos_with_origin = []
                 for _, movimiento in operacion_movimientos.iterrows():
-                    parent_report = operacion_reports[operacion_reports['ID_Reporte'] == movimiento['ID_Reporte']].iloc[0]
+                    parent_report = operacion_reports[operacion_reports['ID'] == movimiento['ID_Reporte']].iloc[0]
                     
                     movimientos_with_origin.append({
                         "nombre_empleado": movimiento.get('Nombre_Empleado', 'No especificado'),
@@ -1465,7 +1465,7 @@ class ExcelHandler:
                             "hecho": str(reporte['Hechos_Relevantes']).strip(),
                             "administrador": reporte['Administrador'],
                             "cliente_operacion": reporte['Cliente_Operacion'],
-                            "fecha_registro": pd.to_datetime(reporte['Fecha_Reporte']).isoformat()
+                            "fecha_registro": pd.to_datetime(reporte['Fecha_Creacion']).isoformat()
                         })
                 
                 # Crear objeto de operación
