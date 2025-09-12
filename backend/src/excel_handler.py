@@ -1248,9 +1248,9 @@ class ExcelHandler:
                 }
             
             # Calcular estadísticas agregadas
-            promedio_horas_diarias = round(period_reports['Horas_Diarias'].mean(), 1)
-            total_personal_staff = int(period_reports['Personal_Staff'].fillna(0).sum())
-            total_personal_base = int(period_reports['Personal_Base'].fillna(0).sum())
+            promedio_horas_diarias = round(period_reports['Horas_Diarias'].mean(), 1) if not period_reports.empty and not pd.isna(period_reports['Horas_Diarias'].mean()) else 0.0
+            total_personal_staff = int(period_reports['Personal_Staff'].fillna(0).sum()) if not period_reports.empty else 0
+            total_personal_base = int(period_reports['Personal_Base'].fillna(0).sum()) if not period_reports.empty else 0
             total_reportes = len(period_reports)
             
             # Operaciones que reportaron
@@ -1276,7 +1276,7 @@ class ExcelHandler:
                     "fecha_fin": incidencia.get('Fecha_Fin_Novedad', 'No especificada'),
                     "administrador": parent_report['Administrador'],
                     "cliente_operacion": parent_report['Cliente_Operacion'],
-                    "fecha_registro": pd.to_datetime(incidencia['Fecha_Registro']).isoformat()
+                    "fecha_registro": pd.to_datetime(incidencia['Fecha_Registro']).isoformat() if pd.notna(incidencia.get('Fecha_Registro')) else datetime.now().isoformat()
                 })
             
             # Filtrar movimientos del período
@@ -1295,7 +1295,7 @@ class ExcelHandler:
                     "estado": movimiento.get('Estado', 'No especificado'),
                     "administrador": parent_report['Administrador'],
                     "cliente_operacion": parent_report['Cliente_Operacion'],
-                    "fecha_registro": pd.to_datetime(movimiento['Fecha_Registro']).isoformat()
+                    "fecha_registro": pd.to_datetime(movimiento['Fecha_Registro']).isoformat() if pd.notna(movimiento.get('Fecha_Registro')) else datetime.now().isoformat()
                 })
             
             # Hechos relevantes con origen
@@ -1306,7 +1306,7 @@ class ExcelHandler:
                         "hecho": str(reporte['Hechos_Relevantes']).strip(),
                         "administrador": reporte['Administrador'],
                         "cliente_operacion": reporte['Cliente_Operacion'],
-                        "fecha_registro": pd.to_datetime(reporte['Fecha_Creacion']).isoformat()
+                        "fecha_registro": pd.to_datetime(reporte['Fecha_Creacion']).isoformat() if pd.notna(reporte.get('Fecha_Creacion')) else datetime.now().isoformat()
                     })
             
             # Descripción del período
@@ -1404,9 +1404,9 @@ class ExcelHandler:
                 operacion_reports = period_reports[period_reports['Cliente_Operacion'] == operacion]
                 
                 # Calcular promedios para esta operación
-                promedio_horas = round(operacion_reports['Horas_Diarias'].mean(), 1)
-                promedio_staff = round(operacion_reports['Personal_Staff'].mean(), 1)
-                promedio_base = round(operacion_reports['Personal_Base'].mean(), 1)
+                promedio_horas = round(operacion_reports['Horas_Diarias'].mean(), 1) if not operacion_reports.empty and not pd.isna(operacion_reports['Horas_Diarias'].mean()) else 0.0
+                promedio_staff = round(operacion_reports['Personal_Staff'].mean(), 1) if not operacion_reports.empty and not pd.isna(operacion_reports['Personal_Staff'].mean()) else 0.0
+                promedio_base = round(operacion_reports['Personal_Base'].mean(), 1) if not operacion_reports.empty and not pd.isna(operacion_reports['Personal_Base'].mean()) else 0.0
                 num_reportes = len(operacion_reports)
                 
                 # Lista de administradores únicos
@@ -1431,7 +1431,7 @@ class ExcelHandler:
                         "fecha_fin": incidencia.get('Fecha_Fin_Novedad', 'No especificada'),
                         "administrador": parent_report['Administrador'],
                         "cliente_operacion": parent_report['Cliente_Operacion'],
-                        "fecha_registro": pd.to_datetime(incidencia['Fecha_Registro']).isoformat()
+                        "fecha_registro": pd.to_datetime(incidencia['Fecha_Registro']).isoformat() if pd.notna(incidencia.get('Fecha_Registro')) else datetime.now().isoformat()
                     })
                 
                 # Filtrar movimientos de esta operación en el período
@@ -1450,7 +1450,7 @@ class ExcelHandler:
                         "estado": movimiento.get('Estado', 'No especificado'),
                         "administrador": parent_report['Administrador'],
                         "cliente_operacion": parent_report['Cliente_Operacion'],
-                        "fecha_registro": pd.to_datetime(movimiento['Fecha_Registro']).isoformat()
+                        "fecha_registro": pd.to_datetime(movimiento['Fecha_Registro']).isoformat() if pd.notna(movimiento.get('Fecha_Registro')) else datetime.now().isoformat()
                     })
                 
                 # Hechos relevantes de esta operación en el período
@@ -1461,7 +1461,7 @@ class ExcelHandler:
                             "hecho": str(reporte['Hechos_Relevantes']).strip(),
                             "administrador": reporte['Administrador'],
                             "cliente_operacion": reporte['Cliente_Operacion'],
-                            "fecha_registro": pd.to_datetime(reporte['Fecha_Creacion']).isoformat()
+                            "fecha_registro": pd.to_datetime(reporte['Fecha_Creacion']).isoformat() if pd.notna(reporte.get('Fecha_Creacion')) else datetime.now().isoformat()
                         })
                 
                 # Crear objeto de operación
