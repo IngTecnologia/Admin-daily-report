@@ -1202,11 +1202,9 @@ class ExcelHandler:
         """
         try:
             if fecha_inicio is None:
-                # Última semana por defecto (lunes a día actual)
+                # Por defecto usar solo el día actual hasta que se solucione el bug del rango
                 today = datetime.now(pytz.timezone('America/Bogota')).date()
-                # Encontrar el lunes de esta semana
-                days_since_monday = today.weekday()  # 0 = lunes, 6 = domingo
-                fecha_inicio = today - timedelta(days=days_since_monday)
+                fecha_inicio = today
                 fecha_fin = today
             elif fecha_fin is None:
                 fecha_fin = fecha_inicio
@@ -1360,11 +1358,9 @@ class ExcelHandler:
         """
         try:
             if fecha_inicio is None:
-                # Última semana por defecto (lunes a día actual)
+                # Por defecto usar solo el día actual hasta que se solucione el bug del rango
                 today = datetime.now(pytz.timezone('America/Bogota')).date()
-                # Encontrar el lunes de esta semana
-                days_since_monday = today.weekday()  # 0 = lunes, 6 = domingo
-                fecha_inicio = today - timedelta(days=days_since_monday)
+                fecha_inicio = today
                 fecha_fin = today
             elif fecha_fin is None:
                 fecha_fin = fecha_inicio
