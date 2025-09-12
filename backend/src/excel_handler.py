@@ -4,7 +4,7 @@ Implementa la estructura de BD especificada en el README
 """
 import os
 import uuid
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 import pytz
@@ -1203,7 +1203,7 @@ class ExcelHandler:
         try:
             if fecha_inicio is None:
                 # Última semana por defecto (lunes a día actual)
-                today = datetime.now(timezone.utc).date()
+                today = datetime.now(pytz.timezone('America/Bogota')).date()
                 # Encontrar el lunes de esta semana
                 days_since_monday = today.weekday()  # 0 = lunes, 6 = domingo
                 fecha_inicio = today - timedelta(days=days_since_monday)
