@@ -16,8 +16,8 @@ from .config import settings
 from .models import (
     DailyReportCreate, DailyReportUpdate, DailyReportResponse, APIResponse, ReportCreateResponse,
     ReportFilter, AnalyticsResponse, HealthCheck, DailyGeneralOperationsResponse,
-    DailyDetailedOperationsResponse, AccumulatedGeneralOperationsResponse, OperacionDetalle,
-    IncidentWithOrigin, MovementWithOrigin, RelevantFactWithOrigin
+    DailyDetailedOperationsResponse, AccumulatedGeneralOperationsResponse, AccumulatedDetailedOperationsResponse,
+    OperacionDetalle, OperacionDetalleAcumulado, IncidentWithOrigin, MovementWithOrigin, RelevantFactWithOrigin
 )
 from .excel_handler import excel_handler
 from .email_service import email_service
@@ -600,6 +600,52 @@ async def get_accumulated_general_operations(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error interno del servidor al obtener operación general acumulada para período {fecha_inicio} - {fecha_fin}"
+        )
+
+
+@app.get(
+    f"{settings.api_v1_prefix}/admin/accumulated-detailed-operations",
+    response_model=AccumulatedDetailedOperationsResponse,
+    summary="Vista 4: Detalle Acumulado por Operaciones",
+    description="Obtener datos desglosados por cada operación para un período específico con promedios"
+)
+async def get_accumulated_detailed_operations(
+    fecha_inicio: Optional[date] = None,
+    fecha_fin: Optional[date] = None
+) -> AccumulatedDetailedOperationsResponse:
+    """
+    Vista 4: Detalle Acumulado por Operaciones
+    
+    Obtiene datos DESGLOSADOS por cada operación individual para un período:
+    - Promedio de horas diarias del período para cada operación
+    - Promedio de personal staff y base para cada operación
+    - Lista completa de incidencias por operación del período
+    - Lista completa de movimientos por operación del período
+    - Lista completa de hechos relevantes por operación del período
+    - Por defecto muestra "última semana" (lunes a día actual)
+    
+    Args:
+        fecha_inicio: Fecha de inicio del período (por defecto: lunes de esta semana)
+        fecha_fin: Fecha de fin del período (por defecto: día actual)
+    
+    Returns:
+        AccumulatedDetailedOperationsResponse: Datos desglosados por operación para el período
+    """
+    try:
+        # Obtener datos acumulados desglosados por operación
+        data = excel_handler.get_accumulated_detailed_operations(fecha_inicio, fecha_fin)
+        
+        # Convertir a modelo Pydantic
+        response = AccumulatedDetailedOperationsResponse(**data)
+        
+        logger.info(f"Vista 4 obtenida exitosamente para período {response.fecha_inicio} - {response.fecha_fin}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo Vista 4 para período {fecha_inicio} - {fecha_fin}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error interno del servidor al obtener detalle acumulado por operaciones para período {fecha_inicio} - {fecha_fin}"
         )
 
 

@@ -1353,6 +1353,168 @@ class ExcelHandler:
                 "hechos_relevantes": []
             }
 
+    def get_accumulated_detailed_operations(self, fecha_inicio=None, fecha_fin=None):
+        """
+        Vista 4: Detalle Acumulado por Operaciones - Datos por operación para un período
+        Similar a Vista 2 pero con promedios para períodos de tiempo
+        """
+        try:
+            if fecha_inicio is None:
+                # Última semana por defecto (lunes a día actual)
+                today = datetime.now(pytz.timezone('America/Bogota')).date()
+                # Encontrar el lunes de esta semana
+                days_since_monday = today.weekday()  # 0 = lunes, 6 = domingo
+                fecha_inicio = today - timedelta(days=days_since_monday)
+                fecha_fin = today
+            elif fecha_fin is None:
+                fecha_fin = fecha_inicio
+
+            workbook = openpyxl.load_workbook(self.file_path)
+            
+            # Leer todos los reportes del período
+            reportes_df = pd.read_excel(self.file_path, sheet_name='Reportes')
+            incidencias_df = pd.read_excel(self.file_path, sheet_name='Incidencias')
+            movimientos_df = pd.read_excel(self.file_path, sheet_name='Ingresos_Retiros')
+            
+            workbook.close()
+            
+            # Convertir columnas de fecha
+            reportes_df['Fecha_Reporte'] = pd.to_datetime(reportes_df['Fecha_Reporte']).dt.date
+            incidencias_df['Fecha_Registro'] = pd.to_datetime(incidencias_df['Fecha_Registro']).dt.date
+            movimientos_df['Fecha_Registro'] = pd.to_datetime(movimientos_df['Fecha_Registro']).dt.date
+            
+            # Filtrar reportes por período
+            period_reports = reportes_df[
+                (reportes_df['Fecha_Reporte'] >= fecha_inicio) & 
+                (reportes_df['Fecha_Reporte'] <= fecha_fin)
+            ]
+            
+            if period_reports.empty:
+                return {
+                    "fecha_inicio": fecha_inicio,
+                    "fecha_fin": fecha_fin,
+                    "periodo_descripcion": f"Período {fecha_inicio.strftime('%d/%m/%Y')} - {fecha_fin.strftime('%d/%m/%Y')} (Sin datos)",
+                    "operaciones": [],
+                    "total_operaciones": 0,
+                    "total_reportes": 0
+                }
+            
+            # Agrupar reportes por operación y calcular promedios
+            operaciones_list = []
+            operaciones_unicas = period_reports['Cliente_Operacion'].unique()
+            
+            for operacion in operaciones_unicas:
+                # Filtrar reportes de esta operación
+                operacion_reports = period_reports[period_reports['Cliente_Operacion'] == operacion]
+                
+                # Calcular promedios para esta operación
+                promedio_horas = round(operacion_reports['Horas_Diarias'].mean(), 1)
+                promedio_staff = round(operacion_reports['Personal_Staff'].mean(), 1)
+                promedio_base = round(operacion_reports['Personal_Base'].mean(), 1)
+                num_reportes = len(operacion_reports)
+                
+                # Lista de administradores únicos
+                administradores = sorted(operacion_reports['Administrador'].unique().tolist())
+                
+                # Obtener IDs de reportes de esta operación
+                report_ids = operacion_reports['ID_Reporte'].tolist()
+                
+                # Filtrar incidencias de esta operación en el período
+                operacion_incidencias = incidencias_df[
+                    incidencias_df['ID_Reporte'].isin(report_ids)
+                ]
+                
+                # Crear lista de incidencias con origen para esta operación
+                incidencias_with_origin = []
+                for _, incidencia in operacion_incidencias.iterrows():
+                    parent_report = operacion_reports[operacion_reports['ID_Reporte'] == incidencia['ID_Reporte']].iloc[0]
+                    
+                    incidencias_with_origin.append({
+                        "tipo": incidencia.get('Tipo_Incidencia', 'No especificado'),
+                        "nombre_empleado": incidencia.get('Nombre_Empleado', 'No especificado'),
+                        "fecha_fin": incidencia.get('Fecha_Fin_Novedad', 'No especificada'),
+                        "administrador": parent_report['Administrador'],
+                        "cliente_operacion": parent_report['Cliente_Operacion'],
+                        "fecha_registro": pd.to_datetime(incidencia['Fecha_Registro']).isoformat()
+                    })
+                
+                # Filtrar movimientos de esta operación en el período
+                operacion_movimientos = movimientos_df[
+                    movimientos_df['ID_Reporte'].isin(report_ids)
+                ]
+                
+                # Crear lista de movimientos con origen para esta operación
+                movimientos_with_origin = []
+                for _, movimiento in operacion_movimientos.iterrows():
+                    parent_report = operacion_reports[operacion_reports['ID_Reporte'] == movimiento['ID_Reporte']].iloc[0]
+                    
+                    movimientos_with_origin.append({
+                        "nombre_empleado": movimiento.get('Nombre_Empleado', 'No especificado'),
+                        "cargo": movimiento.get('Cargo', 'No especificado'),
+                        "estado": movimiento.get('Estado', 'No especificado'),
+                        "administrador": parent_report['Administrador'],
+                        "cliente_operacion": parent_report['Cliente_Operacion'],
+                        "fecha_registro": pd.to_datetime(movimiento['Fecha_Registro']).isoformat()
+                    })
+                
+                # Hechos relevantes de esta operación en el período
+                hechos_relevantes_with_origin = []
+                for _, reporte in operacion_reports.iterrows():
+                    if pd.notna(reporte.get('Hechos_Relevantes')) and str(reporte['Hechos_Relevantes']).strip():
+                        hechos_relevantes_with_origin.append({
+                            "hecho": str(reporte['Hechos_Relevantes']).strip(),
+                            "administrador": reporte['Administrador'],
+                            "cliente_operacion": reporte['Cliente_Operacion'],
+                            "fecha_registro": pd.to_datetime(reporte['Fecha_Reporte']).isoformat()
+                        })
+                
+                # Crear objeto de operación
+                operacion_obj = {
+                    "cliente_operacion": operacion,
+                    "administradores": administradores,
+                    "promedio_horas_diarias": promedio_horas,
+                    "promedio_personal_staff": promedio_staff,
+                    "promedio_personal_base": promedio_base,
+                    "incidencias": incidencias_with_origin,
+                    "movimientos": movimientos_with_origin,
+                    "hechos_relevantes": hechos_relevantes_with_origin,
+                    "num_reportes": num_reportes,
+                    "total_incidencias": len(incidencias_with_origin),
+                    "total_movimientos": len(movimientos_with_origin),
+                    "total_hechos_relevantes": len(hechos_relevantes_with_origin)
+                }
+                
+                operaciones_list.append(operacion_obj)
+            
+            # Ordenar operaciones por nombre
+            operaciones_list.sort(key=lambda x: x['cliente_operacion'])
+            
+            # Descripción del período
+            if fecha_inicio == fecha_fin:
+                periodo_desc = f"Detalle Acumulado para {fecha_inicio.strftime('%d de %B de %Y')}"
+            else:
+                periodo_desc = f"Detalle Acumulado - Período {fecha_inicio.strftime('%d/%m/%Y')} - {fecha_fin.strftime('%d/%m/%Y')}"
+            
+            return {
+                "fecha_inicio": fecha_inicio,
+                "fecha_fin": fecha_fin,
+                "periodo_descripcion": periodo_desc,
+                "operaciones": operaciones_list,
+                "total_operaciones": len(operaciones_list),
+                "total_reportes": len(period_reports)
+            }
+            
+        except Exception as e:
+            print(f"Error obteniendo detalle acumulado por operaciones para período {fecha_inicio} - {fecha_fin}: {e}")
+            return {
+                "fecha_inicio": fecha_inicio or datetime.now().date(),
+                "fecha_fin": fecha_fin or datetime.now().date(),
+                "periodo_descripcion": f"Error obteniendo datos para el período",
+                "operaciones": [],
+                "total_operaciones": 0,
+                "total_reportes": 0
+            }
+
 
 # Instancia global del manejador
 excel_handler = ExcelHandler()

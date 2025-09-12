@@ -427,3 +427,33 @@ class AccumulatedGeneralOperationsResponse(BaseModel):
     incidencias: List[IncidentWithOrigin] = Field(default=[], description="Lista completa de incidencias del período")
     movimientos: List[MovementWithOrigin] = Field(default=[], description="Lista completa de movimientos del período")
     hechos_relevantes: List[RelevantFactWithOrigin] = Field(default=[], description="Lista completa de hechos relevantes del período")
+
+
+class OperacionDetalleAcumulado(BaseModel):
+    """Detalle de una operación específica para un período acumulado"""
+    cliente_operacion: str = Field(..., description="Nombre de la operación/cliente")
+    administradores: List[str] = Field(default=[], description="Lista de administradores que reportaron en el período")
+    promedio_horas_diarias: float = Field(..., description="Promedio de horas diarias durante el período para esta operación")
+    promedio_personal_staff: float = Field(..., description="Promedio de personal staff durante el período para esta operación")
+    promedio_personal_base: float = Field(..., description="Promedio de personal base durante el período para esta operación")
+    incidencias: List[IncidentWithOrigin] = Field(default=[], description="Lista de incidencias del período para esta operación")
+    movimientos: List[MovementWithOrigin] = Field(default=[], description="Lista de movimientos del período para esta operación")
+    hechos_relevantes: List[RelevantFactWithOrigin] = Field(default=[], description="Lista de hechos relevantes del período para esta operación")
+    num_reportes: int = Field(..., description="Número de reportes de esta operación en el período")
+    total_incidencias: int = Field(..., description="Número total de incidencias")
+    total_movimientos: int = Field(..., description="Número total de movimientos")
+    total_hechos_relevantes: int = Field(..., description="Número total de hechos relevantes")
+
+
+class AccumulatedDetailedOperationsResponse(BaseModel):
+    """Respuesta para Vista 4: Detalle Acumulado por Operaciones"""
+    fecha_inicio: date = Field(..., description="Fecha de inicio del período")
+    fecha_fin: date = Field(..., description="Fecha de fin del período") 
+    periodo_descripcion: str = Field(..., description="Descripción legible del período")
+    
+    # Datos por operación (con promedios para el período)
+    operaciones: List[OperacionDetalleAcumulado] = Field(..., description="Datos desglosados por cada operación para el período")
+    
+    # Estadísticas generales del período
+    total_operaciones: int = Field(..., description="Número de operaciones que reportaron en el período")
+    total_reportes: int = Field(..., description="Número total de reportes procesados en el período")
