@@ -403,3 +403,27 @@ class DailyDetailedOperationsResponse(BaseModel):
     # Estadísticas generales
     total_operaciones: int = Field(..., description="Número de operaciones que reportaron")
     total_reportes: int = Field(..., description="Número total de reportes procesados")
+
+
+class AccumulatedGeneralOperationsResponse(BaseModel):
+    """Respuesta para Vista 3: Operación General Acumulado"""
+    fecha_inicio: date = Field(..., description="Fecha de inicio del período")
+    fecha_fin: date = Field(..., description="Fecha de fin del período") 
+    periodo_descripcion: str = Field(..., description="Descripción legible del período")
+    
+    # Estadísticas consolidadas del período
+    promedio_horas_diarias: float = Field(..., description="Promedio de horas entre todas las operaciones del período")
+    total_personal_staff: int = Field(..., description="Suma total de personal staff de todas las operaciones")
+    total_personal_base: int = Field(..., description="Suma total de personal base de todas las operaciones")
+    total_reportes: int = Field(..., description="Número total de reportes en el período")
+    total_incidencias: int = Field(..., description="Número total de incidencias")
+    total_movimientos: int = Field(..., description="Número total de movimientos")
+    total_hechos_relevantes: int = Field(..., description="Número total de hechos relevantes")
+    
+    # Operaciones que reportaron en el período
+    operaciones_reportadas: List[str] = Field(default=[], description="Lista de operaciones que reportaron en el período")
+    
+    # Datos detallados con información de origen
+    incidencias: List[IncidentWithOrigin] = Field(default=[], description="Lista completa de incidencias del período")
+    movimientos: List[MovementWithOrigin] = Field(default=[], description="Lista completa de movimientos del período")
+    hechos_relevantes: List[RelevantFactWithOrigin] = Field(default=[], description="Lista completa de hechos relevantes del período")

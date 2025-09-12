@@ -1,27 +1,42 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL } from '../../services/constants'
 
-const DailyGeneralOperations = () => {
+const AccumulatedGeneralOperations = () => {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]) // Hoy por defecto
+  
+  // Calcular fechas por defecto (última semana: lunes a hoy)
+  const getDefaultDates = () => {
+    const today = new Date()
+    const dayOfWeek = today.getDay() // 0 = domingo, 1 = lunes, etc.
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+    const monday = new Date(today)
+    monday.setDate(today.getDate() - daysToMonday)
+    
+    return {
+      inicio: monday.toISOString().split('T')[0],
+      fin: today.toISOString().split('T')[0]
+    }
+  }
+  
+  const defaultDates = getDefaultDates()
+  const [fechaInicio, setFechaInicio] = useState(defaultDates.inicio)
+  const [fechaFin, setFechaFin] = useState(defaultDates.fin)
 
   useEffect(() => {
-    fetchDailyGeneralData()
-  }, [selectedDate])
+    fetchAccumulatedGeneralData()
+  }, [fechaInicio, fechaFin])
 
-  const fetchDailyGeneralData = async () => {
+  const fetchAccumulatedGeneralData = async () => {
     try {
       setLoading(true)
-      const url = selectedDate ? 
-        `${API_BASE_URL}/admin/daily-general-operations?fecha=${selectedDate}` :
-        `${API_BASE_URL}/admin/daily-general-operations`
+      const url = `${API_BASE_URL}/admin/accumulated-general-operations?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}`
       
       const response = await fetch(url)
       
       if (!response.ok) {
-        throw new Error('Error al cargar datos de operación general diaria')
+        throw new Error('Error al cargar datos de operación general acumulada')
       }
       
       const result = await response.json()
@@ -29,10 +44,16 @@ const DailyGeneralOperations = () => {
       setError(null)
     } catch (err) {
       setError(err.message)
-      console.error('Error fetching daily general operations data:', err)
+      console.error('Error fetching accumulated general operations data:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleLastWeekFilter = () => {
+    const newDates = getDefaultDates()
+    setFechaInicio(newDates.inicio)
+    setFechaFin(newDates.fin)
   }
 
   const formatDate = (dateStr) => {
@@ -58,7 +79,7 @@ const DailyGeneralOperations = () => {
         alignItems: 'center', 
         minHeight: '400px' 
       }}>
-        <div className="loader">Cargando vista general diaria...</div>
+        <div className="loader">Cargando vista general acumulada...</div>
       </div>
     )
   }
@@ -77,7 +98,7 @@ const DailyGeneralOperations = () => {
         <h3>Error al cargar datos</h3>
         <p>{error}</p>
         <button 
-          onClick={fetchDailyGeneralData}
+          onClick={fetchAccumulatedGeneralData}
           style={{
             marginTop: '1rem',
             padding: '0.5rem 1rem',
@@ -100,7 +121,7 @@ const DailyGeneralOperations = () => {
 
   return (
     <div style={{ padding: '1.5rem' }}>
-      {/* Header con filtro de fecha */}
+      {/* Header con filtros de fecha */}
       <div style={{ 
         marginBottom: '2rem',
         display: 'flex',
@@ -111,29 +132,71 @@ const DailyGeneralOperations = () => {
       }}>
         <div>
           <h2 style={{ margin: '0 0 0.5rem 0', color: 'var(--primary-red)' }}>
-            Vista 1: Operación General Diaria
+            Vista 3: Operación General Acumulado
           </h2>
           <p style={{ margin: '0', color: 'var(--neutral-gray)', fontSize: '0.9rem' }}>
             {data.periodo_descripcion}
           </p>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <label htmlFor="date-picker" style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
-            Fecha:
-          </label>
-          <input
-            id="date-picker"
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+        {/* Filtros de fecha */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '1rem',
+          flexWrap: 'wrap'
+        }}>
+          <button
+            onClick={handleLastWeekFilter}
             style={{
-              padding: '0.5rem',
-              border: '1px solid #e5e7eb',
+              padding: '0.5rem 1rem',
+              backgroundColor: 'var(--accent-orange)',
+              color: 'white',
+              border: 'none',
               borderRadius: '4px',
-              fontSize: '0.9rem'
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              fontWeight: '500'
             }}
-          />
+          >
+            📅 Última Semana
+          </button>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <label htmlFor="fecha-inicio" style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+              Desde:
+            </label>
+            <input
+              id="fecha-inicio"
+              type="date"
+              value={fechaInicio}
+              onChange={(e) => setFechaInicio(e.target.value)}
+              style={{
+                padding: '0.5rem',
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                fontSize: '0.9rem'
+              }}
+            />
+          </div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <label htmlFor="fecha-fin" style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>
+              Hasta:
+            </label>
+            <input
+              id="fecha-fin"
+              type="date"
+              value={fechaFin}
+              onChange={(e) => setFechaFin(e.target.value)}
+              style={{
+                padding: '0.5rem',
+                border: '1px solid #e5e7eb',
+                borderRadius: '4px',
+                fontSize: '0.9rem'
+              }}
+            />
+          </div>
         </div>
       </div>
 
@@ -158,7 +221,7 @@ const DailyGeneralOperations = () => {
             Promedio Horas Diarias
           </p>
           <small style={{ fontSize: '0.8rem', opacity: '0.9' }}>
-            Entre {data.total_reportes} operaciones
+            Entre {data.total_reportes} reportes del período
           </small>
         </div>
 
@@ -224,7 +287,7 @@ const DailyGeneralOperations = () => {
           padding: '1rem',
           backgroundColor: 'var(--light-gray)',
           borderRadius: '8px',
-          border: '1px solid #e9ecef'
+          border: '1px solid #e5e7eb'
         }}>
           <h3 style={{ margin: '0 0 1rem 0', color: 'var(--dark-text)' }}>
             Operaciones que Reportaron ({data.operaciones_reportadas.length})
@@ -253,15 +316,15 @@ const DailyGeneralOperations = () => {
         <h3 style={{ 
           margin: '0 0 1rem 0', 
           color: 'var(--dark-text)', 
-          borderBottom: '2px solid var(--primary-red)',
+          borderBottom: '2px solid var(--warning-yellow)',
           paddingBottom: '0.5rem'
         }}>
-          Incidencias del Día ({data.total_incidencias})
+          Incidencias del Período ({data.total_incidencias})
         </h3>
         
         {data.incidencias.length === 0 ? (
           <p style={{ color: 'var(--neutral-gray)', fontStyle: 'italic' }}>
-            No se registraron incidencias este día
+            No se registraron incidencias en este período
           </p>
         ) : (
           <div style={{ 
@@ -315,7 +378,7 @@ const DailyGeneralOperations = () => {
         
         {data.movimientos.length === 0 ? (
           <p style={{ color: 'var(--neutral-gray)', fontStyle: 'italic' }}>
-            No se registraron movimientos de personal este día
+            No se registraron movimientos de personal en este período
           </p>
         ) : (
           <div style={{ 
@@ -369,7 +432,7 @@ const DailyGeneralOperations = () => {
         
         {data.hechos_relevantes.length === 0 ? (
           <p style={{ color: 'var(--neutral-gray)', fontStyle: 'italic' }}>
-            No se registraron hechos relevantes este día
+            No se registraron hechos relevantes en este período
           </p>
         ) : (
           <div style={{ 
@@ -389,7 +452,7 @@ const DailyGeneralOperations = () => {
               >
                 <div style={{ marginBottom: '0.5rem' }}>
                   <strong>Hecho:</strong>
-                  <p style={{ margin: '0.5rem 0 0 0', color: '#2c3e50' }}>
+                  <p style={{ margin: '0.5rem 0 0 0', color: 'var(--dark-text)' }}>
                     {hecho.hecho}
                   </p>
                 </div>
@@ -410,4 +473,4 @@ const DailyGeneralOperations = () => {
   )
 }
 
-export default DailyGeneralOperations
+export default AccumulatedGeneralOperations

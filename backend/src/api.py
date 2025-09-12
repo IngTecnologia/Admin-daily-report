@@ -16,7 +16,7 @@ from .config import settings
 from .models import (
     DailyReportCreate, DailyReportUpdate, DailyReportResponse, APIResponse, ReportCreateResponse,
     ReportFilter, AnalyticsResponse, HealthCheck, DailyGeneralOperationsResponse,
-    DailyDetailedOperationsResponse, OperacionDetalle,
+    DailyDetailedOperationsResponse, AccumulatedGeneralOperationsResponse, OperacionDetalle,
     IncidentWithOrigin, MovementWithOrigin, RelevantFactWithOrigin
 )
 from .excel_handler import excel_handler
@@ -554,6 +554,52 @@ async def get_daily_detailed_operations(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error interno del servidor al obtener detalle por operaciones del día {fecha}"
+        )
+
+
+@app.get(
+    f"{settings.api_v1_prefix}/admin/accumulated-general-operations",
+    response_model=AccumulatedGeneralOperationsResponse,
+    summary="Vista 3: Operación General Acumulado",
+    description="Obtener datos consolidados de todas las operaciones para un período específico"
+)
+async def get_accumulated_general_operations(
+    fecha_inicio: Optional[date] = None,
+    fecha_fin: Optional[date] = None
+) -> AccumulatedGeneralOperationsResponse:
+    """
+    Vista 3: Operación General Acumulado
+    
+    Obtiene datos CONSOLIDADOS de todas las operaciones para un período:
+    - Promedio de horas diarias del período
+    - Suma total de personal staff y base
+    - Lista consolidada de incidencias de todas las operaciones
+    - Lista consolidada de movimientos de todas las operaciones
+    - Lista consolidada de hechos relevantes de todas las operaciones
+    - Por defecto muestra "última semana" (lunes a día actual)
+    
+    Args:
+        fecha_inicio: Fecha de inicio del período (por defecto: lunes de esta semana)
+        fecha_fin: Fecha de fin del período (por defecto: día actual)
+    
+    Returns:
+        AccumulatedGeneralOperationsResponse: Datos consolidados del período
+    """
+    try:
+        # Obtener datos acumulados del período
+        data = excel_handler.get_accumulated_general_operations(fecha_inicio, fecha_fin)
+        
+        # Convertir a modelo Pydantic
+        response = AccumulatedGeneralOperationsResponse(**data)
+        
+        logger.info(f"Vista 3 obtenida exitosamente para período {response.fecha_inicio} - {response.fecha_fin}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo Vista 3 para período {fecha_inicio} - {fecha_fin}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error interno del servidor al obtener operación general acumulada para período {fecha_inicio} - {fecha_fin}"
         )
 
 

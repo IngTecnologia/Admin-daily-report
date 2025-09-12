@@ -5,6 +5,7 @@ import ReportDetail from '../components/admin/ReportDetail'
 import FormViewReports from '../components/admin/FormViewReports'
 import DailyGeneralOperations from '../components/admin/DailyGeneralOperations'
 import DailyDetailedOperations from '../components/admin/DailyDetailedOperations'
+import AccumulatedGeneralOperations from '../components/admin/AccumulatedGeneralOperations'
 
 const Admin = () => {
   const [currentView, setCurrentView] = useState('dashboard')
@@ -58,6 +59,12 @@ const Admin = () => {
         icon="📊"
         label="Detalle por Operación"
       />
+      <NavButton
+        active={currentView === 'accumulated-general'}
+        onClick={() => setCurrentView('accumulated-general')}
+        icon="📈"
+        label="General Acumulado"
+      />
     </div>
   )
 
@@ -73,6 +80,8 @@ const Admin = () => {
         return <DailyGeneralOperations />
       case 'daily-detailed':
         return <DailyDetailedOperations />
+      case 'accumulated-general':
+        return <AccumulatedGeneralOperations />
       default:
         return <Dashboard />
     }

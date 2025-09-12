@@ -68,9 +68,9 @@ const DailyDetailedOperations = () => {
       <div style={{ 
         padding: '2rem', 
         textAlign: 'center', 
-        color: '#e74c3c',
-        backgroundColor: '#fdf2f2',
-        border: '1px solid #f5c6cb',
+        color: 'var(--error-red)',
+        backgroundColor: '#fef2f2',
+        border: '1px solid #fecaca',
         borderRadius: '8px',
         margin: '1rem'
       }}>
@@ -81,7 +81,7 @@ const DailyDetailedOperations = () => {
           style={{
             marginTop: '1rem',
             padding: '0.5rem 1rem',
-            backgroundColor: '#3498db',
+            backgroundColor: 'var(--primary-red)',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
@@ -110,10 +110,10 @@ const DailyDetailedOperations = () => {
         gap: '1rem'
       }}>
         <div>
-          <h2 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>
+          <h2 style={{ margin: '0 0 0.5rem 0', color: 'var(--primary-red)' }}>
             Vista 2: Detalle Diario por Operaciones
           </h2>
-          <p style={{ margin: '0', color: '#7f8c8d', fontSize: '0.9rem' }}>
+          <p style={{ margin: '0', color: 'var(--neutral-gray)', fontSize: '0.9rem' }}>
             {data.periodo_descripcion}
           </p>
         </div>
@@ -129,7 +129,7 @@ const DailyDetailedOperations = () => {
             onChange={(e) => setSelectedDate(e.target.value)}
             style={{
               padding: '0.5rem',
-              border: '1px solid #bdc3c7',
+              border: '1px solid #e5e7eb',
               borderRadius: '4px',
               fontSize: '0.9rem'
             }}
@@ -144,12 +144,12 @@ const DailyDetailedOperations = () => {
         gap: '1rem',
         marginBottom: '2rem',
         padding: '1rem',
-        backgroundColor: '#ecf0f1',
+        backgroundColor: 'var(--light-gray)',
         borderRadius: '8px',
-        border: '1px solid #bdc3c7'
+        border: '1px solid #e5e7eb'
       }}>
         <div style={{ textAlign: 'center' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.8rem', color: '#2c3e50' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.8rem', color: 'var(--dark-text)' }}>
             {data.total_operaciones}
           </h3>
           <p style={{ margin: '0', fontSize: '0.9rem', fontWeight: 'bold' }}>
@@ -158,7 +158,7 @@ const DailyDetailedOperations = () => {
         </div>
         
         <div style={{ textAlign: 'center' }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.8rem', color: '#2c3e50' }}>
+          <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.8rem', color: 'var(--dark-text)' }}>
             {data.total_reportes}
           </h3>
           <p style={{ margin: '0', fontSize: '0.9rem', fontWeight: 'bold' }}>
@@ -187,7 +187,7 @@ const DailyDetailedOperations = () => {
           key={index}
           style={{ 
             marginBottom: '2rem',
-            border: '2px solid #3498db',
+            border: '2px solid var(--primary-red)',
             borderRadius: '12px',
             backgroundColor: '#ffffff',
             overflow: 'hidden',
@@ -196,7 +196,7 @@ const DailyDetailedOperations = () => {
         >
           {/* Header de la operación */}
           <div style={{ 
-            backgroundColor: '#3498db',
+            backgroundColor: 'var(--primary-red)',
             color: 'white',
             padding: '1rem 1.5rem',
             display: 'flex',
@@ -231,7 +231,7 @@ const DailyDetailedOperations = () => {
             }}>
               <div style={{ 
                 padding: '1rem', 
-                backgroundColor: '#3498db', 
+                backgroundColor: 'var(--primary-red)', 
                 color: 'white', 
                 borderRadius: '6px',
                 textAlign: 'center'
@@ -251,7 +251,7 @@ const DailyDetailedOperations = () => {
 
               <div style={{ 
                 padding: '1rem', 
-                backgroundColor: '#27ae60', 
+                backgroundColor: 'var(--success-green)', 
                 color: 'white', 
                 borderRadius: '6px',
                 textAlign: 'center'
@@ -266,7 +266,7 @@ const DailyDetailedOperations = () => {
 
               <div style={{ 
                 padding: '1rem', 
-                backgroundColor: '#9b59b6', 
+                backgroundColor: 'var(--accent-orange)', 
                 color: 'white', 
                 borderRadius: '6px',
                 textAlign: 'center'
@@ -292,24 +292,24 @@ const DailyDetailedOperations = () => {
               border: '1px solid #e9ecef'
             }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#e67e22' }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--warning-yellow)' }}>
                   {operacion.total_incidencias}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>Incidencias</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--neutral-gray)' }}>Incidencias</div>
               </div>
               
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#1abc9c' }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--success-green)' }}>
                   {operacion.total_movimientos}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>Movimientos</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--neutral-gray)' }}>Movimientos</div>
               </div>
               
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#8e44ad' }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--accent-orange)' }}>
                   {operacion.total_hechos_relevantes}
                 </div>
-                <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>Hechos Relevantes</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--neutral-gray)' }}>Hechos Relevantes</div>
               </div>
             </div>
 
@@ -318,8 +318,8 @@ const DailyDetailedOperations = () => {
               <div style={{ marginBottom: '1.5rem' }}>
                 <h4 style={{ 
                   margin: '0 0 1rem 0', 
-                  color: '#e67e22', 
-                  borderBottom: '2px solid #e67e22',
+                  color: 'var(--warning-yellow)', 
+                  borderBottom: '2px solid var(--warning-yellow)',
                   paddingBottom: '0.5rem'
                 }}>
                   Incidencias ({operacion.total_incidencias})
@@ -331,10 +331,10 @@ const DailyDetailedOperations = () => {
                       key={incIndex}
                       style={{ 
                         padding: '0.75rem',
-                        backgroundColor: '#fff3cd',
-                        border: '1px solid #ffeaa7',
+                        backgroundColor: '#fffbeb',
+                        border: '1px solid #fed7aa',
                         borderRadius: '4px',
-                        borderLeft: '4px solid #f39c12',
+                        borderLeft: '4px solid var(--warning-yellow)',
                         fontSize: '0.9rem'
                       }}
                     >
@@ -344,7 +344,7 @@ const DailyDetailedOperations = () => {
                         <div><strong>Fecha Fin:</strong> {incidencia.fecha_fin || 'No especificada'}</div>
                         <div><strong>Admin:</strong> {incidencia.administrador}</div>
                       </div>
-                      <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: '#7f8c8d' }}>
+                      <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: 'var(--neutral-gray)' }}>
                         Registrado: {formatDateTime(incidencia.fecha_registro)}
                       </div>
                     </div>
@@ -358,8 +358,8 @@ const DailyDetailedOperations = () => {
               <div style={{ marginBottom: '1.5rem' }}>
                 <h4 style={{ 
                   margin: '0 0 1rem 0', 
-                  color: '#1abc9c', 
-                  borderBottom: '2px solid #1abc9c',
+                  color: 'var(--success-green)', 
+                  borderBottom: '2px solid var(--success-green)',
                   paddingBottom: '0.5rem'
                 }}>
                   Movimientos de Personal ({operacion.total_movimientos})
@@ -371,10 +371,10 @@ const DailyDetailedOperations = () => {
                       key={movIndex}
                       style={{ 
                         padding: '0.75rem',
-                        backgroundColor: '#d4edda',
-                        border: '1px solid #c3e6cb',
+                        backgroundColor: '#ecfdf5',
+                        border: '1px solid #a7f3d0',
                         borderRadius: '4px',
-                        borderLeft: '4px solid #1abc9c',
+                        borderLeft: '4px solid var(--success-green)',
                         fontSize: '0.9rem'
                       }}
                     >
@@ -384,7 +384,7 @@ const DailyDetailedOperations = () => {
                         <div><strong>Estado:</strong> {movimiento.estado || 'No especificado'}</div>
                         <div><strong>Admin:</strong> {movimiento.administrador}</div>
                       </div>
-                      <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: '#7f8c8d' }}>
+                      <div style={{ marginTop: '0.25rem', fontSize: '0.8rem', color: 'var(--neutral-gray)' }}>
                         Registrado: {formatDateTime(movimiento.fecha_registro)}
                       </div>
                     </div>
@@ -398,8 +398,8 @@ const DailyDetailedOperations = () => {
               <div>
                 <h4 style={{ 
                   margin: '0 0 1rem 0', 
-                  color: '#8e44ad', 
-                  borderBottom: '2px solid #8e44ad',
+                  color: 'var(--accent-orange)', 
+                  borderBottom: '2px solid var(--accent-orange)',
                   paddingBottom: '0.5rem'
                 }}>
                   Hechos Relevantes ({operacion.total_hechos_relevantes})
@@ -411,16 +411,16 @@ const DailyDetailedOperations = () => {
                       key={hechoIndex}
                       style={{ 
                         padding: '0.75rem',
-                        backgroundColor: '#e8d5ff',
-                        border: '1px solid #d1aeff',
+                        backgroundColor: '#fff3e0',
+                        border: '1px solid #fed7aa',
                         borderRadius: '4px',
-                        borderLeft: '4px solid #8e44ad',
+                        borderLeft: '4px solid var(--accent-orange)',
                         fontSize: '0.9rem'
                       }}
                     >
                       <div style={{ marginBottom: '0.5rem' }}>
                         <strong>Hecho:</strong>
-                        <p style={{ margin: '0.25rem 0 0 0', color: '#2c3e50' }}>
+                        <p style={{ margin: '0.25rem 0 0 0', color: 'var(--dark-text)' }}>
                           {hecho.hecho}
                         </p>
                       </div>
@@ -428,7 +428,7 @@ const DailyDetailedOperations = () => {
                         <div style={{ fontSize: '0.8rem' }}>
                           <strong>Admin:</strong> {hecho.administrador}
                         </div>
-                        <div style={{ fontSize: '0.8rem', color: '#7f8c8d' }}>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--neutral-gray)' }}>
                           {formatDateTime(hecho.fecha_registro)}
                         </div>
                       </div>
