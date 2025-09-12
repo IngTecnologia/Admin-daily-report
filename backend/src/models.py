@@ -375,13 +375,30 @@ class DailyGeneralOperationsResponse(BaseModel):
     total_movimientos: int = Field(..., description="Número total de movimientos")
 
 
+class OperacionDetalle(BaseModel):
+    """Detalle de una operación específica"""
+    cliente_operacion: str = Field(..., description="Nombre de la operación/cliente")
+    administradores: List[str] = Field(default=[], description="Lista de administradores que reportaron")
+    horas_diarias: float = Field(..., description="Horas diarias (suma o promedio según el caso)")
+    es_promedio_horas: bool = Field(..., description="Indica si las horas son promedio (múltiples reportes)")
+    personal_staff: int = Field(..., description="Total de personal staff")
+    personal_base: int = Field(..., description="Total de personal base")
+    incidencias: List[IncidentWithOrigin] = Field(default=[], description="Lista de incidencias de esta operación")
+    movimientos: List[MovementWithOrigin] = Field(default=[], description="Lista de movimientos de esta operación")
+    hechos_relevantes: List[RelevantFactWithOrigin] = Field(default=[], description="Lista de hechos relevantes de esta operación")
+    num_reportes: int = Field(..., description="Número de reportes de esta operación")
+    total_incidencias: int = Field(..., description="Número total de incidencias")
+    total_movimientos: int = Field(..., description="Número total de movimientos")
+    total_hechos_relevantes: int = Field(..., description="Número total de hechos relevantes")
+
+
 class DailyDetailedOperationsResponse(BaseModel):
     """Respuesta para Vista 2: Detalle Diario por Operaciones"""
     fecha: date = Field(..., description="Fecha de los datos mostrados")
     periodo_descripcion: str = Field(..., description="Descripción legible del período")
     
     # Datos por operación
-    operaciones: List[dict] = Field(..., description="Datos desglosados por cada operación")
+    operaciones: List[OperacionDetalle] = Field(..., description="Datos desglosados por cada operación")
     
     # Estadísticas generales
     total_operaciones: int = Field(..., description="Número de operaciones que reportaron")

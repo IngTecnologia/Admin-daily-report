@@ -16,6 +16,7 @@ from .config import settings
 from .models import (
     DailyReportCreate, DailyReportUpdate, DailyReportResponse, APIResponse, ReportCreateResponse,
     ReportFilter, AnalyticsResponse, HealthCheck, DailyGeneralOperationsResponse,
+    DailyDetailedOperationsResponse, OperacionDetalle,
     IncidentWithOrigin, MovementWithOrigin, RelevantFactWithOrigin
 )
 from .excel_handler import excel_handler
@@ -507,6 +508,52 @@ async def get_daily_general_operations(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error interno del servidor al obtener datos del día {fecha}"
+        )
+
+
+@app.get(
+    f"{settings.api_v1_prefix}/admin/daily-detailed-operations",
+    response_model=DailyDetailedOperationsResponse,
+    summary="Vista 2: Detalle Diario por Operaciones",
+    description="Obtener datos desglosados por cada operación para un día específico"
+)
+async def get_daily_detailed_operations(
+    fecha: Optional[date] = None
+) -> DailyDetailedOperationsResponse:
+    """
+    Vista 2: Detalle Diario por Operaciones
+    
+    Obtiene datos desglosados POR CADA operación para un día específico:
+    - Horas diarias de cada operación individual
+    - Personal staff y base de cada operación
+    - Incidencias específicas de cada operación
+    - Movimientos específicos de cada operación 
+    - Hechos relevantes específicos de cada operación
+    
+    Args:
+        fecha: Fecha específica (por defecto: hoy)
+    
+    Returns:
+        DailyDetailedOperationsResponse: Datos desglosados por operación
+    """
+    try:
+        # Si no se especifica fecha, usar hoy
+        target_date = fecha or date.today()
+        
+        # Obtener datos desglosados por operación
+        data = excel_handler.get_daily_detailed_operations(target_date)
+        
+        # Convertir a modelo Pydantic
+        response = DailyDetailedOperationsResponse(**data)
+        
+        logger.info(f"Vista 2 obtenida exitosamente para {target_date}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo Vista 2 para {fecha}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error interno del servidor al obtener detalle por operaciones del día {fecha}"
         )
 
 

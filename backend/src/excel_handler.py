@@ -1061,6 +1061,139 @@ class ExcelHandler:
                 "total_movimientos": 0
             }
 
+    def get_daily_detailed_operations(self, target_date: date) -> Dict[str, Any]:
+        """
+        Obtener datos desglosados por cada operación para un día específico
+        Para Vista 2: Detalle Diario por Operaciones
+        """
+        try:
+            # Obtener todos los reportes del día
+            all_reports = self.get_all_reports()
+            
+            # Filtrar reportes por fecha
+            daily_reports = []
+            for report in all_reports:
+                report_date = report.get('Fecha_Creacion')
+                if isinstance(report_date, str):
+                    report_date = datetime.fromisoformat(report_date.replace('Z', '+00:00')).date()
+                elif isinstance(report_date, datetime):
+                    report_date = report_date.date()
+                
+                if report_date == target_date:
+                    daily_reports.append(report)
+            
+            if not daily_reports:
+                return {
+                    "fecha": target_date,
+                    "periodo_descripcion": f"Detalle por Operaciones para {target_date.strftime('%d de %B de %Y')}",
+                    "operaciones": [],
+                    "total_operaciones": 0,
+                    "total_reportes": 0
+                }
+            
+            # Agrupar reportes por operación
+            operaciones_data = {}
+            for report in daily_reports:
+                cliente_operacion = report.get('Cliente_Operacion', '')
+                administrador = report.get('Administrador', '')
+                report_id = report.get('ID')
+                fecha_creacion = report.get('Fecha_Creacion')
+                
+                if cliente_operacion not in operaciones_data:
+                    operaciones_data[cliente_operacion] = {
+                        'cliente_operacion': cliente_operacion,
+                        'reportes': [],
+                        'administradores': set(),
+                        'horas_diarias': 0,
+                        'personal_staff': 0,
+                        'personal_base': 0,
+                        'incidencias': [],
+                        'movimientos': [],
+                        'hechos_relevantes': []
+                    }
+                
+                # Agregar datos del reporte
+                operaciones_data[cliente_operacion]['reportes'].append(report)
+                operaciones_data[cliente_operacion]['administradores'].add(administrador)
+                operaciones_data[cliente_operacion]['horas_diarias'] += float(report.get('Horas_Diarias', 0))
+                operaciones_data[cliente_operacion]['personal_staff'] += int(report.get('Personal_Staff', 0))
+                operaciones_data[cliente_operacion]['personal_base'] += int(report.get('Personal_Base', 0))
+                
+                # Obtener incidencias de este reporte
+                incidencias_reporte = self.get_report_incidents(report_id)
+                for incidencia in incidencias_reporte:
+                    operaciones_data[cliente_operacion]['incidencias'].append({
+                        "tipo": incidencia.get('Tipo_Incidencia', ''),
+                        "nombre_empleado": incidencia.get('Nombre_Empleado', ''),
+                        "fecha_fin": incidencia.get('Fecha_Fin_Novedad', target_date),
+                        "administrador": administrador,
+                        "fecha_registro": fecha_creacion
+                    })
+                
+                # Obtener movimientos de este reporte
+                movimientos_reporte = self.get_report_movements(report_id)
+                for movimiento in movimientos_reporte:
+                    operaciones_data[cliente_operacion]['movimientos'].append({
+                        "nombre_empleado": movimiento.get('Nombre_Empleado', ''),
+                        "cargo": movimiento.get('Cargo', ''),
+                        "estado": movimiento.get('Estado', ''),
+                        "administrador": administrador,
+                        "fecha_registro": fecha_creacion
+                    })
+                
+                # Obtener hechos relevantes
+                hechos_relevantes = report.get('Hechos_Relevantes', '')
+                if hechos_relevantes and hechos_relevantes.strip():
+                    operaciones_data[cliente_operacion]['hechos_relevantes'].append({
+                        "hecho": hechos_relevantes.strip(),
+                        "administrador": administrador,
+                        "cliente_operacion": cliente_operacion,
+                        "fecha_registro": fecha_creacion
+                    })
+            
+            # Convertir datos a lista y calcular promedios
+            operaciones_list = []
+            for operacion_data in operaciones_data.values():
+                num_reportes = len(operacion_data['reportes'])
+                promedio_horas = operacion_data['horas_diarias'] / num_reportes if num_reportes > 0 else 0
+                
+                operaciones_list.append({
+                    "cliente_operacion": operacion_data['cliente_operacion'],
+                    "administradores": list(operacion_data['administradores']),
+                    "horas_diarias": round(promedio_horas, 2) if num_reportes == 1 else round(operacion_data['horas_diarias'], 2),
+                    "es_promedio_horas": num_reportes > 1,
+                    "personal_staff": operacion_data['personal_staff'],
+                    "personal_base": operacion_data['personal_base'],
+                    "incidencias": operacion_data['incidencias'],
+                    "movimientos": operacion_data['movimientos'],
+                    "hechos_relevantes": operacion_data['hechos_relevantes'],
+                    "num_reportes": num_reportes,
+                    "total_incidencias": len(operacion_data['incidencias']),
+                    "total_movimientos": len(operacion_data['movimientos']),
+                    "total_hechos_relevantes": len(operacion_data['hechos_relevantes'])
+                })
+            
+            # Ordenar por nombre de operación
+            operaciones_list.sort(key=lambda x: x['cliente_operacion'])
+            
+            return {
+                "fecha": target_date,
+                "periodo_descripcion": f"Detalle por Operaciones para {target_date.strftime('%d de %B de %Y')}",
+                "operaciones": operaciones_list,
+                "total_operaciones": len(operaciones_list),
+                "total_reportes": len(daily_reports)
+            }
+            
+        except Exception as e:
+            print(f"Error obteniendo detalle por operaciones del día {target_date}: {e}")
+            return {
+                "fecha": target_date,
+                "periodo_descripcion": f"Error obteniendo datos para {target_date}",
+                "operaciones": [],
+                "total_operaciones": 0,
+                "total_reportes": 0
+            }
+
 
 # Instancia global del manejador
 excel_handler = ExcelHandler()
