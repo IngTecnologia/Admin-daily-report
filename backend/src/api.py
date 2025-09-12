@@ -15,7 +15,8 @@ from contextlib import asynccontextmanager
 from .config import settings
 from .models import (
     DailyReportCreate, DailyReportUpdate, DailyReportResponse, APIResponse, ReportCreateResponse,
-    ReportFilter, AnalyticsResponse, HealthCheck
+    ReportFilter, AnalyticsResponse, HealthCheck, DailyGeneralOperationsResponse,
+    IncidentWithOrigin, MovementWithOrigin, RelevantFactWithOrigin
 )
 from .excel_handler import excel_handler
 from .email_service import email_service
@@ -460,6 +461,52 @@ async def get_analytics() -> AnalyticsResponse:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno del servidor al obtener analytics"
+        )
+
+
+@app.get(
+    f"{settings.api_v1_prefix}/admin/daily-general-operations",
+    response_model=DailyGeneralOperationsResponse,
+    summary="Vista 1: Operación General Diaria",
+    description="Obtener datos consolidados de todas las operaciones para un día específico"
+)
+async def get_daily_general_operations(
+    fecha: Optional[date] = None
+) -> DailyGeneralOperationsResponse:
+    """
+    Vista 1: Operación General Diaria
+    
+    Obtiene datos consolidados de TODAS las operaciones para un día específico:
+    - Promedio de horas diarias entre todas las operaciones
+    - Suma total de personal staff y base
+    - Lista consolidada de incidencias con origen (admin/operación)
+    - Lista consolidada de movimientos con origen (admin/operación) 
+    - Lista consolidada de hechos relevantes con origen (admin/operación)
+    
+    Args:
+        fecha: Fecha específica (por defecto: hoy)
+    
+    Returns:
+        DailyGeneralOperationsResponse: Datos consolidados del día
+    """
+    try:
+        # Si no se especifica fecha, usar hoy
+        target_date = fecha or date.today()
+        
+        # Obtener datos consolidados del día
+        data = excel_handler.get_daily_general_operations(target_date)
+        
+        # Convertir a modelo Pydantic
+        response = DailyGeneralOperationsResponse(**data)
+        
+        logger.info(f"Vista 1 obtenida exitosamente para {target_date}")
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error obteniendo Vista 1 para {fecha}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error interno del servidor al obtener datos del día {fecha}"
         )
 
 

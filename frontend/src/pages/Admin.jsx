@@ -3,6 +3,7 @@ import Dashboard from '../components/admin/Dashboard'
 import ReportsList from '../components/admin/ReportsList'
 import ReportDetail from '../components/admin/ReportDetail'
 import FormViewReports from '../components/admin/FormViewReports'
+import DailyGeneralOperations from '../components/admin/DailyGeneralOperations'
 
 const Admin = () => {
   const [currentView, setCurrentView] = useState('dashboard')
@@ -44,6 +45,12 @@ const Admin = () => {
         icon="📝"
         label="Vista Formulario"
       />
+      <NavButton
+        active={currentView === 'daily-general'}
+        onClick={() => setCurrentView('daily-general')}
+        icon="🌅"
+        label="Operación Diaria"
+      />
     </div>
   )
 
@@ -55,6 +62,8 @@ const Admin = () => {
         return <ReportsList onViewReport={handleViewReport} />
       case 'formview':
         return <FormViewReports onViewReport={handleViewReport} />
+      case 'daily-general':
+        return <DailyGeneralOperations />
       default:
         return <Dashboard />
     }

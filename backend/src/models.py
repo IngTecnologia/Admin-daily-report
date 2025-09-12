@@ -322,3 +322,67 @@ class HealthCheck(BaseModel):
     status: str = "healthy"
     timestamp: datetime = Field(default_factory=datetime.now)
     version: str = "1.0.0"
+
+
+# Modelos para las nuevas vistas de administrador
+class IncidentWithOrigin(BaseModel):
+    """Incidencia con información de origen"""
+    tipo: str
+    nombre_empleado: str
+    fecha_fin: date
+    administrador: str
+    cliente_operacion: str
+    fecha_registro: datetime
+
+
+class MovementWithOrigin(BaseModel):
+    """Movimiento con información de origen"""
+    nombre_empleado: str
+    cargo: str
+    estado: str
+    administrador: str
+    cliente_operacion: str
+    fecha_registro: datetime
+
+
+class RelevantFactWithOrigin(BaseModel):
+    """Hecho relevante con información de origen"""
+    hecho: str
+    administrador: str
+    cliente_operacion: str
+    fecha_registro: datetime
+
+
+class DailyGeneralOperationsResponse(BaseModel):
+    """Respuesta para Vista 1: Operación General Diaria"""
+    fecha: date = Field(..., description="Fecha de los datos mostrados")
+    periodo_descripcion: str = Field(..., description="Descripción legible del período")
+    
+    # Datos agregados
+    promedio_horas_diarias: float = Field(..., description="Promedio de horas entre todas las operaciones del día")
+    total_personal_staff: int = Field(..., description="Suma total de personal staff de todas las operaciones")
+    total_personal_base: int = Field(..., description="Suma total de personal base de todas las operaciones")
+    
+    # Listas consolidadas con origen
+    incidencias: List[IncidentWithOrigin] = Field(default=[], description="Todas las incidencias del día con su origen")
+    movimientos: List[MovementWithOrigin] = Field(default=[], description="Todos los movimientos del día con su origen")
+    hechos_relevantes: List[RelevantFactWithOrigin] = Field(default=[], description="Todos los hechos relevantes del día con su origen")
+    
+    # Estadísticas adicionales
+    total_reportes: int = Field(..., description="Número total de reportes procesados")
+    operaciones_reportadas: List[str] = Field(default=[], description="Lista de operaciones que reportaron ese día")
+    total_incidencias: int = Field(..., description="Número total de incidencias")
+    total_movimientos: int = Field(..., description="Número total de movimientos")
+
+
+class DailyDetailedOperationsResponse(BaseModel):
+    """Respuesta para Vista 2: Detalle Diario por Operaciones"""
+    fecha: date = Field(..., description="Fecha de los datos mostrados")
+    periodo_descripcion: str = Field(..., description="Descripción legible del período")
+    
+    # Datos por operación
+    operaciones: List[dict] = Field(..., description="Datos desglosados por cada operación")
+    
+    # Estadísticas generales
+    total_operaciones: int = Field(..., description="Número de operaciones que reportaron")
+    total_reportes: int = Field(..., description="Número total de reportes procesados")

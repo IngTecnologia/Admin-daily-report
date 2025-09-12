@@ -927,6 +927,140 @@ class ExcelHandler:
                 pass
             return False
 
+    def get_daily_general_operations(self, target_date: date) -> Dict[str, Any]:
+        """
+        Obtener datos consolidados de todas las operaciones para un día específico
+        Para Vista 1: Operación General Diaria
+        """
+        try:
+            # Obtener todos los reportes del día
+            all_reports = self.get_all_reports()
+            
+            # Filtrar reportes por fecha
+            daily_reports = []
+            for report in all_reports:
+                report_date = report.get('Fecha_Creacion')
+                if isinstance(report_date, str):
+                    report_date = datetime.fromisoformat(report_date.replace('Z', '+00:00')).date()
+                elif isinstance(report_date, datetime):
+                    report_date = report_date.date()
+                
+                if report_date == target_date:
+                    daily_reports.append(report)
+            
+            if not daily_reports:
+                return {
+                    "fecha": target_date,
+                    "periodo_descripcion": f"Operación General para {target_date.strftime('%d de %B de %Y')}",
+                    "promedio_horas_diarias": 0.0,
+                    "total_personal_staff": 0,
+                    "total_personal_base": 0,
+                    "incidencias": [],
+                    "movimientos": [],
+                    "hechos_relevantes": [],
+                    "total_reportes": 0,
+                    "operaciones_reportadas": [],
+                    "total_incidencias": 0,
+                    "total_movimientos": 0
+                }
+            
+            # Calcular estadísticas agregadas
+            total_horas = sum(float(report.get('Horas_Diarias', 0)) for report in daily_reports)
+            total_staff = sum(int(report.get('Personal_Staff', 0)) for report in daily_reports)
+            total_base = sum(int(report.get('Personal_Base', 0)) for report in daily_reports)
+            promedio_horas = total_horas / len(daily_reports) if daily_reports else 0
+            
+            # Operaciones que reportaron
+            operaciones_reportadas = list(set(report.get('Cliente_Operacion', '') for report in daily_reports))
+            
+            # Obtener incidencias del día con origen
+            incidencias_con_origen = []
+            for report in daily_reports:
+                report_id = report.get('ID')
+                administrador = report.get('Administrador', '')
+                cliente_operacion = report.get('Cliente_Operacion', '')
+                fecha_creacion = report.get('Fecha_Creacion')
+                
+                # Obtener incidencias de este reporte
+                incidencias_reporte = self.get_report_incidents(report_id)
+                for incidencia in incidencias_reporte:
+                    incidencias_con_origen.append({
+                        "tipo": incidencia.get('Tipo_Incidencia', ''),
+                        "nombre_empleado": incidencia.get('Nombre_Empleado', ''),
+                        "fecha_fin": incidencia.get('Fecha_Fin_Novedad', target_date),
+                        "administrador": administrador,
+                        "cliente_operacion": cliente_operacion,
+                        "fecha_registro": fecha_creacion
+                    })
+            
+            # Obtener movimientos del día con origen
+            movimientos_con_origen = []
+            for report in daily_reports:
+                report_id = report.get('ID')
+                administrador = report.get('Administrador', '')
+                cliente_operacion = report.get('Cliente_Operacion', '')
+                fecha_creacion = report.get('Fecha_Creacion')
+                
+                # Obtener movimientos de este reporte
+                movimientos_reporte = self.get_report_movements(report_id)
+                for movimiento in movimientos_reporte:
+                    movimientos_con_origen.append({
+                        "nombre_empleado": movimiento.get('Nombre_Empleado', ''),
+                        "cargo": movimiento.get('Cargo', ''),
+                        "estado": movimiento.get('Estado', ''),
+                        "administrador": administrador,
+                        "cliente_operacion": cliente_operacion,
+                        "fecha_registro": fecha_creacion
+                    })
+            
+            # Obtener hechos relevantes del día con origen
+            hechos_con_origen = []
+            for report in daily_reports:
+                administrador = report.get('Administrador', '')
+                cliente_operacion = report.get('Cliente_Operacion', '')
+                fecha_creacion = report.get('Fecha_Creacion')
+                hechos_relevantes = report.get('Hechos_Relevantes', '')
+                
+                if hechos_relevantes and hechos_relevantes.strip():
+                    hechos_con_origen.append({
+                        "hecho": hechos_relevantes.strip(),
+                        "administrador": administrador,
+                        "cliente_operacion": cliente_operacion,
+                        "fecha_registro": fecha_creacion
+                    })
+            
+            return {
+                "fecha": target_date,
+                "periodo_descripcion": f"Operación General para {target_date.strftime('%d de %B de %Y')}",
+                "promedio_horas_diarias": round(promedio_horas, 2),
+                "total_personal_staff": total_staff,
+                "total_personal_base": total_base,
+                "incidencias": incidencias_con_origen,
+                "movimientos": movimientos_con_origen,
+                "hechos_relevantes": hechos_con_origen,
+                "total_reportes": len(daily_reports),
+                "operaciones_reportadas": operaciones_reportadas,
+                "total_incidencias": len(incidencias_con_origen),
+                "total_movimientos": len(movimientos_con_origen)
+            }
+            
+        except Exception as e:
+            print(f"Error obteniendo datos consolidados del día {target_date}: {e}")
+            return {
+                "fecha": target_date,
+                "periodo_descripcion": f"Error obteniendo datos para {target_date}",
+                "promedio_horas_diarias": 0.0,
+                "total_personal_staff": 0,
+                "total_personal_base": 0,
+                "incidencias": [],
+                "movimientos": [],
+                "hechos_relevantes": [],
+                "total_reportes": 0,
+                "operaciones_reportadas": [],
+                "total_incidencias": 0,
+                "total_movimientos": 0
+            }
+
 
 # Instancia global del manejador
 excel_handler = ExcelHandler()
