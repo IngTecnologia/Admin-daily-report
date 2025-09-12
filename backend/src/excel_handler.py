@@ -138,15 +138,95 @@ class ExcelHandler:
             self._create_initial_file()
     
     def generate_report_id(self) -> str:
-        """Generar ID unico para reporte segun formato especificado"""
-        today = get_bogota_now()
-        date_str = today.strftime("%Y%m%d")
+        """Generar ID unico para reporte usando timestamp"""
+        import time
         
-        # Contar reportes del dia
-        existing_reports = self.get_reports_by_date(today.date())
-        count = len(existing_reports) + 1
+        now = get_bogota_now()
+        date_str = now.strftime("%Y%m%d")
         
-        return f"RPT-{date_str}-{count:03d}"
+        # Usar timestamp en microsegundos para garantizar unicidad
+        timestamp_part = int(now.timestamp() * 1000000) % 1000000  # Últimos 6 dígitos de microsegundos
+        
+        # Formato: RPT-YYYYMMDD-HHMMSS-MICROSEC
+        time_str = now.strftime("%H%M%S")
+        
+        return f"RPT-{date_str}-{time_str}-{timestamp_part:06d}"
+    
+    def fix_duplicate_ids(self) -> bool:
+        """Arreglar IDs duplicados en el Excel existente"""
+        try:
+            # Crear backup antes de modificar
+            if not self.backup_file():
+                print("Advertencia: No se pudo crear backup antes de arreglar duplicados")
+            
+            workbook = openpyxl.load_workbook(self.file_path)
+            reportes_sheet = workbook[self.sheets["reportes"]]
+            
+            # Recopilar todos los IDs y detectar duplicados
+            ids_found = {}
+            rows_to_update = []
+            
+            for row_num in range(2, reportes_sheet.max_row + 1):
+                current_id = reportes_sheet.cell(row=row_num, column=1).value
+                if current_id:
+                    if current_id in ids_found:
+                        # ID duplicado encontrado
+                        rows_to_update.append(row_num)
+                        print(f"ID duplicado encontrado: {current_id} en fila {row_num}")
+                    else:
+                        ids_found[current_id] = row_num
+            
+            # Generar nuevos IDs para duplicados
+            if rows_to_update:
+                print(f"Actualizando {len(rows_to_update)} IDs duplicados...")
+                
+                for row_num in rows_to_update:
+                    old_id = reportes_sheet.cell(row=row_num, column=1).value
+                    new_id = self.generate_report_id()
+                    
+                    # Actualizar ID en hoja principal
+                    reportes_sheet.cell(row=row_num, column=1).value = new_id
+                    print(f"Fila {row_num}: {old_id} -> {new_id}")
+                    
+                    # Actualizar referencias en hojas relacionadas
+                    self._update_id_references(workbook, old_id, new_id)
+                    
+                    # Pequeña pausa para garantizar IDs únicos
+                    import time
+                    time.sleep(0.001)
+                
+                # Guardar cambios
+                workbook.save(self.file_path)
+                print(f"✅ IDs duplicados corregidos. {len(rows_to_update)} registros actualizados.")
+            else:
+                print("✅ No se encontraron IDs duplicados.")
+            
+            workbook.close()
+            return True
+            
+        except Exception as e:
+            print(f"Error arreglando IDs duplicados: {e}")
+            try:
+                workbook.close()
+            except:
+                pass
+            return False
+    
+    def _update_id_references(self, workbook, old_id: str, new_id: str):
+        """Actualizar referencias de ID en hojas relacionadas"""
+        # Actualizar en hoja de incidencias
+        if "incidencias" in self.sheets and self.sheets["incidencias"] in workbook.sheetnames:
+            incidencias_sheet = workbook[self.sheets["incidencias"]]
+            for row in incidencias_sheet.iter_rows(min_row=2):
+                if row[0].value == old_id:
+                    row[0].value = new_id
+        
+        # Actualizar en hoja de movimientos
+        if "ingresos_retiros" in self.sheets and self.sheets["ingresos_retiros"] in workbook.sheetnames:
+            movimientos_sheet = workbook[self.sheets["ingresos_retiros"]]
+            for row in movimientos_sheet.iter_rows(min_row=2):
+                if row[0].value == old_id:
+                    row[0].value = new_id
     
     def save_report(self, report: DailyReportCreate, client_info: Dict[str, str]) -> DailyReportResponse:
         """Guardar reporte completo en Excel"""

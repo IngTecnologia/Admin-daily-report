@@ -699,6 +699,8 @@ async def root():
     )
 
 
+
+
 # Endpoints de notificaciones por correo
 @app.post(
     f"{settings.api_v1_prefix}/notifications/test-email",
