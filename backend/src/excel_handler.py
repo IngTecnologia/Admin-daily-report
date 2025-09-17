@@ -1066,32 +1066,41 @@ class ExcelHandler:
         Obtener datos desglosados por cada operación para un día específico
         Para Vista 2: Detalle Diario por Operaciones
         """
+        print(f"FUNCTION START: get_daily_detailed_operations for {target_date}")
         try:
-            # TEMPORARY TEST: Return early to verify function is called
-            print(f"TEST: get_daily_detailed_operations called for {target_date}")
-            return {
-                "fecha": target_date,
-                "periodo_descripcion": f"TEST MODE - {target_date}",
-                "operaciones": [],
-                "total_operaciones": 0,
-                "total_reportes": 0
-            }
-
             # Obtener todos los reportes del día
             all_reports = self.get_all_reports()
-            
+            print(f"DEBUG: Total reports in system: {len(all_reports)}")
+
+            # DEBUG: Print sample dates to understand format
+            if all_reports:
+                sample_report = all_reports[0]
+                fecha_creacion = sample_report.get('Fecha_Creacion')
+                print(f"DEBUG: Sample date from Excel: {fecha_creacion} (type: {type(fecha_creacion)})")
+                print(f"DEBUG: Target date: {target_date} (type: {type(target_date)})")
+
             # Filtrar reportes por fecha
             daily_reports = []
-            for report in all_reports:
+            date_matches = 0
+            for i, report in enumerate(all_reports):
                 report_date = report.get('Fecha_Creacion')
+                original_date = report_date
+
                 if isinstance(report_date, str):
                     report_date = datetime.fromisoformat(report_date.replace('Z', '+00:00')).date()
                 elif isinstance(report_date, datetime):
                     report_date = report_date.date()
-                
+
                 if report_date == target_date:
                     daily_reports.append(report)
-            
+                    date_matches += 1
+                    if i < 3:  # Only log first 3 matches
+                        print(f"DEBUG: MATCH {date_matches} - Original: {original_date}, Parsed: {report_date}, Target: {target_date}")
+                elif i < 10:  # Log first 10 non-matches to see patterns
+                    print(f"DEBUG: NO MATCH {i+1} - Original: {original_date}, Parsed: {report_date}, Target: {target_date}")
+
+            print(f"DEBUG: Found {len(daily_reports)} reports for target date {target_date}")
+
             if not daily_reports:
                 return {
                     "fecha": target_date,
