@@ -1067,6 +1067,16 @@ class ExcelHandler:
         Para Vista 2: Detalle Diario por Operaciones
         """
         try:
+            # TEMPORARY TEST: Return early to verify function is called
+            print(f"TEST: get_daily_detailed_operations called for {target_date}")
+            return {
+                "fecha": target_date,
+                "periodo_descripcion": f"TEST MODE - {target_date}",
+                "operaciones": [],
+                "total_operaciones": 0,
+                "total_reportes": 0
+            }
+
             # Obtener todos los reportes del día
             all_reports = self.get_all_reports()
             
@@ -1122,24 +1132,30 @@ class ExcelHandler:
                 # Obtener incidencias de este reporte
                 incidencias_reporte = self.get_report_incidents(report_id)
                 for incidencia in incidencias_reporte:
-                    operaciones_data[cliente_operacion]['incidencias'].append({
-                        "tipo": incidencia.get('Tipo_Incidencia', ''),
-                        "nombre_empleado": incidencia.get('Nombre_Empleado', ''),
-                        "fecha_fin": incidencia.get('Fecha_Fin_Novedad', target_date),
-                        "administrador": administrador,
-                        "fecha_registro": fecha_creacion
-                    })
+                    # Validar y limpiar datos de incidencia
+                    incidencia_limpia = {
+                        "tipo": incidencia.get('tipo', '') or '',
+                        "nombre_empleado": incidencia.get('nombre_empleado', '') or '',
+                        "fecha_fin": incidencia.get('fecha_fin', target_date) or target_date,
+                        "administrador": administrador or '',
+                        "cliente_operacion": cliente_operacion or '',
+                        "fecha_registro": incidencia.get('fecha_registro', fecha_creacion) or fecha_creacion
+                    }
+                    operaciones_data[cliente_operacion]['incidencias'].append(incidencia_limpia)
                 
                 # Obtener movimientos de este reporte
                 movimientos_reporte = self.get_report_movements(report_id)
                 for movimiento in movimientos_reporte:
-                    operaciones_data[cliente_operacion]['movimientos'].append({
-                        "nombre_empleado": movimiento.get('Nombre_Empleado', ''),
-                        "cargo": movimiento.get('Cargo', ''),
-                        "estado": movimiento.get('Estado', ''),
-                        "administrador": administrador,
-                        "fecha_registro": fecha_creacion
-                    })
+                    # Validar y limpiar datos de movimiento
+                    movimiento_limpio = {
+                        "nombre_empleado": movimiento.get('nombre_empleado', '') or '',
+                        "cargo": movimiento.get('cargo', '') or '',
+                        "estado": movimiento.get('estado', '') or '',
+                        "administrador": administrador or '',
+                        "cliente_operacion": cliente_operacion or '',
+                        "fecha_registro": movimiento.get('fecha_registro', fecha_creacion) or fecha_creacion
+                    }
+                    operaciones_data[cliente_operacion]['movimientos'].append(movimiento_limpio)
                 
                 # Obtener hechos relevantes
                 hechos_relevantes = report.get('Hechos_Relevantes', '')
@@ -1175,7 +1191,7 @@ class ExcelHandler:
             
             # Ordenar por nombre de operación
             operaciones_list.sort(key=lambda x: x['cliente_operacion'])
-            
+
             return {
                 "fecha": target_date,
                 "periodo_descripcion": f"Detalle por Operaciones para {target_date.strftime('%d de %B de %Y')}",
@@ -1185,7 +1201,10 @@ class ExcelHandler:
             }
             
         except Exception as e:
-            print(f"Error obteniendo detalle por operaciones del día {target_date}: {e}")
+            import traceback
+            print(f"CRITICAL ERROR in get_daily_detailed_operations for {target_date}: {e}")
+            print("Full traceback:")
+            traceback.print_exc()
             return {
                 "fecha": target_date,
                 "periodo_descripcion": f"Error obteniendo datos para {target_date}",

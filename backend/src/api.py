@@ -522,33 +522,69 @@ async def get_daily_detailed_operations(
 ) -> DailyDetailedOperationsResponse:
     """
     Vista 2: Detalle Diario por Operaciones
-    
+
     Obtiene datos desglosados POR CADA operación para un día específico:
     - Horas diarias de cada operación individual
     - Personal staff y base de cada operación
     - Incidencias específicas de cada operación
-    - Movimientos específicos de cada operación 
+    - Movimientos específicos de cada operación
     - Hechos relevantes específicos de cada operación
-    
+
     Args:
         fecha: Fecha específica (por defecto: hoy)
-    
+
     Returns:
         DailyDetailedOperationsResponse: Datos desglosados por operación
     """
     try:
         # Si no se especifica fecha, usar hoy
         target_date = fecha or date.today()
-        
+
         # Obtener datos desglosados por operación
         data = excel_handler.get_daily_detailed_operations(target_date)
-        
-        # Convertir a modelo Pydantic
-        response = DailyDetailedOperationsResponse(**data)
-        
-        logger.info(f"Vista 2 obtenida exitosamente para {target_date}")
-        return response
-        
+
+        # DEBUG: Log raw data structure for debugging
+        logger.info(f"DEBUG: Raw data structure for {target_date}")
+        if data.get('operaciones'):
+            for i, op in enumerate(data['operaciones'][:2]):  # Only log first 2 operations
+                logger.info(f"  Operation {i}: {op.get('cliente_operacion')}")
+                if op.get('incidencias'):
+                    logger.info(f"    First incident keys: {list(op['incidencias'][0].keys())}")
+                    logger.info(f"    First incident sample: {op['incidencias'][0]}")
+                if op.get('movimientos'):
+                    logger.info(f"    First movement keys: {list(op['movimientos'][0].keys())}")
+                    logger.info(f"    First movement sample: {op['movimientos'][0]}")
+
+        # DEBUG: Skip Pydantic validation temporarily
+        logger.info(f"DEBUG: Returning raw data for {target_date}")
+        logger.info(f"DEBUG: Data keys: {list(data.keys())}")
+        if data.get('operaciones'):
+            logger.info(f"DEBUG: First operation keys: {list(data['operaciones'][0].keys())}")
+            if data['operaciones'][0].get('incidencias'):
+                logger.info(f"DEBUG: First incident: {data['operaciones'][0]['incidencias'][0]}")
+
+        # DEBUG: Log the actual data structure being returned
+        logger.info(f"DATA STRUCTURE DEBUG for {target_date}")
+        logger.info(f"Keys: {list(data.keys())}")
+        if data.get('operaciones'):
+            first_op = data['operaciones'][0] if data['operaciones'] else {}
+            logger.info(f"First operation keys: {list(first_op.keys())}")
+            if first_op.get('incidencias'):
+                first_inc = first_op['incidencias'][0] if first_op['incidencias'] else {}
+                logger.info(f"First incident keys: {list(first_inc.keys())}")
+                logger.info(f"First incident full: {first_inc}")
+                logger.info(f"Has cliente_operacion? {'cliente_operacion' in first_inc}")
+
+        # Try to create the Pydantic model and catch specific errors
+        try:
+            response = DailyDetailedOperationsResponse(**data)
+            logger.info(f"Vista 2 obtenida exitosamente para {target_date}")
+            return response
+        except Exception as pydantic_error:
+            logger.error(f"PYDANTIC VALIDATION ERROR: {pydantic_error}")
+            # Return raw data temporarily to bypass validation
+            return data
+
     except Exception as e:
         logger.error(f"Error obteniendo Vista 2 para {fecha}: {e}")
         raise HTTPException(
@@ -1032,3 +1068,20 @@ async def send_bulk_reminders():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error interno enviando recordatorios masivos"
         )
+
+
+# DEBUG ENDPOINT - TEMPORAL
+@app.get(
+    f"{settings.api_v1_prefix}/admin/debug-daily-detailed-operations",
+    summary="DEBUG: Vista 2 sin validación Pydantic",
+    description="Endpoint de debug temporal"
+)
+async def debug_daily_detailed_operations(fecha: Optional[date] = None):
+    """DEBUG: Obtener datos crudos sin validación Pydantic"""
+    try:
+        target_date = fecha or date.today()
+        data = excel_handler.get_daily_detailed_operations(target_date)
+        return data
+    except Exception as e:
+        logger.error(f"DEBUG Error: {e}")
+        return {"error": str(e)}
