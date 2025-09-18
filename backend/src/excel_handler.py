@@ -984,10 +984,15 @@ class ExcelHandler:
                 # Obtener incidencias de este reporte
                 incidencias_reporte = self.get_report_incidents(report_id)
                 for incidencia in incidencias_reporte:
+                    # Convertir fecha_fin a date si es datetime
+                    fecha_fin = incidencia.get('fecha_fin') or target_date
+                    if hasattr(fecha_fin, 'date'):
+                        fecha_fin = fecha_fin.date()
+
                     incidencias_con_origen.append({
-                        "tipo": incidencia.get('Tipo_Incidencia', ''),
-                        "nombre_empleado": incidencia.get('Nombre_Empleado', ''),
-                        "fecha_fin": incidencia.get('Fecha_Fin_Novedad', target_date),
+                        "tipo": incidencia.get('tipo') or '',
+                        "nombre_empleado": incidencia.get('nombre_empleado') or '',
+                        "fecha_fin": fecha_fin,
                         "administrador": administrador,
                         "cliente_operacion": cliente_operacion,
                         "fecha_registro": fecha_creacion
@@ -1005,9 +1010,9 @@ class ExcelHandler:
                 movimientos_reporte = self.get_report_movements(report_id)
                 for movimiento in movimientos_reporte:
                     movimientos_con_origen.append({
-                        "nombre_empleado": movimiento.get('Nombre_Empleado', ''),
-                        "cargo": movimiento.get('Cargo', ''),
-                        "estado": movimiento.get('Estado', ''),
+                        "nombre_empleado": movimiento.get('nombre_empleado') or '',
+                        "cargo": movimiento.get('cargo') or '',
+                        "estado": movimiento.get('estado') or '',
                         "administrador": administrador,
                         "cliente_operacion": cliente_operacion,
                         "fecha_registro": fecha_creacion
