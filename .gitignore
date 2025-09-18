@@ -37,7 +37,7 @@ build/
 .env.test.local
 .env.production.local
 .env.production
-.env.tunnel
+
 
 # Cache directories
 .cache
