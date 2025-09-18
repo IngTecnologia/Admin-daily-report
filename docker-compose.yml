@@ -24,7 +24,7 @@ services:
 
   # Backend - FastAPI + Python
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
