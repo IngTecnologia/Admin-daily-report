@@ -24,7 +24,7 @@ export const USERS = [
   },
   //Floribe Correa
   {
-    id: 2,
+    id: 3,
     username: 'asistente.admonrh@inemec.com',
     password: 'admonbog2025',
     fullName: 'Floribe Correa', 
@@ -33,7 +33,7 @@ export const USERS = [
   },
   //Julieth Rincon
   {
-    id: 3,
+    id: 4,
     username: 'administradora.sc@inemec.com',
     password: 'admoncedco2025',
     fullName: 'Julieth Rincon',
@@ -42,7 +42,7 @@ export const USERS = [
   },
   //Eddinson Javier Martinez
   {
-    id: 3,
+    id: 5,
     username: 'admincus.ggs@inemec.com',
     password: 'admoncus2025',
     fullName: 'Eddinson Javier Martinez',
@@ -51,7 +51,7 @@ export const USERS = [
   },
   //Jorge Ivan Alvarado Celis
   {
-    id: 3,
+    id: 6,
     username: 'adminflo.ggs@inemec.com',
     password: 'admonflo2025',
     fullName: 'Jorge Iván Alvarado Celis',
@@ -60,7 +60,7 @@ export const USERS = [
   },
   //Kenia Sanchez 
   {
-    id: 3,
+    id: 7,
     username: 'admon.sierracolclm@inemec.com',
     password: 'admonclm2025',
     fullName: 'Kenia Sanchez',
@@ -69,7 +69,7 @@ export const USERS = [
   },
   //Liliana Romero 
   {
-    id: 3,
+    id: 8,
     username: 'contadora@inemec.com',
     password: 'admonbrc2025',
     fullName: 'Liliana Romero',
@@ -78,7 +78,7 @@ export const USERS = [
   },
   //Marcela Cusba 
   {
-    id: 3,
+    id: 9,
     username: 'administrador.ggs@inemec.com',
     password: 'admonggs2025',
     fullName: 'Marcela Cusba Gomez',
@@ -87,7 +87,7 @@ export const USERS = [
   },
   //Mirledys Garcia San Juan 
   {
-    id: 3,
+    id: 10,
     username: 'admonjr.sierracolcrm@inemec.com',
     password: 'admoncrc2025',
     fullName: 'Mirledys Garcia San Juan',
@@ -96,18 +96,27 @@ export const USERS = [
   },
   //Yolima Arenas Zarate 
   {
-    id: 3,
+    id: 11,
     username: 'admincup.ggs@inemec.com',
     password: 'admoncup2025',
     fullName: 'Yolima Arenas Zarate',
     role: 'form_user',
     area: 'VPI CUPIAGUA'
   },
+  // Kellis Minosca Mosquera 
+  {
+    id: 12,
+    username: 'profesionalrrhh.sierracol@inemec.com',
+    password: 'rrhhclm2025',
+    fullName: 'Kellis Minosca Mosquera',
+    role: 'form_user',
+    area: 'Sierracol CLM'
+  },
 
   // Usuarios con acceso al formulario + panel admin
   //Jesús Cotes
   {
-    id: 4,
+    id: 13,
     username: 'ing.tecnologia2@inemec.com',
     password: 'protec2025',
     fullName: 'Jesús David Cotes',
@@ -116,7 +125,7 @@ export const USERS = [
   },
   //Andrés Pérez
   {
-    id: 5,
+    id: 14,
     username: 'ing.tecnologia1@inemec.com',
     password: 'protec2025',
     fullName: 'Andrés Pérez',
@@ -125,7 +134,7 @@ export const USERS = [
   },
   //Andrés Muñoz 
   {
-    id: 6,
+    id: 15,
     username: 'pro.automatizacion@inemec.com',
     password: 'proti2025',
     fullName: 'Andrés Muñoz',
@@ -134,7 +143,7 @@ export const USERS = [
   },
   //Hugo Rodriguez
   {
-    id: 6,
+    id: 16,
     username: 'gte.administrativo@inemec.com',
     password: 'gteadmon2025',
     fullName: 'Hugo Rodríguez',
