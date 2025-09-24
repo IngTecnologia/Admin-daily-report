@@ -104,19 +104,11 @@ export const USERS = [
     area: 'VPI CUPIAGUA'
   },
   // Kellis Minosca Mosquera 
-  {
-    id: 12,
-    username: 'profesionalrrhh.sierracol@inemec.com',
-    password: 'rrhhclm2025',
-    fullName: 'Kellis Minosca Mosquera',
-    role: 'form_user',
-    area: 'Sierracol CLM'
-  },
 
   // Usuarios con acceso al formulario + panel admin
   //Jesús Cotes
   {
-    id: 13,
+    id: 12,
     username: 'ing.tecnologia2@inemec.com',
     password: 'protec2025',
     fullName: 'Jesús David Cotes',
@@ -125,7 +117,7 @@ export const USERS = [
   },
   //Andrés Pérez
   {
-    id: 14,
+    id: 13,
     username: 'ing.tecnologia1@inemec.com',
     password: 'protec2025',
     fullName: 'Andrés Pérez',
@@ -134,7 +126,7 @@ export const USERS = [
   },
   //Andrés Muñoz 
   {
-    id: 15,
+    id: 14,
     username: 'pro.automatizacion@inemec.com',
     password: 'proti2025',
     fullName: 'Andrés Muñoz',
@@ -143,7 +135,7 @@ export const USERS = [
   },
   //Hugo Rodriguez
   {
-    id: 16,
+    id: 15,
     username: 'gte.administrativo@inemec.com',
     password: 'gteadmon2025',
     fullName: 'Hugo Rodríguez',
