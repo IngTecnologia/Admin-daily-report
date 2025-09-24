@@ -10,8 +10,7 @@ export const ADMIN_CLIENT_MAPPING = {
   'Liliana Romero': 'Administrativo Barranca',
   'Marcela Cusba Gomez': 'VPI ADMON',
   'Mirledys Garcia San Juan': 'Sierracol CRC',
-  'Yolima Arenas Zarate': 'VPI CUPIAGUA',
-  'Kellis Minosca Mosquera': 'Sierracol CLM'
+  'Yolima Arenas Zarate': 'VPI CUPIAGUA'
 }
 
 // Función para obtener el cliente asignado a un administrador
