@@ -1,11 +1,53 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: reportes-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: reportes_diarios
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - admin-daily-report
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: reportes-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - admin-daily-report
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Frontend - React + Nginx
   frontend:
-    build: 
+    build:
       context: ./frontend
       dockerfile: Dockerfile
+    container_name: reportes-frontend
     ports:
       - "4501:80"  # Puerto especifico segun README
     depends_on:
@@ -15,7 +57,7 @@ services:
       - admin-daily-report
     environment:
       - NODE_ENV=production
-      - REACT_APP_API_URL=https://api.reportediario.inemec.com/api/v1
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8001/api/v1}
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
       interval: 30s
@@ -27,19 +69,52 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: reportes-backend
     ports:
       - "8001:8001"  # Puerto especifico segun README
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - admin-daily-report
     environment:
+      # Python
       - PYTHONPATH=/app
       - PORT=8001
+
+      # Database
+      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/reportes_diarios
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=reportes_diarios
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+
+      # Redis
+      - REDIS_URL=redis://redis:6379/0
+
+      # Security
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-change-this-secret-key-in-production}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-change-this-refresh-secret-in-production}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-change-this-encryption-key}
+
+      # Email
+      - EMAIL_SENDER=${EMAIL_SENDER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+
+      # Environment
+      - NODE_ENV=${NODE_ENV:-development}
+
     volumes:
-      # Persistir datos de Excel
+      # Persistir datos de Excel (para migración y exports)
       - ./data:/app/data
       # Logs
       - ./logs:/app/logs
+      # Hot reload en desarrollo
+      - ./backend/src:/app/src:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
       interval: 30s
@@ -51,6 +126,10 @@ networks:
     driver: bridge
 
 volumes:
-  # Volumen para datos persistentes
+  # Volúmenes para persistencia de datos
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
   admin_data:
     driver: local

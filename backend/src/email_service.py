@@ -20,7 +20,7 @@ class EmailService:
         self.smtp_port = 587
         
         # Configuración de correo - Se obtienen de variables de entorno por seguridad
-        self.sender_email = os.getenv("EMAIL_SENDER", "reportes@inemec.com")
+        self.sender_email = os.getenv("EMAIL_SENDER", "")
         self.sender_password = os.getenv("EMAIL_PASSWORD", "")
         self.sender_name = "Sistema de Reportes Diarios - INEMEC"
         
