@@ -22,6 +22,15 @@ from .models import (
 from .excel_handler import excel_handler
 from .email_service import email_service
 
+# Importar autenticación y rate limiting si están disponibles
+try:
+    from .auth.auth_routes import router as auth_router
+    from .middleware.rate_limiter import setup_rate_limiting
+    AUTH_ENABLED = True
+except ImportError:
+    AUTH_ENABLED = False
+    logger.warning("Authentication modules not found, running in legacy mode")
+
 
 # Configurar logging
 logging.basicConfig(
@@ -37,13 +46,25 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Iniciando Admin Daily Report API")
     logger.info(f"Archivo Excel: {settings.excel_file_path}")
-    
+
     # Verificar que el manejador de Excel funcione
     try:
         excel_handler._ensure_file_exists()
         logger.info("Sistema de Excel inicializado correctamente")
     except Exception as e:
         logger.error(f"Error inicializando Excel: {e}")
+
+    # Inicializar base de datos si está disponible
+    if AUTH_ENABLED:
+        try:
+            from .database.connection import init_db, check_db_connection
+            if check_db_connection():
+                init_db()
+                logger.info("Base de datos PostgreSQL inicializada")
+            else:
+                logger.warning("No se pudo conectar a PostgreSQL, usando modo legacy")
+        except Exception as e:
+            logger.error(f"Error con PostgreSQL: {e}")
     
     yield
     
@@ -55,7 +76,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description=settings.app_description,
+    description=settings.app_description + (" (Auth Enabled)" if AUTH_ENABLED else " (Legacy Mode)"),
     docs_url=settings.docs_url,
     redoc_url=settings.redoc_url,
     openapi_url=settings.openapi_url,
@@ -70,6 +91,16 @@ app.add_middleware(
     allow_methods=settings.cors_methods,
     allow_headers=settings.cors_headers,
 )
+
+# Configurar rate limiting si está disponible
+if AUTH_ENABLED:
+    setup_rate_limiting(app)
+    logger.info("Rate limiting configurado")
+
+# Incluir rutas de autenticación si están disponibles
+if AUTH_ENABLED:
+    app.include_router(auth_router)
+    logger.info("Rutas de autenticación agregadas")
 
 
 # Handler para errores de validacion
@@ -130,10 +161,25 @@ def get_client_info(request: Request) -> Dict[str, str]:
 @app.get("/health", response_model=HealthCheck)
 async def health_check():
     """Health check endpoint"""
+
+    # Verificar estado de los servicios
+    db_status = "not_configured"
+    if AUTH_ENABLED:
+        try:
+            from .database.connection import check_db_connection
+            db_status = "healthy" if check_db_connection() else "unhealthy"
+        except:
+            db_status = "error"
+
     return HealthCheck(
         status="healthy",
         timestamp=datetime.now(),
-        version=settings.app_version
+        version=settings.app_version,
+        services={
+            "excel": "healthy",
+            "database": db_status,
+            "auth": "enabled" if AUTH_ENABLED else "disabled"
+        }
     )
 
 

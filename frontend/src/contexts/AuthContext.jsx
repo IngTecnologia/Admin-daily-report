@@ -1,13 +1,10 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import { validateCredentials, getUserByUsername, canAccessAdmin } from '../config/users'
+import authService from '../services/authService'
 
 const AuthContext = createContext()
 
 // Constantes para gestión de sesión
 const SESSION_DURATION = 8 * 60 * 60 * 1000 // 8 horas en milisegundos
-const TOKEN_KEY = 'auth_token'
-const USER_KEY = 'current_user'
-const TIMESTAMP_KEY = 'session_timestamp'
 
 const initialState = {
   user: null,
@@ -95,59 +92,52 @@ const authReducer = (state, action) => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
-  // Función para generar token de sesión
-  const generateToken = () => {
-    return `token_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`
+  // Función para verificar si el usuario tiene rol admin
+  const isAdmin = (user) => {
+    return user && (user.role === 'admin' || user.role === 'supervisor')
   }
 
   // Función para verificar si la sesión ha expirado
   const isSessionExpired = () => {
-    const timestamp = localStorage.getItem(TIMESTAMP_KEY)
-    if (!timestamp) return true
-    
-    const sessionStart = parseInt(timestamp)
-    const currentTime = Date.now()
-    return (currentTime - sessionStart) > SESSION_DURATION
+    // Con JWT, la expiración se maneja en el backend
+    const token = authService.getToken()
+    return !token
   }
 
   // Función para limpiar datos de sesión
-  const clearSessionData = () => {
-    localStorage.removeItem(TOKEN_KEY)
-    localStorage.removeItem(USER_KEY)
-    localStorage.removeItem(TIMESTAMP_KEY)
+  const clearSessionData = async () => {
+    await authService.logout()
   }
 
   // Función para verificar sesión al cargar
-  const checkSessionValidity = () => {
-    const token = localStorage.getItem(TOKEN_KEY)
-    const storedUser = localStorage.getItem(USER_KEY)
-    const timestamp = localStorage.getItem(TIMESTAMP_KEY)
+  const checkSessionValidity = async () => {
+    const token = authService.getToken()
+    const storedUser = authService.getCurrentUser()
 
-    if (!token || !storedUser || !timestamp || isSessionExpired()) {
-      clearSessionData()
+    if (!token || !storedUser) {
       dispatch({ type: 'SET_LOADING', payload: false })
       return false
     }
 
     try {
-      const userData = JSON.parse(storedUser)
-      const currentUser = getUserByUsername(userData.username)
-      
-      if (currentUser) {
-        const expiry = new Date(parseInt(timestamp) + SESSION_DURATION)
-        dispatch({ 
-          type: 'RESTORE_SESSION', 
-          payload: { user: currentUser, expiry }
+      // Verificar que el token siga siendo válido
+      const isValid = await authService.verifyToken()
+
+      if (isValid && storedUser) {
+        const expiry = new Date(Date.now() + SESSION_DURATION)
+        dispatch({
+          type: 'RESTORE_SESSION',
+          payload: { user: storedUser, expiry }
         })
         return true
       } else {
-        clearSessionData()
+        await clearSessionData()
         dispatch({ type: 'SET_LOADING', payload: false })
         return false
       }
     } catch (error) {
       console.error('Error restaurando sesión:', error)
-      clearSessionData()
+      await clearSessionData()
       dispatch({ type: 'SET_LOADING', payload: false })
       return false
     }
@@ -176,24 +166,14 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGIN_START' })
 
     try {
-      // Simular delay de red para mejor UX
-      await new Promise(resolve => setTimeout(resolve, 800))
-      
-      const user = validateCredentials(username, password)
-      
+      // Llamar al servicio de autenticación backend
+      const user = await authService.login(username, password)
+
       if (user) {
-        // Generar token y timestamp de sesión
-        const token = generateToken()
-        const timestamp = Date.now()
-        const expiry = new Date(timestamp + SESSION_DURATION)
-        
-        // Guardar en localStorage
-        localStorage.setItem(TOKEN_KEY, token)
-        localStorage.setItem(USER_KEY, JSON.stringify(user))
-        localStorage.setItem(TIMESTAMP_KEY, timestamp.toString())
-        
-        dispatch({ 
-          type: 'LOGIN_SUCCESS', 
+        const expiry = new Date(Date.now() + SESSION_DURATION)
+
+        dispatch({
+          type: 'LOGIN_SUCCESS',
           payload: { user, expiry }
         })
         return { success: true, user }
@@ -203,19 +183,19 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: errorMessage }
       }
     } catch (error) {
-      const errorMessage = 'Error de conexión. Intente nuevamente.'
+      const errorMessage = error.message || 'Error de conexión. Intente nuevamente.'
       dispatch({ type: 'LOGIN_ERROR', payload: errorMessage })
       return { success: false, error: errorMessage }
     }
   }
 
-  const logout = () => {
-    clearSessionData()
+  const logout = async () => {
+    await clearSessionData()
     dispatch({ type: 'LOGOUT' })
   }
 
-  const forceLogout = () => {
-    clearSessionData()
+  const forceLogout = async () => {
+    await clearSessionData()
     dispatch({ type: 'SESSION_EXPIRED' })
   }
 
@@ -226,50 +206,48 @@ export const AuthProvider = ({ children }) => {
   const hasAdminAccess = () => {
     // Revalidar los permisos cada vez que se llama
     if (!state.user || !state.isAuthenticated) return false
-    
+
     // Verificar que la sesión no haya expirado
     if (isSessionExpired()) {
       forceLogout()
       return false
     }
-    
-    // Verificar que el usuario aún existe y tiene permisos
-    const currentUser = getUserByUsername(state.user.username)
-    if (!currentUser) {
-      forceLogout()
-      return false
-    }
-    
-    return canAccessAdmin(currentUser)
+
+    return isAdmin(state.user)
   }
 
   const getSessionInfo = () => {
-    const timestamp = localStorage.getItem(TIMESTAMP_KEY)
-    if (!timestamp) return null
-    
-    const startTime = parseInt(timestamp)
+    const token = authService.getToken()
+    if (!token || !state.sessionExpiry) return null
+
     const currentTime = Date.now()
-    const timeLeft = SESSION_DURATION - (currentTime - startTime)
-    
+    const expiryTime = new Date(state.sessionExpiry).getTime()
+    const timeLeft = expiryTime - currentTime
+
     return {
-      startTime: new Date(startTime),
-      expiresAt: new Date(startTime + SESSION_DURATION),
+      startTime: new Date(expiryTime - SESSION_DURATION),
+      expiresAt: new Date(expiryTime),
       timeLeft: Math.max(0, timeLeft),
       isExpired: timeLeft <= 0
     }
   }
 
-  const extendSession = () => {
+  const extendSession = async () => {
     if (state.isAuthenticated && !isSessionExpired()) {
-      const newTimestamp = Date.now()
-      localStorage.setItem(TIMESTAMP_KEY, newTimestamp.toString())
-      
-      const expiry = new Date(newTimestamp + SESSION_DURATION)
-      dispatch({ 
-        type: 'RESTORE_SESSION', 
-        payload: { user: state.user, expiry }
-      })
-      return true
+      try {
+        // Renovar token con el backend
+        await authService.refreshToken()
+
+        const expiry = new Date(Date.now() + SESSION_DURATION)
+        dispatch({
+          type: 'RESTORE_SESSION',
+          payload: { user: state.user, expiry }
+        })
+        return true
+      } catch (error) {
+        console.error('Error extending session:', error)
+        return false
+      }
     }
     return false
   }

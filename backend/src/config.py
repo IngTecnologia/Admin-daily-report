@@ -127,10 +127,11 @@ class Settings(BaseSettings):
 # Configuración de constantes según el README
 ADMINISTRATORS = [
     "Adriana Robayo",
-    "Angela Ramirez", 
+    "Angela Ramirez",
     "Floribe Correa",
     "Julieth Rincon",
     "Eddinson Javier Martinez",
+    "Jorge Iván Alvarado Celis",
     "Kellis Minosca Morquera",
     "Kenia Sanchez",
     "Liliana Romero",

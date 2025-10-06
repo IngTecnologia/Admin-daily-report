@@ -6,6 +6,7 @@ export const ADMINISTRATORS = [
   'Floribe Correa',
   'Julieth Rincon',
   'Eddinson Javier Martinez',
+  'Jorge Iván Alvarado Celis',
   'Kellis Minosca Morquera',
   'Kenia Sanchez',
   'Liliana Romero',

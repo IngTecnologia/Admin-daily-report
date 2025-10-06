@@ -15,6 +15,7 @@ class AdministratorEnum(str, Enum):
     FLORIBE_CORREA = "Floribe Correa"
     JULIETH_RINCON = "Julieth Rincon"
     EDDINSON_MARTINEZ = "Eddinson Javier Martinez"
+    JORGE_ALVARADO = "Jorge Iván Alvarado Celis"
     KELLIS_MORQUERA = "Kellis Minosca Morquera"
     KENIA_SANCHEZ = "Kenia Sanchez"
     LILIANA_ROMERO = "Liliana Romero"
