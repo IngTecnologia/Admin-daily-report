@@ -11,6 +11,7 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 import logging
 from contextlib import asynccontextmanager
+import pytz
 
 from .config import settings
 from .models import (
@@ -29,7 +30,8 @@ try:
     AUTH_ENABLED = True
 except ImportError:
     AUTH_ENABLED = False
-    logger.warning("Authentication modules not found, running in legacy mode")
+    # Logger no está disponible aún, se usará modo legacy sin autenticación
+    pass
 
 
 # Configurar logging
@@ -789,13 +791,17 @@ async def export_data(
 async def check_admin_today_reports(admin_name: str):
     """Verificar reportes enviados hoy por un administrador específico"""
     try:
-        today = date.today()
+        # Usar timezone configurada (America/Bogota)
+        local_tz = pytz.timezone(settings.timezone)
+        now_local = datetime.now(local_tz)
+        today = now_local.date()
+
         existing_reports = excel_handler.get_reports_by_date(today)
         admin_reports_today = [
-            r for r in existing_reports 
+            r for r in existing_reports
             if r.get('Administrador', '').lower() == admin_name.lower()
         ]
-        
+
         return APIResponse(
             success=True,
             message=f"Información de reportes del día para {admin_name}",

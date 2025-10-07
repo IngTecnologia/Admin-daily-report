@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
 
   // Función para verificar si el usuario tiene rol admin
   const isAdmin = (user) => {
-    return user && (user.role === 'admin' || user.role === 'supervisor')
+    return user && (user.role === 'admin' || user.role === 'supervisor' || user.role === 'admin_user')
   }
 
   // Función para verificar si la sesión ha expirado

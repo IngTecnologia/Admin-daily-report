@@ -1,12 +1,14 @@
 /**
- * Servicio de autenticación con backend
- * Reemplaza la autenticación hardcodeada con llamadas al API
+ * Servicio de autenticación con soporte para modo legacy
+ * Intenta usar backend primero, si falla usa autenticación local
  */
 import { API_BASE_URL } from './constants';
+import { validateCredentials } from '../config/users';
 
 const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
+const USE_LEGACY_AUTH = true; // Cambiar a false cuando el backend de auth esté disponible
 
 class AuthService {
   constructor() {
@@ -20,6 +22,12 @@ class AuthService {
    * @returns {Promise<Object>} Usuario autenticado
    */
   async login(username, password) {
+    // Modo legacy: usar validación local
+    if (USE_LEGACY_AUTH) {
+      return this.loginLegacy(username, password);
+    }
+
+    // Modo backend: usar API
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/auth/login`, {
         method: 'POST',
@@ -46,7 +54,39 @@ class AuthService {
 
       return data.user;
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Backend login failed, trying legacy mode:', error);
+      // Fallback a modo legacy
+      return this.loginLegacy(username, password);
+    }
+  }
+
+  /**
+   * Login legacy usando validación local
+   * @param {string} username - Email o username
+   * @param {string} password - Contraseña
+   * @returns {Promise<Object>} Usuario autenticado
+   */
+  async loginLegacy(username, password) {
+    try {
+      const user = validateCredentials(username, password);
+
+      if (!user) {
+        throw new Error('Usuario o contraseña incorrectos');
+      }
+
+      // Generar un token simple para modo legacy
+      const legacyToken = btoa(JSON.stringify({ username, timestamp: Date.now() }));
+
+      // Guardar en localStorage
+      localStorage.setItem(TOKEN_KEY, legacyToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+
+      // Configurar token
+      this.setAuthHeader(legacyToken);
+
+      return user;
+    } catch (error) {
+      console.error('Legacy login error:', error);
       throw error;
     }
   }
@@ -127,7 +167,7 @@ class AuthService {
    */
   isAdmin() {
     const user = this.getCurrentUser();
-    return user && (user.role === 'admin' || user.role === 'supervisor');
+    return user && (user.role === 'admin' || user.role === 'supervisor' || user.role === 'admin_user');
   }
 
   /**
@@ -135,6 +175,26 @@ class AuthService {
    * @returns {Promise<string>} Nuevo token
    */
   async refreshToken() {
+    // Modo legacy: generar nuevo token local
+    if (USE_LEGACY_AUTH) {
+      const user = this.getCurrentUser();
+      if (!user) {
+        throw new Error('No user session available');
+      }
+
+      // Generar nuevo token con timestamp actualizado
+      const newToken = btoa(JSON.stringify({
+        username: user.username,
+        timestamp: Date.now()
+      }));
+
+      localStorage.setItem(TOKEN_KEY, newToken);
+      this.setAuthHeader(newToken);
+
+      return newToken;
+    }
+
+    // Modo backend: usar API de refresh
     const refreshToken = this.getRefreshToken();
 
     if (!refreshToken) {
@@ -216,6 +276,13 @@ class AuthService {
       return false;
     }
 
+    // Modo legacy: solo verificar que exista el token y el usuario
+    if (USE_LEGACY_AUTH) {
+      const user = this.getCurrentUser();
+      return !!(token && user);
+    }
+
+    // Modo backend: verificar con API
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/auth/verify`, {
         method: 'GET',
@@ -226,7 +293,9 @@ class AuthService {
 
       return response.ok;
     } catch {
-      return false;
+      // Fallback a verificación legacy
+      const user = this.getCurrentUser();
+      return !!(token && user);
     }
   }
 
