@@ -52,11 +52,11 @@ export const EMPLOYEE_STATUSES = [
 export const VALIDATION_RULES = {
   administrador: { required: true, type: 'select' },
   cliente_operacion: { required: true, type: 'select' },
-  horas_diarias: { 
-    required: true, 
-    type: 'number', 
-    min: 1, 
-    max: 24, 
+  horas_diarias: {
+    required: true,
+    type: 'number',
+    min: 1,
+    max: 1000,
     integer: false,
     decimal: true,
     maxDecimals: 1

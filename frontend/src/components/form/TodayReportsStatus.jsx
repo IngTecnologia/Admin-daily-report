@@ -11,12 +11,13 @@ const TodayReportsStatus = ({ onReportsChange }) => {
   const [selectedReport, setSelectedReport] = useState(null) // Reporte seleccionado para ver detalle
 
   const fetchTodayReports = async () => {
-    if (!user?.fullName) return
+    const adminName = user?.full_name || user?.fullName || user?.administrator_name
+    if (!adminName) return
 
     try {
       setLoading(true)
       const response = await fetch(
-        `${API_BASE_URL}/reportes/admin/${encodeURIComponent(user.fullName)}/today`
+        `${API_BASE_URL}/reportes/admin/${encodeURIComponent(adminName)}/today`
       )
       
       if (response.ok) {
@@ -61,7 +62,7 @@ const TodayReportsStatus = ({ onReportsChange }) => {
 
   useEffect(() => {
     fetchTodayReports()
-  }, [user?.fullName])
+  }, [user?.full_name, user?.fullName, user?.administrator_name])
 
   // Notify parent component when reports status changes
   useEffect(() => {

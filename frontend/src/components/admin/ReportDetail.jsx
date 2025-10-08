@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL, INCIDENT_TYPES, EMPLOYEE_STATUSES } from '../../services/constants'
+import NumberInput from '../common/NumberInput'
 
 const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) => {
   const [detailedReport, setDetailedReport] = useState(null)
@@ -286,13 +287,14 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
             }}>
               {isEditing ? (
                 <>
-                  <EditableField 
-                    label="Horas Diarias" 
+                  <EditableField
+                    label="Horas Diarias"
                     value={editData.Horas_Diarias || editData.horas_diarias}
                     type="number"
-                    step="0.5"
-                    min="1"
-                    max="24"
+                    allowDecimal={true}
+                    step={0.5}
+                    min={1}
+                    max={1000}
                     onChange={(value) => handleFieldChange('Horas_Diarias', value)}
                     suffix=" horas"
                   />
@@ -905,7 +907,10 @@ const DetailField = ({ label, value, valueStyle = {} }) => {
   )
 }
 
-const EditableField = ({ label, value, onChange, type = "text", suffix = "", ...inputProps }) => {
+const EditableField = ({ label, value, onChange, type = "text", suffix = "", allowDecimal = false, ...inputProps }) => {
+  // Si es un campo numérico, usar NumberInput para mejor validación
+  const isNumberField = type === "number"
+
   return (
     <div>
       <div style={{
@@ -917,22 +922,34 @@ const EditableField = ({ label, value, onChange, type = "text", suffix = "", ...
         {label}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <input
-          type={type}
-          value={value || ''}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            color: 'var(--dark-text)',
-            border: '1px solid #d1d5db',
-            borderRadius: '4px',
-            padding: '0.5rem',
-            flex: 1,
-            maxWidth: '120px'
-          }}
-          {...inputProps}
-        />
+        {isNumberField ? (
+          <div style={{ maxWidth: '150px' }}>
+            <NumberInput
+              value={value || ''}
+              onChange={onChange}
+              allowDecimal={allowDecimal}
+              showButtons={false}
+              {...inputProps}
+            />
+          </div>
+        ) : (
+          <input
+            type={type}
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            style={{
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              color: 'var(--dark-text)',
+              border: '1px solid #d1d5db',
+              borderRadius: '4px',
+              padding: '0.5rem',
+              flex: 1,
+              maxWidth: '120px'
+            }}
+            {...inputProps}
+          />
+        )}
         {suffix && (
           <span style={{
             fontSize: '0.875rem',

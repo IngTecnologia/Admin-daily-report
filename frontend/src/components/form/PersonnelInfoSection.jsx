@@ -13,13 +13,13 @@ const PersonnelInfoSection = ({ formData, errors, updateField }) => {
           <label htmlFor="horas_diarias" className="form-label">
             Horas diarias *
             <small style={{ display: 'block', fontWeight: 'normal', color: 'var(--neutral-gray)' }}>
-              Número de horas trabajadas (1-24)
+              Número de horas trabajadas (1-1000)
             </small>
           </label>
           <NumberInput
             id="horas_diarias"
             min={1}
-            max={24}
+            max={1000}
             step={0.5}
             allowDecimal={true}
             value={formData.horas_diarias}

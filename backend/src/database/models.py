@@ -2,7 +2,7 @@
 SQLAlchemy models for PostgreSQL database
 """
 from sqlalchemy import Column, String, Integer, Float, DateTime, ForeignKey, Text, Boolean, Date, Enum, Index
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
@@ -41,10 +41,10 @@ class MovementType(str, enum.Enum):
 
 class ReportStatus(str, enum.Enum):
     """Estados posibles de un reporte"""
-    DRAFT = "draft"
-    COMPLETED = "completed"
-    REVIEWED = "reviewed"
-    ARCHIVED = "archived"
+    draft = "draft"
+    completed = "completed"
+    reviewed = "reviewed"
+    archived = "archived"
 
 # Modelos de la base de datos
 class User(Base):
@@ -59,7 +59,8 @@ class User(Base):
     full_name = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), nullable=False, default=UserRole.operator)
     administrator_name = Column(String(255))  # Nombre como administrador en reportes
-    client_operation = Column(String(255))  # Operación/cliente asignado
+    client_operation = Column(String(255))  # Operación/cliente asignado (legacy - usar client_operations)
+    client_operations = Column(JSONB)  # Array de operaciones/clientes asignados (soporta múltiples)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
     last_login = Column(DateTime(timezone=True))
@@ -95,7 +96,7 @@ class Report(Base):
     staff_personnel = Column(Integer, nullable=False)
     base_personnel = Column(Integer, nullable=False)
     relevant_facts = Column(Text)
-    status = Column(Enum(ReportStatus), default=ReportStatus.COMPLETED)
+    status = Column(Enum(ReportStatus), default=ReportStatus.completed)
 
     # Metadatos
     report_date = Column(Date, nullable=False, index=True)
@@ -130,7 +131,7 @@ class Incident(Base):
     report_id = Column(UUID(as_uuid=True), ForeignKey("reports.reports.id", ondelete="CASCADE"), nullable=False)
 
     # Información de la incidencia
-    incident_type = Column(Enum(IncidentType), nullable=False)
+    incident_type = Column(String(100), nullable=False)  # PostgreSQL valida con su enum
     employee_name = Column(String(255), nullable=False, index=True)
     end_date = Column(Date, nullable=False)
     notes = Column(Text)
@@ -160,7 +161,7 @@ class Movement(Base):
     # Información del movimiento
     employee_name = Column(String(255), nullable=False, index=True)
     position = Column(String(255), nullable=False)
-    movement_type = Column(Enum(MovementType), nullable=False, index=True)
+    movement_type = Column(String(50), nullable=False, index=True)  # PostgreSQL valida con su enum
     effective_date = Column(Date)
     notes = Column(Text)
 

@@ -270,7 +270,7 @@ async def get_reports(
 ) -> List[Dict[str, Any]]:
     """
     Obtener lista de reportes con filtros opcionales
-    
+
     - **administrador**: Filtrar por administrador especifico
     - **cliente**: Filtrar por cliente/operacion
     - **fecha_inicio**: Fecha inicial del rango (YYYY-MM-DD)
@@ -279,43 +279,112 @@ async def get_reports(
     - **limit**: Registros por pagina (max. 100)
     """
     try:
+        from database.connection import SessionLocal
+        from database.models import Report, Incident, Movement
+        from security.encryption import field_encryptor
+        from sqlalchemy import func, and_
+
         # Validar parametros
         if limit > 100:
             limit = 100
         if page < 1:
             page = 1
-        
-        # Crear filtros
-        filters = {}
-        if administrador:
-            filters['administrador'] = administrador
-        if cliente:
-            filters['cliente'] = cliente
-        if fecha_inicio:
-            try:
-                fecha_inicio_parsed = datetime.fromisoformat(fecha_inicio).date()
-                filters['fecha_inicio'] = fecha_inicio_parsed
-            except (ValueError, TypeError):
-                logger.warning(f"Fecha inicio inválida: {fecha_inicio}")
-        if fecha_fin:
-            try:
-                fecha_fin_parsed = datetime.fromisoformat(fecha_fin).date()
-                filters['fecha_fin'] = fecha_fin_parsed
-            except (ValueError, TypeError):
-                logger.warning(f"Fecha fin inválida: {fecha_fin}")
-        
-        # Obtener reportes
-        all_reports = excel_handler.get_all_reports(filters)
-        
-        # Aplicar paginacion
-        start_index = (page - 1) * limit
-        end_index = start_index + limit
-        paginated_reports = all_reports[start_index:end_index]
-        
-        logger.info(f"Reportes obtenidos: {len(paginated_reports)} de {len(all_reports)}")
-        
-        return paginated_reports
-        
+
+        db = SessionLocal()
+        try:
+            # Construir query con filtros
+            query = db.query(Report)
+
+            if administrador:
+                query = query.filter(func.lower(Report.administrator) == administrador.lower())
+
+            if cliente:
+                query = query.filter(func.lower(Report.client_operation) == cliente.lower())
+
+            if fecha_inicio:
+                try:
+                    fecha_inicio_parsed = datetime.fromisoformat(fecha_inicio).date()
+                    query = query.filter(Report.report_date >= fecha_inicio_parsed)
+                except (ValueError, TypeError):
+                    logger.warning(f"Fecha inicio inválida: {fecha_inicio}")
+
+            if fecha_fin:
+                try:
+                    fecha_fin_parsed = datetime.fromisoformat(fecha_fin).date()
+                    query = query.filter(Report.report_date <= fecha_fin_parsed)
+                except (ValueError, TypeError):
+                    logger.warning(f"Fecha fin inválida: {fecha_fin}")
+
+            # Ordenar por fecha de creación descendente
+            query = query.order_by(Report.created_at.desc())
+
+            # Contar total de reportes
+            total_reports = query.count()
+
+            # Aplicar paginacion
+            skip = (page - 1) * limit
+            reports = query.offset(skip).limit(limit).all()
+
+            # Construir respuesta con incidencias y movimientos
+            reports_list = []
+            for report in reports:
+                # Desencriptar campos sensibles del reporte
+                report_decrypted = field_encryptor.decrypt_model_fields(report, "reports")
+
+                # Obtener incidencias
+                incidents = db.query(Incident).filter(Incident.report_id == report.id).all()
+                incidents_list = []
+                for inc in incidents:
+                    inc_decrypted = field_encryptor.decrypt_model_fields(inc, "incidents")
+                    incidents_list.append({
+                        "id": str(inc_decrypted.id),
+                        "tipo": inc_decrypted.incident_type,
+                        "nombre_empleado": inc_decrypted.employee_name,
+                        "fecha_fin": inc_decrypted.end_date.isoformat() if inc_decrypted.end_date else None,
+                        "notas": inc_decrypted.notes or ""
+                    })
+
+                # Obtener movimientos
+                movements = db.query(Movement).filter(Movement.report_id == report.id).all()
+                movements_list = []
+                for mov in movements:
+                    mov_decrypted = field_encryptor.decrypt_model_fields(mov, "movements")
+                    movements_list.append({
+                        "id": str(mov_decrypted.id),
+                        "nombre_empleado": mov_decrypted.employee_name,
+                        "cargo": mov_decrypted.position,
+                        "estado": mov_decrypted.movement_type,
+                        "fecha_efectiva": mov_decrypted.effective_date.isoformat() if mov_decrypted.effective_date else None,
+                        "notas": mov_decrypted.notes or ""
+                    })
+
+                # Construir objeto del reporte
+                report_data = {
+                    "ID": str(report_decrypted.id),
+                    "Fecha_Creacion": report_decrypted.created_at.isoformat() if report_decrypted.created_at else None,
+                    "Administrador": report_decrypted.administrator,
+                    "Cliente_Operacion": report_decrypted.client_operation,
+                    "Horas_Diarias": report_decrypted.daily_hours,
+                    "Personal_Staff": report_decrypted.staff_personnel,
+                    "Personal_Base": report_decrypted.base_personnel,
+                    "Cantidad_Incidencias": len(incidents_list),
+                    "Cantidad_Ingresos_Retiros": len(movements_list),
+                    "Hechos_Relevantes": report_decrypted.relevant_facts or "",
+                    "Estado": report_decrypted.status.value if hasattr(report_decrypted.status, 'value') else str(report_decrypted.status),
+                    "IP_Origen": report_decrypted.client_ip,
+                    "User_Agent": report_decrypted.user_agent,
+                    "incidencias": incidents_list,
+                    "ingresos_retiros": movements_list
+                }
+                reports_list.append(report_data)
+
+            logger.info(f"Reportes obtenidos desde PostgreSQL: {len(reports_list)} de {total_reports}")
+
+            return reports_list
+
+        finally:
+            db.close()
+
     except Exception as e:
         logger.error(f"Error obteniendo reportes: {e}")
         raise HTTPException(
@@ -333,37 +402,85 @@ async def get_reports(
 async def get_report_details(report_id: str) -> Dict[str, Any]:
     """
     Obtener detalles completos de un reporte especifico
-    
-    - **report_id**: ID unico del reporte (formato: RPT-YYYYMMDD-NNN)
+
+    - **report_id**: ID unico del reporte (UUID)
     """
     try:
-        all_reports = excel_handler.get_all_reports()
-        report = next((r for r in all_reports if r.get('ID') == report_id), None)
-        
-        if not report:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Reporte {report_id} no encontrado"
-            )
-        
-        # Obtener detalles de incidencias y movimientos
-        incidents = excel_handler.get_report_incidents(report_id)
-        movements = excel_handler.get_report_movements(report_id)
-        
-        # Agregar detalles al reporte
-        report['incidencias'] = incidents
-        report['ingresos_retiros'] = movements
-        
-        logger.info(f"Detalles de reporte obtenidos: {report_id} con {len(incidents)} incidencias y {len(movements)} movimientos")
-        return report
-        
+        from database.connection import SessionLocal
+        from database.models import Report, Incident, Movement
+        from security.encryption import field_encryptor
+
+        db = SessionLocal()
+        try:
+            # Buscar reporte por UUID
+            report = db.query(Report).filter(Report.id == report_id).first()
+
+            if not report:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Reporte {report_id} no encontrado"
+                )
+
+            # Desencriptar campos sensibles del reporte
+            report_decrypted = field_encryptor.decrypt_model_fields(report, "reports")
+
+            # Obtener incidencias
+            incidents = db.query(Incident).filter(Incident.report_id == report_id).all()
+            incidents_list = []
+            for inc in incidents:
+                inc_decrypted = field_encryptor.decrypt_model_fields(inc, "incidents")
+                incidents_list.append({
+                    "id": str(inc_decrypted.id),
+                    "tipo": inc_decrypted.incident_type,
+                    "nombre_empleado": inc_decrypted.employee_name,
+                    "fecha_fin": inc_decrypted.end_date.isoformat() if inc_decrypted.end_date else None,
+                    "notas": inc_decrypted.notes or ""
+                })
+
+            # Obtener movimientos
+            movements = db.query(Movement).filter(Movement.report_id == report_id).all()
+            movements_list = []
+            for mov in movements:
+                mov_decrypted = field_encryptor.decrypt_model_fields(mov, "movements")
+                movements_list.append({
+                    "id": str(mov_decrypted.id),
+                    "nombre_empleado": mov_decrypted.employee_name,
+                    "cargo": mov_decrypted.position,
+                    "estado": mov_decrypted.movement_type,
+                    "fecha_efectiva": mov_decrypted.effective_date.isoformat() if mov_decrypted.effective_date else None,
+                    "notas": mov_decrypted.notes or ""
+                })
+
+            # Construir respuesta compatible con frontend
+            report_data = {
+                "ID": str(report_decrypted.id),
+                "Fecha_Creacion": report_decrypted.created_at.isoformat() if report_decrypted.created_at else None,
+                "Administrador": report_decrypted.administrator,
+                "Cliente_Operacion": report_decrypted.client_operation,
+                "Horas_Diarias": report_decrypted.daily_hours,
+                "Personal_Staff": report_decrypted.staff_personnel,
+                "Personal_Base": report_decrypted.base_personnel,
+                "Cantidad_Incidencias": len(incidents_list),
+                "Cantidad_Ingresos_Retiros": len(movements_list),
+                "Hechos_Relevantes": report_decrypted.relevant_facts or "",
+                "Estado": report_decrypted.status.value if hasattr(report_decrypted.status, 'value') else str(report_decrypted.status),
+                "incidencias": incidents_list,
+                "ingresos_retiros": movements_list
+            }
+
+            logger.info(f"Detalles de reporte obtenidos: {report_id} con {len(incidents_list)} incidencias y {len(movements_list)} movimientos")
+            return report_data
+
+        finally:
+            db.close()
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error obteniendo detalles del reporte {report_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error interno del servidor al obtener detalles del reporte"
+            detail=f"Error interno del servidor al obtener detalles del reporte: {str(e)}"
         )
 
 
@@ -376,99 +493,169 @@ async def get_report_details(report_id: str) -> Dict[str, Any]:
 async def update_report(report_id: str, report_update: DailyReportUpdate) -> Dict[str, Any]:
     """
     Actualizar un reporte especifico
-    
-    - **report_id**: ID unico del reporte (formato: RPT-YYYYMMDD-NNN)
+
+    - **report_id**: ID unico del reporte (UUID)
     - **report_update**: Datos a actualizar (solo campos permitidos)
     """
     try:
-        # Verificar que el reporte existe
-        all_reports = excel_handler.get_all_reports()
-        existing_report = next((r for r in all_reports if r.get('ID') == report_id), None)
-        
-        if not existing_report:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Reporte {report_id} no encontrado"
-            )
-        
-        # Verificar que el reporte es del día actual (solo permitir editar reportes del mismo día)
-        today = datetime.now().strftime('%Y%m%d')
-        if not report_id.startswith(f'RPT-{today}'):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Solo se pueden editar reportes del día actual"
-            )
-        
-        # Preparar datos de actualización (solo campos que no son None)
-        update_data = {}
-        if report_update.horas_diarias is not None:
-            update_data['Horas_Diarias'] = report_update.horas_diarias
-        if report_update.personal_staff is not None:
-            update_data['Personal_Staff'] = report_update.personal_staff
-        if report_update.personal_base is not None:
-            update_data['Personal_Base'] = report_update.personal_base
-        if report_update.hechos_relevantes is not None:
-            update_data['Hechos_Relevantes'] = report_update.hechos_relevantes
-        
-        # Verificar que al menos algo se va a actualizar
-        has_basic_updates = len(update_data) > 0
-        has_incidents = report_update.incidencias is not None
-        has_movements = report_update.ingresos_retiros is not None
-        
-        if not (has_basic_updates or has_incidents or has_movements):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No se proporcionaron campos para actualizar"
-            )
-        
-        # Actualizar el reporte principal si hay datos básicos
-        if has_basic_updates:
-            success = excel_handler.update_report(report_id, update_data)
-            if not success:
+        from database.connection import SessionLocal
+        from database.models import Report, Incident, Movement
+        from security.encryption import field_encryptor
+        from sqlalchemy import func
+        import pytz
+
+        db = SessionLocal()
+        try:
+            # Buscar el reporte
+            report = db.query(Report).filter(Report.id == report_id).first()
+
+            if not report:
                 raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Error al actualizar el reporte en el archivo"
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Reporte {report_id} no encontrado"
                 )
-        
-        # Actualizar incidencias si se proporcionaron
-        if has_incidents:
-            success = excel_handler.update_report_incidents(report_id, report_update.incidencias)
-            if not success:
+
+            # Verificar que el reporte es del día actual (solo permitir editar reportes del mismo día)
+            local_tz = pytz.timezone(settings.timezone)
+            now_local = datetime.now(local_tz)
+            today = now_local.date()
+
+            if report.report_date != today:
                 raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Error al actualizar las incidencias del reporte"
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Solo se pueden editar reportes del día actual"
                 )
-        
-        # Actualizar movimientos si se proporcionaron
-        if has_movements:
-            success = excel_handler.update_report_movements(report_id, report_update.ingresos_retiros)
-            if not success:
+
+            # Verificar que al menos algo se va a actualizar
+            has_basic_updates = any([
+                report_update.horas_diarias is not None,
+                report_update.personal_staff is not None,
+                report_update.personal_base is not None,
+                report_update.hechos_relevantes is not None
+            ])
+            has_incidents = report_update.incidencias is not None
+            has_movements = report_update.ingresos_retiros is not None
+
+            if not (has_basic_updates or has_incidents or has_movements):
                 raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Error al actualizar los movimientos del reporte"
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No se proporcionaron campos para actualizar"
                 )
-        
-        # Obtener el reporte actualizado
-        updated_reports = excel_handler.get_all_reports()
-        updated_report = next((r for r in updated_reports if r.get('ID') == report_id), None)
-        
-        # Obtener detalles actualizados
-        incidents = excel_handler.get_report_incidents(report_id)
-        movements = excel_handler.get_report_movements(report_id)
-        
-        updated_report['incidencias'] = incidents
-        updated_report['ingresos_retiros'] = movements
-        
-        logger.info(f"Reporte actualizado exitosamente: {report_id}")
-        return updated_report
-        
+
+            # Actualizar campos básicos del reporte
+            if report_update.horas_diarias is not None:
+                report.daily_hours = report_update.horas_diarias
+            if report_update.personal_staff is not None:
+                report.staff_personnel = report_update.personal_staff
+            if report_update.personal_base is not None:
+                report.base_personnel = report_update.personal_base
+            if report_update.hechos_relevantes is not None:
+                report.relevant_facts = report_update.hechos_relevantes
+
+            # Actualizar timestamp
+            report.updated_at = func.now()
+
+            # Actualizar incidencias si se proporcionaron
+            if has_incidents:
+                # Eliminar incidencias existentes
+                db.query(Incident).filter(Incident.report_id == report_id).delete()
+
+                # Agregar nuevas incidencias
+                for inc_data in report_update.incidencias:
+                    incident = Incident(
+                        report_id=report_id,
+                        incident_type=inc_data.tipo.value if hasattr(inc_data.tipo, 'value') else str(inc_data.tipo) if inc_data.tipo else "",
+                        employee_name=inc_data.nombre_empleado if inc_data.nombre_empleado else "",
+                        end_date=inc_data.fecha_fin,
+                        notes=""
+                    )
+                    # Encriptar campos sensibles
+                    incident = field_encryptor.encrypt_model_fields(incident, "incidents")
+                    db.add(incident)
+
+            # Actualizar movimientos si se proporcionaron
+            if has_movements:
+                # Eliminar movimientos existentes
+                db.query(Movement).filter(Movement.report_id == report_id).delete()
+
+                # Agregar nuevos movimientos
+                for mov_data in report_update.ingresos_retiros:
+                    movement = Movement(
+                        report_id=report_id,
+                        employee_name=mov_data.nombre_empleado if mov_data.nombre_empleado else "",
+                        position=mov_data.cargo if mov_data.cargo else "",
+                        movement_type=mov_data.estado.value if hasattr(mov_data.estado, 'value') else str(mov_data.estado) if mov_data.estado else "Ingreso",
+                        effective_date=today,
+                        notes=""
+                    )
+                    # Encriptar campos sensibles
+                    movement = field_encryptor.encrypt_model_fields(movement, "movements")
+                    db.add(movement)
+
+            # Guardar cambios
+            db.commit()
+            db.refresh(report)
+
+            # Desencriptar para respuesta
+            report_decrypted = field_encryptor.decrypt_model_fields(report, "reports")
+
+            # Obtener incidencias actualizadas
+            incidents = db.query(Incident).filter(Incident.report_id == report_id).all()
+            incidents_list = []
+            for inc in incidents:
+                inc_decrypted = field_encryptor.decrypt_model_fields(inc, "incidents")
+                incidents_list.append({
+                    "id": str(inc_decrypted.id),
+                    "tipo": inc_decrypted.incident_type,
+                    "nombre_empleado": inc_decrypted.employee_name,
+                    "fecha_fin": inc_decrypted.end_date.isoformat() if inc_decrypted.end_date else None,
+                    "notas": inc_decrypted.notes or ""
+                })
+
+            # Obtener movimientos actualizados
+            movements = db.query(Movement).filter(Movement.report_id == report_id).all()
+            movements_list = []
+            for mov in movements:
+                mov_decrypted = field_encryptor.decrypt_model_fields(mov, "movements")
+                movements_list.append({
+                    "id": str(mov_decrypted.id),
+                    "nombre_empleado": mov_decrypted.employee_name,
+                    "cargo": mov_decrypted.position,
+                    "estado": mov_decrypted.movement_type,
+                    "fecha_efectiva": mov_decrypted.effective_date.isoformat() if mov_decrypted.effective_date else None,
+                    "notas": mov_decrypted.notes or ""
+                })
+
+            # Construir respuesta
+            updated_report = {
+                "ID": str(report_decrypted.id),
+                "Fecha_Creacion": report_decrypted.created_at.isoformat() if report_decrypted.created_at else None,
+                "Administrador": report_decrypted.administrator,
+                "Cliente_Operacion": report_decrypted.client_operation,
+                "Horas_Diarias": report_decrypted.daily_hours,
+                "Personal_Staff": report_decrypted.staff_personnel,
+                "Personal_Base": report_decrypted.base_personnel,
+                "Cantidad_Incidencias": len(incidents_list),
+                "Cantidad_Ingresos_Retiros": len(movements_list),
+                "Hechos_Relevantes": report_decrypted.relevant_facts or "",
+                "Estado": report_decrypted.status.value if hasattr(report_decrypted.status, 'value') else str(report_decrypted.status),
+                "incidencias": incidents_list,
+                "ingresos_retiros": movements_list
+            }
+
+            logger.info(f"Reporte actualizado exitosamente: {report_id}")
+            return updated_report
+
+        finally:
+            db.close()
+
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error actualizando reporte {report_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Error interno del servidor al actualizar el reporte"
+            detail=f"Error interno del servidor al actualizar el reporte: {str(e)}"
         )
 
 
@@ -791,35 +978,45 @@ async def export_data(
 async def check_admin_today_reports(admin_name: str):
     """Verificar reportes enviados hoy por un administrador específico"""
     try:
+        from database.connection import SessionLocal
+        from database.models import Report
+        from sqlalchemy import func
+
         # Usar timezone configurada (America/Bogota)
         local_tz = pytz.timezone(settings.timezone)
         now_local = datetime.now(local_tz)
         today = now_local.date()
 
-        existing_reports = excel_handler.get_reports_by_date(today)
-        admin_reports_today = [
-            r for r in existing_reports
-            if r.get('Administrador', '').lower() == admin_name.lower()
-        ]
+        # Consultar PostgreSQL
+        db = SessionLocal()
+        try:
+            admin_reports_today = db.query(Report).filter(
+                func.lower(Report.administrator) == admin_name.lower(),
+                Report.report_date == today
+            ).all()
 
-        return APIResponse(
-            success=True,
-            message=f"Información de reportes del día para {admin_name}",
-            data={
-                "administrador": admin_name,
-                "fecha": today.isoformat(),
-                "reportes_enviados": len(admin_reports_today),
-                "ha_reportado": len(admin_reports_today) > 0,
-                "reportes": [
-                    {
-                        "id": r.get('ID'),
-                        "hora": r.get('Fecha_Creacion'),
-                        "estado": r.get('Estado', 'Completado')
-                    } for r in admin_reports_today
-                ]
-            }
-        )
-        
+            reports_list = []
+            for r in admin_reports_today:
+                reports_list.append({
+                    "id": str(r.id),
+                    "hora": r.created_at.isoformat() if r.created_at else None,
+                    "estado": r.status.value if hasattr(r.status, 'value') else str(r.status)
+                })
+
+            return APIResponse(
+                success=True,
+                message=f"Información de reportes del día para {admin_name}",
+                data={
+                    "administrador": admin_name,
+                    "fecha": today.isoformat(),
+                    "reportes_enviados": len(admin_reports_today),
+                    "ha_reportado": len(admin_reports_today) > 0,
+                    "reportes": reports_list
+                }
+            )
+        finally:
+            db.close()
+
     except Exception as e:
         logger.error(f"Error verificando reportes del administrador {admin_name}: {e}")
         raise HTTPException(

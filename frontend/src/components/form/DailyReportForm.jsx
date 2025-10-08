@@ -27,6 +27,60 @@ const DailyReportForm = ({ isDisabled = false }) => {
 
   const [submitError, setSubmitError] = React.useState(null)
   const [submitSuccess, setSubmitSuccess] = React.useState(false)
+  const [userOperations, setUserOperations] = React.useState([])
+  const [selectedOperation, setSelectedOperation] = React.useState(null)
+  const [loadingOperations, setLoadingOperations] = React.useState(true)
+
+  // Cargar operaciones del usuario al montar el componente
+  React.useEffect(() => {
+    const fetchUserOperations = async () => {
+      try {
+        setLoadingOperations(true)
+        const token = localStorage.getItem('auth_token')
+
+        const response = await fetch(`${API_BASE_URL}/auth/me/operations`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setUserOperations(data.operations || [])
+
+          // Si solo hay una operación, seleccionarla automáticamente
+          if (data.operations && data.operations.length === 1) {
+            setSelectedOperation(data.operations[0])
+          } else if (data.default_operation) {
+            setSelectedOperation(data.default_operation)
+          }
+        } else {
+          // Fallback a método legacy si falla el endpoint
+          const administrador = user?.fullName || user?.username
+          const cliente = getClientForAdmin(administrador)
+          if (cliente) {
+            setUserOperations([cliente])
+            setSelectedOperation(cliente)
+          }
+        }
+      } catch (error) {
+        console.error('Error loading operations:', error)
+        // Fallback a método legacy
+        const administrador = user?.fullName || user?.username
+        const cliente = getClientForAdmin(administrador)
+        if (cliente) {
+          setUserOperations([cliente])
+          setSelectedOperation(cliente)
+        }
+      } finally {
+        setLoadingOperations(false)
+      }
+    }
+
+    if (user) {
+      fetchUserOperations()
+    }
+  }, [user])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -41,12 +95,12 @@ const DailyReportForm = ({ isDisabled = false }) => {
 
     try {
       // Obtener administrador y cliente del usuario autenticado
-      const administrador = user?.fullName || user?.username
-      const cliente_operacion = getClientForAdmin(administrador)
-      
-      // Validar que el usuario tenga un cliente asignado
+      const administrador = user?.full_name || user?.fullName || user?.administrator_name || user?.username
+      const cliente_operacion = selectedOperation
+
+      // Validar que el usuario tenga una operación seleccionada
       if (!cliente_operacion) {
-        setSubmitError(`No se encontró cliente asignado para el administrador: ${administrador}`)
+        setSubmitError(`Por favor seleccione una operación para enviar el reporte`)
         return
       }
 
@@ -220,20 +274,78 @@ const DailyReportForm = ({ isDisabled = false }) => {
         <h2 className="section-title">
           👤 Administrador: {user?.fullName}
         </h2>
-        <div style={{
-          padding: '1rem',
-          backgroundColor: '#f0fdf4',
-          border: '1px solid #bbf7d0',
-          borderRadius: '6px',
-          fontSize: '0.875rem'
-        }}>
-          <div style={{ color: 'var(--success-green)', fontWeight: '600' }}>
-            ✅ Cliente/Operación: {getClientForAdmin(user?.fullName || user?.username)}
+
+        {loadingOperations ? (
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#f3f4f6',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px',
+            textAlign: 'center',
+            color: 'var(--neutral-gray)'
+          }}>
+            ⏳ Cargando operaciones asignadas...
           </div>
-          <div style={{ color: 'var(--neutral-gray)', marginTop: '0.25rem' }}>
-            Usuario autenticado: {user?.username} • Área: {user?.area}
+        ) : userOperations.length > 1 ? (
+          <div>
+            <label className="form-label">
+              Cliente/Operación *
+              <small style={{ display: 'block', fontWeight: 'normal', color: 'var(--neutral-gray)' }}>
+                Selecciona la operación para la cual deseas enviar el reporte
+              </small>
+            </label>
+            <select
+              value={selectedOperation || ''}
+              onChange={(e) => setSelectedOperation(e.target.value)}
+              className="form-input"
+              required
+              style={{
+                padding: '0.75rem',
+                fontSize: '1rem',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                backgroundColor: '#fff',
+                width: '100%',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">-- Seleccione una operación --</option>
+              {userOperations.map((operation) => (
+                <option key={operation} value={operation}>
+                  {operation}
+                </option>
+              ))}
+            </select>
+            {selectedOperation && (
+              <div style={{
+                marginTop: '0.75rem',
+                padding: '0.75rem',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #bbf7d0',
+                borderRadius: '6px',
+                fontSize: '0.875rem',
+                color: 'var(--success-green)'
+              }}>
+                ✅ Operación seleccionada: <strong>{selectedOperation}</strong>
+              </div>
+            )}
           </div>
-        </div>
+        ) : (
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '6px',
+            fontSize: '0.875rem'
+          }}>
+            <div style={{ color: 'var(--success-green)', fontWeight: '600' }}>
+              ✅ Cliente/Operación: {selectedOperation || userOperations[0] || 'No asignado'}
+            </div>
+            <div style={{ color: 'var(--neutral-gray)', marginTop: '0.25rem' }}>
+              Usuario autenticado: {user?.username}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Sección 1: Información de Personal */}
@@ -314,17 +426,17 @@ const DailyReportForm = ({ isDisabled = false }) => {
           </button>
         </div>
 
-        <div style={{ 
-          marginTop: '1rem', 
-          padding: '1rem', 
-          backgroundColor: '#f8fafc', 
+        <div style={{
+          marginTop: '1rem',
+          padding: '1rem',
+          backgroundColor: '#f8fafc',
           borderRadius: '6px',
           fontSize: '0.875rem',
           color: 'var(--neutral-gray)'
         }}>
           <strong>📄 Resumen:</strong> {' '}
           {user?.fullName && `${user.fullName} • `}
-          {getClientForAdmin(user?.fullName || user?.username) && `${getClientForAdmin(user?.fullName || user?.username)} • `}
+          {selectedOperation && `${selectedOperation} • `}
           {formData.horas_diarias && `${formData.horas_diarias}h diarias • `}
           {formData.personal_staff && `${formData.personal_staff} staff • `}
           {formData.personal_base && `${formData.personal_base} base • `}

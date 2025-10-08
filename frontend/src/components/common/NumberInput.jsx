@@ -1,17 +1,18 @@
 import React from 'react'
 
-const NumberInput = ({ 
-  id, 
-  value, 
-  onChange, 
-  min = 0, 
-  max = 9999, 
-  placeholder = "", 
-  className = "", 
+const NumberInput = ({
+  id,
+  value,
+  onChange,
+  min = 0,
+  max = 9999,
+  placeholder = "",
+  className = "",
   required = false,
   step = 1,
   allowDecimal = false,
-  allowEmpty = false
+  allowEmpty = false,
+  showButtons = true
 }) => {
   const handleInputChange = (e) => {
     let inputValue = e.target.value
@@ -107,80 +108,82 @@ const NumberInput = ({
         required={required}
         style={{
           flex: 1,
-          paddingRight: '3rem',
+          paddingRight: showButtons ? '3rem' : '0.5rem',
           // Ocultar spinners nativos
           MozAppearance: 'textfield'
         }}
         // Ocultar spinners en webkit
         onWheel={(e) => e.target.blur()}
       />
-      
+
       {/* Botones de incremento/decremento */}
-      <div style={{
-        position: 'absolute',
-        right: '1px',
-        top: '1px',
-        bottom: '1px',
-        display: 'flex',
-        flexDirection: 'column',
-        width: '2.5rem',
-        backgroundColor: '#f8fafc',
-        border: '1px solid #e5e7eb',
-        borderLeft: 'none',
-        borderRadius: '0 4px 4px 0'
-      }}>
-        <button
-          type="button"
-          onClick={handleIncrement}
-          disabled={allowDecimal ? parseFloat(value || '0') >= max : parseInt(value || '0', 10) >= max}
-          style={{
-            flex: 1,
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            color: 'var(--primary-red)',
-            borderBottom: '1px solid #e5e7eb',
-            borderRadius: '0 3px 0 0',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            if (!e.target.disabled) {
-              e.target.style.backgroundColor = '#f1f5f9'
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent'
-          }}
-        >
-          +
-        </button>
-        <button
-          type="button"
-          onClick={handleDecrement}
-          disabled={allowDecimal ? parseFloat(value || '0') <= min : parseInt(value || '0', 10) <= min}
-          style={{
-            flex: 1,
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            fontSize: '0.875rem',
-            color: 'var(--primary-red)',
-            borderRadius: '0 0 3px 0',
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            if (!e.target.disabled) {
-              e.target.style.backgroundColor = '#f1f5f9'
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent'
-          }}
-        >
-          −
-        </button>
-      </div>
+      {showButtons && (
+        <div style={{
+          position: 'absolute',
+          right: '1px',
+          top: '1px',
+          bottom: '1px',
+          display: 'flex',
+          flexDirection: 'column',
+          width: '2.5rem',
+          backgroundColor: '#f8fafc',
+          border: '1px solid #e5e7eb',
+          borderLeft: 'none',
+          borderRadius: '0 4px 4px 0'
+        }}>
+          <button
+            type="button"
+            onClick={handleIncrement}
+            disabled={allowDecimal ? parseFloat(value || '0') >= max : parseInt(value || '0', 10) >= max}
+            style={{
+              flex: 1,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              color: 'var(--primary-red)',
+              borderBottom: '1px solid #e5e7eb',
+              borderRadius: '0 3px 0 0',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (!e.target.disabled) {
+                e.target.style.backgroundColor = '#f1f5f9'
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent'
+            }}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={handleDecrement}
+            disabled={allowDecimal ? parseFloat(value || '0') <= min : parseInt(value || '0', 10) <= min}
+            style={{
+              flex: 1,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: '0.875rem',
+              color: 'var(--primary-red)',
+              borderRadius: '0 0 3px 0',
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => {
+              if (!e.target.disabled) {
+                e.target.style.backgroundColor = '#f1f5f9'
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent'
+            }}
+          >
+            −
+          </button>
+        </div>
+      )}
 
       <style jsx>{`
         .number-input::-webkit-outer-spin-button,

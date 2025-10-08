@@ -368,3 +368,62 @@ async def verify_token(
         "user_id": current_user["user_id"],
         "username": current_user["username"]
     }
+
+@router.get("/me/operations")
+async def get_user_operations(
+    current_user: dict = Depends(get_current_user_dependency),
+    db: Session = Depends(get_db)
+):
+    """
+    Obtener las operaciones/clientes asignados al usuario actual
+
+    Args:
+        current_user: Usuario autenticado
+        db: Sesión de base de datos
+
+    Returns:
+        Lista de operaciones asignadas al usuario
+    """
+    try:
+        # Buscar usuario
+        user = db.query(User).filter(User.id == current_user["user_id"]).first()
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Usuario no encontrado"
+            )
+
+        # Desencriptar campos del usuario
+        user = field_encryptor.decrypt_model_fields(user, "users")
+
+        # Obtener operaciones del campo JSONB
+        operations = []
+        if user.client_operations:
+            # Si client_operations es un array JSON
+            import json
+            if isinstance(user.client_operations, str):
+                operations = json.loads(user.client_operations)
+            elif isinstance(user.client_operations, list):
+                operations = user.client_operations
+            else:
+                # Es un objeto JSONB de SQLAlchemy
+                operations = user.client_operations
+
+        # Fallback a client_operation si no hay client_operations
+        if not operations and user.client_operation:
+            operations = [user.client_operation]
+
+        return {
+            "operations": operations,
+            "count": len(operations),
+            "user_name": user.full_name or user.administrator_name,
+            "default_operation": operations[0] if operations else None
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting user operations: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Error al obtener operaciones del usuario"
+        )

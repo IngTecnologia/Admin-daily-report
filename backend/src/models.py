@@ -173,13 +173,13 @@ class MovementUpdate(BaseModel):
 # Modelo principal del reporte
 class DailyReportCreate(BaseModel):
     """Modelo para crear un reporte diario"""
-    administrador: AdministratorEnum = Field(..., description="Administrador que reporta")
-    cliente_operacion: ClientOperationEnum = Field(..., description="Cliente/Operacion")
+    administrador: str = Field(..., min_length=3, max_length=255, description="Administrador que reporta")
+    cliente_operacion: str = Field(..., min_length=3, max_length=255, description="Cliente/Operacion")
     horas_diarias: float = Field(
-        ..., 
-        ge=1.0, 
-        le=24.0, 
-        description="Horas trabajadas en el dia (1-24, decimales permitidos)"
+        ...,
+        ge=1.0,
+        le=1000.0,
+        description="Horas trabajadas en el dia (1-1000, decimales permitidos)"
     )
     personal_staff: int = Field(
         ..., 
@@ -223,10 +223,10 @@ class DailyReportCreate(BaseModel):
 class DailyReportUpdate(BaseModel):
     """Modelo para actualizar un reporte diario (solo campos editables)"""
     horas_diarias: Optional[float] = Field(
-        None, 
-        ge=1.0, 
-        le=24.0, 
-        description="Horas trabajadas en el dia (1-24, decimales permitidos)"
+        None,
+        ge=1.0,
+        le=1000.0,
+        description="Horas trabajadas en el dia (1-1000, decimales permitidos)"
     )
     personal_staff: Optional[int] = Field(
         None, 

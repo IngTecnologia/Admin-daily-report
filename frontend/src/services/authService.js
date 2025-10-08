@@ -8,7 +8,7 @@ import { validateCredentials } from '../config/users';
 const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user_data';
-const USE_LEGACY_AUTH = true; // Cambiar a false cuando el backend de auth esté disponible
+const USE_LEGACY_AUTH = false; // Backend PostgreSQL activo
 
 class AuthService {
   constructor() {

@@ -113,17 +113,22 @@ const DynamicIncidentFields = ({ index, incident, errors, updateDynamicField }) 
             </span>
           )}
           {incident.fecha_fin && (
-            <small style={{ 
-              display: 'block', 
+            <small style={{
+              display: 'block',
               marginTop: '0.25rem',
-              color: 'var(--neutral-gray)' 
+              color: 'var(--neutral-gray)'
             }}>
-              Fin programado: {new Date(incident.fecha_fin).toLocaleDateString('es-ES', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+              Fin programado: {(() => {
+                // Parse fecha en formato YYYY-MM-DD como fecha local (no UTC)
+                const [year, month, day] = incident.fecha_fin.split('-').map(Number)
+                const date = new Date(year, month - 1, day)
+                return date.toLocaleDateString('es-ES', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })
+              })()}
             </small>
           )}
         </div>
