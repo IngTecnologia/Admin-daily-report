@@ -172,6 +172,7 @@ async def login(
 @apply_rate_limit(RateLimits.LOGIN)
 async def refresh_token(
     refresh_request: RefreshRequest,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     """

@@ -7,6 +7,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
 import redis
 import os
 from typing import Optional
@@ -112,13 +113,10 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONRe
     return response
 
 # Middleware para verificar bloqueos
-class BlockedClientMiddleware:
+class BlockedClientMiddleware(BaseHTTPMiddleware):
     """Middleware para verificar si un cliente está bloqueado"""
 
-    def __init__(self, app: FastAPI):
-        self.app = app
-
-    async def __call__(self, request: Request, call_next):
+    async def dispatch(self, request: Request, call_next):
         if redis_client:
             client_id = get_client_id(request)
             block_key = f"blocked:{client_id}"

@@ -15,6 +15,7 @@ alembic==1.12.1
 # Security and Authentication
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==3.2.2  # Pin to 3.2.2 for passlib compatibility
 python-decouple==3.8
 cryptography==41.0.7
 

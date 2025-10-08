@@ -4,7 +4,7 @@ Utiliza Fernet (symmetric encryption) para proteger información PII
 """
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import base64
 import os
 import json
@@ -61,7 +61,7 @@ class DataEncryption:
         """
         salt = os.getenv("ENCRYPTION_SALT", "default-salt").encode()
 
-        kdf = PBKDF2(
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,

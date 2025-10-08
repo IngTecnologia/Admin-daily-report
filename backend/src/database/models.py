@@ -14,10 +14,10 @@ from .connection import Base
 # Enums para los campos con valores fijos
 class UserRole(str, enum.Enum):
     """Roles de usuario en el sistema"""
-    ADMIN = "admin"
-    SUPERVISOR = "supervisor"
-    OPERATOR = "operator"
-    VIEWER = "viewer"
+    admin = "admin"
+    supervisor = "supervisor"
+    operator = "operator"
+    viewer = "viewer"
 
 class IncidentType(str, enum.Enum):
     """Tipos de incidencias válidos"""
@@ -50,13 +50,14 @@ class ReportStatus(str, enum.Enum):
 class User(Base):
     """Modelo de usuario del sistema"""
     __tablename__ = "users"
+    __table_args__ = {'schema': 'reports'}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String(100), unique=True, nullable=False, index=True)
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
-    role = Column(Enum(UserRole), nullable=False, default=UserRole.OPERATOR)
+    role = Column(Enum(UserRole), nullable=False, default=UserRole.operator)
     administrator_name = Column(String(255))  # Nombre como administrador en reportes
     client_operation = Column(String(255))  # Operación/cliente asignado
     is_active = Column(Boolean, default=True)
@@ -66,7 +67,8 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     # Relaciones
-    reports = relationship("Report", back_populates="user", cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="user", foreign_keys="[Report.user_id]", cascade="all, delete-orphan")
+    reviewed_reports = relationship("Report", foreign_keys="[Report.reviewed_by]", viewonly=True)
     audit_logs = relationship("AuditLog", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
@@ -75,10 +77,16 @@ class User(Base):
 class Report(Base):
     """Modelo de reporte diario"""
     __tablename__ = "reports"
+    __table_args__ = (
+        Index('idx_report_date_admin', 'report_date', 'administrator'),
+        Index('idx_report_date_client', 'report_date', 'client_operation'),
+        Index('idx_report_status_date', 'status', 'report_date'),
+        {'schema': 'reports'}
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     legacy_id = Column(String(100), unique=True, index=True)  # Para mantener IDs del sistema anterior
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("reports.users.id", ondelete="CASCADE"))
 
     # Información del reporte
     administrator = Column(String(255), nullable=False, index=True)
@@ -94,7 +102,7 @@ class Report(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     reviewed_at = Column(DateTime(timezone=True))
-    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    reviewed_by = Column(UUID(as_uuid=True), ForeignKey("reports.users.id", ondelete="SET NULL"))
 
     # IP y user agent para auditoría
     client_ip = Column(String(45))  # IPv6 max length
@@ -106,22 +114,20 @@ class Report(Base):
     incidents = relationship("Incident", back_populates="report", cascade="all, delete-orphan")
     movements = relationship("Movement", back_populates="report", cascade="all, delete-orphan")
 
-    # Índices compuestos para búsquedas comunes
-    __table_args__ = (
-        Index('idx_report_date_admin', 'report_date', 'administrator'),
-        Index('idx_report_date_client', 'report_date', 'client_operation'),
-        Index('idx_report_status_date', 'status', 'report_date'),
-    )
-
     def __repr__(self):
         return f"<Report(id='{self.id}', admin='{self.administrator}', date='{self.report_date}')>"
 
 class Incident(Base):
     """Modelo de incidencia de personal"""
     __tablename__ = "incidents"
+    __table_args__ = (
+        Index('idx_incident_type_date', 'incident_type', 'end_date'),
+        Index('idx_incident_employee', 'employee_name'),
+        {'schema': 'reports'}
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    report_id = Column(UUID(as_uuid=True), ForeignKey("reports.id", ondelete="CASCADE"), nullable=False)
+    report_id = Column(UUID(as_uuid=True), ForeignKey("reports.reports.id", ondelete="CASCADE"), nullable=False)
 
     # Información de la incidencia
     incident_type = Column(Enum(IncidentType), nullable=False)
@@ -136,21 +142,20 @@ class Incident(Base):
     # Relaciones
     report = relationship("Report", back_populates="incidents")
 
-    # Índices para búsquedas
-    __table_args__ = (
-        Index('idx_incident_type_date', 'incident_type', 'end_date'),
-        Index('idx_incident_employee', 'employee_name'),
-    )
-
     def __repr__(self):
         return f"<Incident(type='{self.incident_type}', employee='{self.employee_name}')>"
 
 class Movement(Base):
     """Modelo de movimiento de personal (ingresos/retiros)"""
     __tablename__ = "movements"
+    __table_args__ = (
+        Index('idx_movement_type_date', 'movement_type', 'effective_date'),
+        Index('idx_movement_employee', 'employee_name'),
+        {'schema': 'reports'}
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    report_id = Column(UUID(as_uuid=True), ForeignKey("reports.id", ondelete="CASCADE"), nullable=False)
+    report_id = Column(UUID(as_uuid=True), ForeignKey("reports.reports.id", ondelete="CASCADE"), nullable=False)
 
     # Información del movimiento
     employee_name = Column(String(255), nullable=False, index=True)
@@ -166,21 +171,20 @@ class Movement(Base):
     # Relaciones
     report = relationship("Report", back_populates="movements")
 
-    # Índices para búsquedas
-    __table_args__ = (
-        Index('idx_movement_type_date', 'movement_type', 'effective_date'),
-        Index('idx_movement_employee', 'employee_name'),
-    )
-
     def __repr__(self):
         return f"<Movement(type='{self.movement_type}', employee='{self.employee_name}', position='{self.position}')>"
 
 class AuditLog(Base):
     """Modelo para auditoría de acciones en el sistema"""
     __tablename__ = "audit_logs"
+    __table_args__ = (
+        Index('idx_audit_action_date', 'action', 'created_at'),
+        Index('idx_audit_resource', 'resource_type', 'resource_id'),
+        {'schema': 'reports'}
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("reports.users.id", ondelete="SET NULL"))
 
     # Información de la acción
     action = Column(String(100), nullable=False, index=True)  # CREATE, UPDATE, DELETE, LOGIN, etc.
@@ -198,19 +202,13 @@ class AuditLog(Base):
     # Relaciones
     user = relationship("User", back_populates="audit_logs")
 
-    # Índices para búsquedas
-    __table_args__ = (
-        Index('idx_audit_user_action', 'user_id', 'action'),
-        Index('idx_audit_resource', 'resource_type', 'resource_id'),
-        Index('idx_audit_date', 'created_at'),
-    )
-
     def __repr__(self):
         return f"<AuditLog(action='{self.action}', resource='{self.resource_type}', user_id='{self.user_id}')>"
 
 class SystemConfig(Base):
     """Modelo para configuración del sistema"""
     __tablename__ = "system_config"
+    __table_args__ = {'schema': 'reports'}
 
     key = Column(String(100), primary_key=True)
     value = Column(Text, nullable=False)

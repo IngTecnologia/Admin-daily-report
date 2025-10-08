@@ -1,37 +1,114 @@
 version: '3.8'
 
 services:
+  # PostgreSQL Database (SIN PUERTOS EXPUESTOS - Solo interno)
+  postgres:
+    image: postgres:15-alpine
+    container_name: reportes-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-reportes_diarios}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - tunnel-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and rate limiting (SIN PUERTOS EXPUESTOS)
+  redis:
+    image: redis:7-alpine
+    container_name: reportes-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - tunnel-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Frontend - React + Nginx (SIN PUERTOS EXPUESTOS)
   frontend:
-    build: 
+    build:
       context: ./frontend
       dockerfile: Dockerfile
-    # NO EXPONEMOS PUERTOS - el túnel maneja todo
+    container_name: reportes-frontend
     restart: unless-stopped
     networks:
       - tunnel-network
     environment:
       - NODE_ENV=production
       - REACT_APP_API_URL=https://api.reportediario.inemec.com/api/v1
+    depends_on:
+      - backend
 
   # Backend - FastAPI + Python (SIN PUERTOS EXPUESTOS)
   backend:
-    build: 
+    build:
       context: ./backend
       dockerfile: Dockerfile
-    # NO EXPONEMOS PUERTOS - el túnel maneja todo
+    container_name: reportes-backend
     restart: unless-stopped
     networks:
       - tunnel-network
     environment:
-      - PYTHONPATH=/app
+      # Python
+      - PYTHONPATH=/app/src
       - PORT=8001
-      # CORS para subdominios del túnel
-      - CORS_ORIGINS=["https://reportediario.inemec.com","https://api.reportediario.inemec.com","http://localhost:3000","http://localhost:5173"]
+
+      # Database
+      - DATABASE_URL=${DATABASE_URL}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-reportes_diarios}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # Redis
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+
+      # Security
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - ENCRYPTION_SALT=${ENCRYPTION_SALT}
+
+      # Email
+      - EMAIL_SENDER=${EMAIL_SENDER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+
+      # Environment
+      - NODE_ENV=${NODE_ENV:-production}
+
+      # CORS
+      - CORS_ORIGINS=${CORS_ORIGINS}
+
     volumes:
-      # Persistir datos de Excel
+      # Persistir datos de Excel (para migración y exports)
       - ./data:/app/data
+      # Logs
       - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Cloudflare Tunnel - LA MAGIA SUCEDE AQUÍ
   cloudflared:
@@ -52,5 +129,10 @@ networks:
     driver: bridge
 
 volumes:
+  # Volúmenes para persistencia de datos
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
   admin_data:
     driver: local
