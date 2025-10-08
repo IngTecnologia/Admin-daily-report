@@ -35,12 +35,12 @@
 
 ### Kellis Minosca Mosquera
 - **Email:** profesionalrrhh.sierracol@inemec.com
-- **Contraseña:** `sierracol2025`
+- **Contraseña:** `kellis2025`
 - **Operaciones:** Sierracol Caño limón + Sierracol Telecomunicaciones
 
 ### Handerson Daniel Cordoba Perafan
 - **Email:** soporteadmon.ggs@inemec.com
-- **Contraseña:** `soportevpi2025`
+- **Contraseña:** `handerson2025`
 - **Operaciones:** VPI transversales + VPI Mayor
 
 ---

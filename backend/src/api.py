@@ -217,14 +217,14 @@ async def create_daily_report(
         today = date.today()
         existing_reports = excel_handler.get_reports_by_date(today)
         admin_reports_today = [
-            r for r in existing_reports 
-            if r.get('Administrador') == report.administrador.value
+            r for r in existing_reports
+            if r.get('Administrador') == report.administrador
         ]
-        
+
         # Guardar reporte
         saved_report = excel_handler.save_report(report, client_info)
-        
-        logger.info(f"Reporte creado: {saved_report.id} por {report.administrador.value}")
+
+        logger.info(f"Reporte creado: {saved_report.id} por {report.administrador}")
         
         # Preparar mensaje informativo
         message = "Reporte creado exitosamente"

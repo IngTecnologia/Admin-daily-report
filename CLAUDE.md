@@ -4,6 +4,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Common Development Commands
 
+### ⚠️ IMPORTANTE: Dos Entornos de Deployment
+
+Este proyecto tiene DOS configuraciones de deployment separadas:
+
+1. **Desarrollo Local** (`docker-compose.yml`) - Con puertos expuestos
+2. **Producción con Tunnel** (`docker-compose.tunnel.yml`) - Sin puertos expuestos, solo Cloudflare Tunnel
+
+**REGLA CRÍTICA:** Todos los cambios deben ser replicables en ambos entornos. Si modificas código backend o frontend, esos cambios se aplicarán automáticamente al hacer rebuild. Sin embargo:
+- **Cambios en base de datos:** Requieren scripts SQL o scripts Python que se puedan ejecutar en ambos entornos
+- **Cambios en variables de entorno:** Deben actualizarse en `.env` (dev) y `.env.tunnel` (prod)
+- **Cambios en configuración:** Deben documentarse para poder replicarse
+
+### Production Deployment (Cloudflare Tunnel)
+```bash
+# Iniciar servicios en producción con Cloudflare Tunnel
+./deploy-tunnel.sh start
+
+# Reiniciar servicios (rebuild + restart)
+./deploy-tunnel.sh restart
+
+# Ver estado de servicios y túnel
+./deploy-tunnel.sh status
+
+# Ver logs en tiempo real
+./deploy-tunnel.sh logs
+
+# Detener servicios
+./deploy-tunnel.sh stop
+```
+
+**URLs de Producción:**
+- Frontend: https://reportediario2.inemec.com
+- Backend API: https://reportediario2.inemec.com/api/v1/
+- API Docs: https://reportediario2.inemec.com/api/docs
+
+**IMPORTANTE:** El deployment de producción NO expone puertos localmente (más seguro). Todo el tráfico va a través del túnel de Cloudflare.
+
 ### Local Development
 ```bash
 # Start full application stack
@@ -14,8 +51,8 @@ docker-compose build
 docker-compose up -d
 
 # View logs
-docker logs admin-daily-report-backend-1
-docker logs admin-daily-report-frontend-1
+docker logs reportes-backend
+docker logs reportes-frontend
 
 # Stop all services
 docker-compose down

@@ -138,7 +138,7 @@ case $ACTION in
     setup_environment
     
     # Construir y ejecutar contenedores
-    sudo docker-compose -f docker-compose.tunnel.yml --env-file .env.tunnel up -d --build
+    docker-compose -f docker-compose.tunnel.yml --env-file .env.tunnel up -d --build
     
     # Esperar un momento para que los servicios inicien
     sleep 10

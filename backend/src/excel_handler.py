@@ -251,8 +251,8 @@ class ExcelHandler:
             response = DailyReportResponse(
                 id=report_id,
                 fecha_creacion=timestamp,
-                administrador=report.administrador.value,
-                cliente_operacion=report.cliente_operacion.value,
+                administrador=report.administrador,
+                cliente_operacion=report.cliente_operacion,
                 horas_diarias=report.horas_diarias,
                 personal_staff=report.personal_staff,
                 personal_base=report.personal_base,
@@ -283,8 +283,8 @@ class ExcelHandler:
         row_data = [
             report_id,
             timestamp,
-            report.administrador.value,
-            report.cliente_operacion.value,
+            report.administrador,
+            report.cliente_operacion,
             report.horas_diarias,
             report.personal_staff,
             report.personal_base,
