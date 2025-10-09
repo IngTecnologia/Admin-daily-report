@@ -56,6 +56,7 @@ class IncidentTypeEnum(str, Enum):
     VACACIONES = "Vacaciones"
     COMPENSATORIOS = "Compensatorios"
     DIA_FAMILIA = "Dia de la Familia"
+    PERMISO_REMUNERADO = "Permiso Remunerado"
     SUSPENSIONES = "Suspensiones de contrato"
     PERMISOS_NO_REMUNERADOS = "Permisos no remunerados"
 
@@ -178,8 +179,8 @@ class DailyReportCreate(BaseModel):
     horas_diarias: float = Field(
         ...,
         ge=1.0,
-        le=1000.0,
-        description="Horas trabajadas en el dia (1-1000, decimales permitidos)"
+        le=10000.0,
+        description="Horas trabajadas en el dia (1-10000, decimales permitidos)"
     )
     personal_staff: int = Field(
         ..., 
@@ -225,8 +226,8 @@ class DailyReportUpdate(BaseModel):
     horas_diarias: Optional[float] = Field(
         None,
         ge=1.0,
-        le=1000.0,
-        description="Horas trabajadas en el dia (1-1000, decimales permitidos)"
+        le=10000.0,
+        description="Horas trabajadas en el dia (1-10000, decimales permitidos)"
     )
     personal_staff: Optional[int] = Field(
         None, 

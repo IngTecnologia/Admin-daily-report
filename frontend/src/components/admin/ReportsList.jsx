@@ -23,17 +23,27 @@ const ReportsList = ({ onViewReport }) => {
     try {
       setLoading(true)
       const queryParams = new URLSearchParams()
-      
+
+      // Verificar si hay filtros aplicados
+      const hasFilters = filters.administrador || filters.cliente || filters.fecha_inicio || filters.fecha_fin
+
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) queryParams.append(key, value)
+        // Solo agregar limit y page si hay filtros aplicados
+        if (key === 'limit' || key === 'page') {
+          if (hasFilters && value) {
+            queryParams.append(key, value)
+          }
+        } else if (value) {
+          queryParams.append(key, value)
+        }
       })
 
       const response = await fetch(`${API_BASE_URL}/admin/reportes?${queryParams}`)
-      
+
       if (!response.ok) {
         throw new Error('Error al cargar los reportes')
       }
-      
+
       const data = await response.json()
       setReports(Array.isArray(data) ? data : (data.data || []))
       setTotalPages(data.totalPages || 1)
@@ -346,8 +356,8 @@ const ReportsList = ({ onViewReport }) => {
         </div>
       )}
 
-      {/* Paginación */}
-      {totalPages > 1 && (
+      {/* Paginación - Solo mostrar cuando hay filtros aplicados */}
+      {(filters.administrador || filters.cliente || filters.fecha_inicio || filters.fecha_fin) && totalPages > 1 && (
         <div style={{
           marginTop: '2rem',
           display: 'flex',
@@ -362,8 +372,8 @@ const ReportsList = ({ onViewReport }) => {
           >
             ← Anterior
           </button>
-          
-          <span style={{ 
+
+          <span style={{
             padding: '0.75rem 1rem',
             backgroundColor: 'white',
             border: '1px solid #e5e7eb',
@@ -372,7 +382,7 @@ const ReportsList = ({ onViewReport }) => {
           }}>
             Página {filters.page} de {totalPages}
           </span>
-          
+
           <button
             onClick={() => handlePageChange(filters.page + 1)}
             disabled={filters.page >= totalPages}

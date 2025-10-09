@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react'
 import { API_BASE_URL, INCIDENT_TYPES, EMPLOYEE_STATUSES } from '../../services/constants'
 import NumberInput from '../common/NumberInput'
+import { useAuth } from '../../contexts/AuthContext'
 
 const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) => {
+  const { hasAdminAccess } = useAuth()
   const [detailedReport, setDetailedReport] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     if (report && (report.ID || report.id)) {
@@ -107,6 +111,33 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
       alert(`Error guardando los cambios: ${err.message}`)
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      setDeleting(true)
+      const reportId = detailedReport.ID || detailedReport.id
+      const response = await fetch(`${API_BASE_URL}/reportes/${reportId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        alert('Reporte eliminado exitosamente')
+        setShowDeleteConfirm(false)
+        if (onReportUpdated) {
+          onReportUpdated()
+        }
+        onClose()
+      } else {
+        const errorData = await response.json()
+        throw new Error(errorData.detail || 'Error eliminando el reporte')
+      }
+    } catch (err) {
+      console.error('Error deleting report:', err)
+      alert(`Error eliminando el reporte: ${err.message}`)
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -869,17 +900,127 @@ const ReportDetail = ({ report, onClose, allowEdit = false, onReportUpdated }) =
                 </button>
               </>
             )}
-            
+
+            {/* Botón de eliminar - solo para administradores de sistema */}
+            {hasAdminAccess() && !isEditing && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="btn"
+                disabled={deleting}
+                style={{
+                  backgroundColor: 'var(--error-red)',
+                  color: 'white',
+                  border: 'none'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = '#b91c1c'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = 'var(--error-red)'
+                }}
+              >
+                🗑️ Eliminar Reporte
+              </button>
+            )}
+
             <button
               onClick={onClose}
               className="btn btn-secondary"
-              disabled={saving}
+              disabled={saving || deleting}
             >
               Cerrar
             </button>
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmación de eliminación */}
+      {showDeleteConfirm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10001
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '2rem',
+            maxWidth: '500px',
+            width: '90%',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+          }}>
+            <div style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '1rem' }}>
+              ⚠️
+            </div>
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              color: 'var(--error-red)',
+              marginBottom: '1rem',
+              textAlign: 'center'
+            }}>
+              ¿Eliminar Reporte?
+            </h3>
+            <p style={{
+              color: 'var(--neutral-gray)',
+              lineHeight: '1.6',
+              marginBottom: '1.5rem',
+              textAlign: 'center'
+            }}>
+              Esta acción <strong>NO se puede deshacer</strong>. El reporte y toda su información
+              (incidencias, ingresos/retiros) serán eliminados permanentemente.
+            </p>
+            <div style={{
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '6px',
+              padding: '1rem',
+              marginBottom: '1.5rem'
+            }}>
+              <div style={{ fontSize: '0.875rem', color: '#991b1b' }}>
+                <strong>📋 Reporte a eliminar:</strong>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
+                  ID: {detailedReport?.ID || detailedReport?.id}<br />
+                  Administrador: {detailedReport?.Administrador || detailedReport?.administrator}<br />
+                  Operación: {detailedReport?.Cliente_Operacion || detailedReport?.client_operation}
+                </div>
+              </div>
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="btn btn-secondary"
+                disabled={deleting}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDelete}
+                className="btn"
+                disabled={deleting}
+                style={{
+                  backgroundColor: 'var(--error-red)',
+                  color: 'white',
+                  border: 'none'
+                }}
+              >
+                {deleting ? '⏳ Eliminando...' : '🗑️ Sí, Eliminar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

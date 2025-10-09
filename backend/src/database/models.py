@@ -31,6 +31,7 @@ class IncidentType(str, enum.Enum):
     VACACIONES = "Vacaciones"
     COMPENSATORIOS = "Compensatorios"
     DIA_FAMILIA = "Dia de la Familia"
+    PERMISO_REMUNERADO = "Permiso Remunerado"
     SUSPENSIONES = "Suspensiones de contrato"
     PERMISOS_NO_REMUNERADOS = "Permisos no remunerados"
 

@@ -141,16 +141,34 @@ ADMINISTRATORS = [
 ]
 
 CLIENT_OPERATIONS = [
+    "Administración Barranca",
     "Administrativo Barranca",
-    "Administrativo Bogota", 
+    "Administración Bogotá",
+    "Administrativo Bogota",
+    "Cedco",
     "CEDCO",
+    "Consorcio P&C",
+    "Confiabilidad VRC",
+    "General",
+    "Gerencia Administrativa",
+    "Nuevas Tecnologías",
+    "Parex Quimico",
     "PAREX",
-    "VRC",
+    "Sierracol Caño limón",
+    "Sierracol Caricare",
+    "Sierracol CEDCO",
+    "Sierracol CLM",
+    "Sierracol CRC",
+    "Sierracol Telecomunicaciones",
     "SIERRACOL",
+    "TI",
     "VPI ADMON",
+    "VPI CUPIAGUA",
     "VPI CUSIANA",
     "VPI FLORENA",
-    "VPI CUPIAGUA"
+    "VPI Mayor",
+    "VPI transversales",
+    "VRC"
 ]
 
 INCIDENT_TYPES = [
@@ -164,6 +182,7 @@ INCIDENT_TYPES = [
     "Vacaciones",
     "Compensatorios",
     "Dia de la Familia",
+    "Permiso Remunerado",
     "Suspensiones de contrato",
     "Permisos no remunerados"
 ]

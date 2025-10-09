@@ -418,7 +418,8 @@ async def get_user_operations(
             "operations": operations,
             "count": len(operations),
             "user_name": user.full_name or user.administrator_name,
-            "default_operation": operations[0] if operations else None
+            # Solo autoseleccionar si hay exactamente 1 operación
+            "default_operation": operations[0] if len(operations) == 1 else None
         }
 
     except Exception as e:

@@ -20,7 +20,7 @@ from .models import (
     DailyDetailedOperationsResponse, AccumulatedGeneralOperationsResponse, AccumulatedDetailedOperationsResponse,
     OperacionDetalle, OperacionDetalleAcumulado, IncidentWithOrigin, MovementWithOrigin, RelevantFactWithOrigin
 )
-from .excel_handler import excel_handler
+from .excel_handler import excel_handler, get_bogota_now
 from .email_service import email_service
 
 # Importar autenticación y rate limiting si están disponibles
@@ -185,6 +185,132 @@ async def health_check():
     )
 
 
+# Helper function para convertir datetime a timezone de Bogotá
+def convert_to_bogota_timezone(dt: Optional[datetime]) -> Optional[str]:
+    """
+    Convierte un datetime a timezone de Bogotá y retorna como ISO string
+
+    Args:
+        dt: datetime a convertir (puede ser naive o con timezone)
+
+    Returns:
+        String ISO con timezone de Bogotá o None si dt es None
+    """
+    if not dt:
+        return None
+
+    local_tz = pytz.timezone(settings.timezone)
+
+    if dt.tzinfo is None:
+        # Si es naive, asumir UTC y convertir a Bogotá
+        dt_utc = pytz.UTC.localize(dt)
+        dt_bogota = dt_utc.astimezone(local_tz)
+    else:
+        # Si ya tiene timezone, convertir a Bogotá
+        dt_bogota = dt.astimezone(local_tz)
+
+    return dt_bogota.isoformat()
+
+# Helper function for dual-write to PostgreSQL
+def save_report_to_postgres(
+    report: DailyReportCreate,
+    admin_name: str,
+    client_info: Dict[str, str],
+    report_date: date
+) -> Optional[str]:
+    """
+    Guardar reporte en PostgreSQL (dual-write con Excel)
+
+    Args:
+        report: Datos del reporte a guardar
+        admin_name: Nombre del administrador
+        client_info: Información del cliente (IP, user agent)
+        report_date: Fecha del reporte
+
+    Returns:
+        ID del reporte creado en PostgreSQL o None si hay error
+    """
+    try:
+        from database.connection import SessionLocal
+        from database.models import Report, Incident, Movement, User
+        from security.encryption import field_encryptor
+
+        db = SessionLocal()
+        try:
+            # Buscar usuario por administrator_name
+            user = db.query(User).filter(
+                User.administrator_name == admin_name
+            ).first()
+
+            if not user:
+                logger.warning(f"User not found for admin: {admin_name}, skipping PostgreSQL save")
+                return None
+
+            # Crear reporte en PostgreSQL
+            postgres_report = Report(
+                user_id=user.id,
+                administrator=admin_name,
+                client_operation=report.cliente_operacion,
+                daily_hours=report.horas_diarias,
+                staff_personnel=report.personal_staff,
+                base_personnel=report.personal_base,
+                relevant_facts=report.hechos_relevantes or "",
+                status="completed",
+                report_date=report_date,
+                created_at=get_bogota_now(),
+                client_ip=client_info.get("ip", "Unknown"),
+                user_agent=client_info.get("user_agent", "Unknown")
+            )
+
+            # Encriptar campos sensibles
+            postgres_report = field_encryptor.encrypt_model_fields(postgres_report, "reports")
+
+            db.add(postgres_report)
+            db.flush()  # Para obtener el ID
+
+            # Guardar incidencias
+            if report.incidencias:
+                for inc_data in report.incidencias:
+                    incident = Incident(
+                        report_id=postgres_report.id,
+                        incident_type=inc_data.tipo,
+                        employee_name=inc_data.nombre_empleado,
+                        end_date=inc_data.fecha_fin,
+                        notes=""
+                    )
+                    incident = field_encryptor.encrypt_model_fields(incident, "incidents")
+                    db.add(incident)
+
+            # Guardar movimientos
+            if report.ingresos_retiros:
+                for mov_data in report.ingresos_retiros:
+                    movement = Movement(
+                        report_id=postgres_report.id,
+                        employee_name=mov_data.nombre_empleado,
+                        position=mov_data.cargo,
+                        movement_type=mov_data.estado,
+                        effective_date=report_date,
+                        notes=""
+                    )
+                    movement = field_encryptor.encrypt_model_fields(movement, "movements")
+                    db.add(movement)
+
+            db.commit()
+            logger.info(f"Reporte guardado en PostgreSQL: {postgres_report.id}")
+            return str(postgres_report.id)
+
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error guardando en PostgreSQL: {e}")
+            return None
+        finally:
+            db.close()
+
+    except Exception as e:
+        logger.error(f"Error en save_report_to_postgres: {e}")
+        return None
+
+
 # ENDPOINTS PRINCIPALES segun especificaciones del README
 
 @app.post(
@@ -200,7 +326,7 @@ async def create_daily_report(
 ) -> ReportCreateResponse:
     """
     Crear un nuevo reporte diario
-    
+
     - **administrador**: Administrador que reporta (de la lista predefinida)
     - **cliente_operacion**: Cliente/Operacion (de la lista predefinida)
     - **horas_diarias**: Horas trabajadas (1-24)
@@ -212,19 +338,34 @@ async def create_daily_report(
     try:
         # Obtener informacion del cliente
         client_info = get_client_info(request)
-        
+
         # Obtener reportes existentes del día (información para el frontend)
-        today = date.today()
+        # Usar timezone de Bogotá para fecha del reporte
+        local_tz = pytz.timezone(settings.timezone)
+        now_local = datetime.now(local_tz)
+        today = now_local.date()
         existing_reports = excel_handler.get_reports_by_date(today)
         admin_reports_today = [
             r for r in existing_reports
             if r.get('Administrador') == report.administrador
         ]
 
-        # Guardar reporte
+        # Guardar reporte en Excel
         saved_report = excel_handler.save_report(report, client_info)
+        logger.info(f"Reporte creado en Excel: {saved_report.id} por {report.administrador}")
 
-        logger.info(f"Reporte creado: {saved_report.id} por {report.administrador}")
+        # DUAL-WRITE: Guardar también en PostgreSQL
+        postgres_id = save_report_to_postgres(
+            report=report,
+            admin_name=report.administrador,
+            client_info=client_info,
+            report_date=today
+        )
+
+        if postgres_id:
+            logger.info(f"Reporte guardado en PostgreSQL: {postgres_id}")
+        else:
+            logger.warning("Reporte NO guardado en PostgreSQL (ver logs anteriores)")
         
         # Preparar mensaje informativo
         message = "Reporte creado exitosamente"
@@ -265,8 +406,8 @@ async def get_reports(
     cliente: Optional[str] = None,
     fecha_inicio: Optional[str] = None,
     fecha_fin: Optional[str] = None,
-    page: int = 1,
-    limit: int = 20
+    page: Optional[int] = None,
+    limit: Optional[int] = None
 ) -> List[Dict[str, Any]]:
     """
     Obtener lista de reportes con filtros opcionales
@@ -275,8 +416,10 @@ async def get_reports(
     - **cliente**: Filtrar por cliente/operacion
     - **fecha_inicio**: Fecha inicial del rango (YYYY-MM-DD)
     - **fecha_fin**: Fecha final del rango (YYYY-MM-DD)
-    - **page**: Numero de pagina para paginacion
-    - **limit**: Registros por pagina (max. 100)
+    - **page**: Numero de pagina para paginacion (opcional)
+    - **limit**: Registros por pagina (opcional, max. 100)
+
+    Nota: Si no se especifica limit, se devuelven todos los reportes sin paginacion
     """
     try:
         from database.connection import SessionLocal
@@ -284,10 +427,14 @@ async def get_reports(
         from security.encryption import field_encryptor
         from sqlalchemy import func, and_
 
-        # Validar parametros
-        if limit > 100:
-            limit = 100
-        if page < 1:
+        # Validar parametros de paginacion si se proporcionan
+        if limit is not None:
+            if limit > 100:
+                limit = 100
+            if limit < 1:
+                limit = 20
+
+        if page is not None and page < 1:
             page = 1
 
         db = SessionLocal()
@@ -321,9 +468,13 @@ async def get_reports(
             # Contar total de reportes
             total_reports = query.count()
 
-            # Aplicar paginacion
-            skip = (page - 1) * limit
-            reports = query.offset(skip).limit(limit).all()
+            # Aplicar paginacion solo si se especifica limit
+            if limit is not None and page is not None:
+                skip = (page - 1) * limit
+                reports = query.offset(skip).limit(limit).all()
+            else:
+                # Sin paginación - devolver todos los reportes
+                reports = query.all()
 
             # Construir respuesta con incidencias y movimientos
             reports_list = []
@@ -361,7 +512,7 @@ async def get_reports(
                 # Construir objeto del reporte
                 report_data = {
                     "ID": str(report_decrypted.id),
-                    "Fecha_Creacion": report_decrypted.created_at.isoformat() if report_decrypted.created_at else None,
+                    "Fecha_Creacion": convert_to_bogota_timezone(report_decrypted.created_at),
                     "Administrador": report_decrypted.administrator,
                     "Cliente_Operacion": report_decrypted.client_operation,
                     "Horas_Diarias": report_decrypted.daily_hours,
@@ -454,7 +605,7 @@ async def get_report_details(report_id: str) -> Dict[str, Any]:
             # Construir respuesta compatible con frontend
             report_data = {
                 "ID": str(report_decrypted.id),
-                "Fecha_Creacion": report_decrypted.created_at.isoformat() if report_decrypted.created_at else None,
+                "Fecha_Creacion": convert_to_bogota_timezone(report_decrypted.created_at),
                 "Administrador": report_decrypted.administrator,
                 "Cliente_Operacion": report_decrypted.client_operation,
                 "Horas_Diarias": report_decrypted.daily_hours,
@@ -629,7 +780,7 @@ async def update_report(report_id: str, report_update: DailyReportUpdate) -> Dic
             # Construir respuesta
             updated_report = {
                 "ID": str(report_decrypted.id),
-                "Fecha_Creacion": report_decrypted.created_at.isoformat() if report_decrypted.created_at else None,
+                "Fecha_Creacion": convert_to_bogota_timezone(report_decrypted.created_at),
                 "Administrador": report_decrypted.administrator,
                 "Cliente_Operacion": report_decrypted.client_operation,
                 "Horas_Diarias": report_decrypted.daily_hours,
@@ -973,14 +1124,27 @@ async def export_data(
 @app.get(
     f"{settings.api_v1_prefix}/reportes/admin/{{admin_name}}/today",
     summary="Verificar reportes del día por administrador",
-    description="Obtener información sobre reportes enviados hoy por un administrador específico"
+    description="Obtener información sobre reportes enviados hoy por un administrador específico (opcionalmente filtrado por operación)"
 )
-async def check_admin_today_reports(admin_name: str):
-    """Verificar reportes enviados hoy por un administrador específico"""
+async def check_admin_today_reports(
+    admin_name: str,
+    operacion: Optional[str] = None
+):
+    """
+    Verificar reportes enviados hoy por un administrador específico
+
+    Args:
+        admin_name: Nombre del administrador
+        operacion: (Opcional) Filtrar por operación específica
+
+    Returns:
+        Información sobre reportes del día, incluyendo operaciones
+    """
     try:
         from database.connection import SessionLocal
         from database.models import Report
         from sqlalchemy import func
+        from security.encryption import field_encryptor
 
         # Usar timezone configurada (America/Bogota)
         local_tz = pytz.timezone(settings.timezone)
@@ -990,27 +1154,45 @@ async def check_admin_today_reports(admin_name: str):
         # Consultar PostgreSQL
         db = SessionLocal()
         try:
-            admin_reports_today = db.query(Report).filter(
+            # Query base
+            query = db.query(Report).filter(
                 func.lower(Report.administrator) == admin_name.lower(),
                 Report.report_date == today
-            ).all()
+            )
+
+            # Filtrar por operación si se especifica
+            if operacion:
+                query = query.filter(
+                    func.lower(Report.client_operation) == operacion.lower()
+                )
+
+            admin_reports_today = query.all()
 
             reports_list = []
+            operaciones_reportadas = set()
+
             for r in admin_reports_today:
+                # Desencriptar para obtener la operación
+                r_decrypted = field_encryptor.decrypt_model_fields(r, "reports")
+                operaciones_reportadas.add(r_decrypted.client_operation)
+
                 reports_list.append({
                     "id": str(r.id),
-                    "hora": r.created_at.isoformat() if r.created_at else None,
+                    "operacion": r_decrypted.client_operation,
+                    "hora": convert_to_bogota_timezone(r.created_at),
                     "estado": r.status.value if hasattr(r.status, 'value') else str(r.status)
                 })
 
             return APIResponse(
                 success=True,
-                message=f"Información de reportes del día para {admin_name}",
+                message=f"Información de reportes del día para {admin_name}" + (f" - {operacion}" if operacion else ""),
                 data={
                     "administrador": admin_name,
+                    "operacion_filtrada": operacion,
                     "fecha": today.isoformat(),
                     "reportes_enviados": len(admin_reports_today),
                     "ha_reportado": len(admin_reports_today) > 0,
+                    "operaciones_reportadas": list(operaciones_reportadas),
                     "reportes": reports_list
                 }
             )
@@ -1025,61 +1207,97 @@ async def check_admin_today_reports(admin_name: str):
         )
 
 
-# Endpoint para eliminar un reporte específico (solo del mismo día)
+# Endpoint para eliminar un reporte específico
 @app.delete(
     f"{settings.api_v1_prefix}/reportes/{{report_id}}",
     summary="Eliminar un reporte específico",
-    description="Eliminar un reporte del mismo día (solo permitido para reportes creados hoy)"
+    description="Eliminar un reporte (administradores del sistema pueden eliminar cualquier reporte)"
 )
 async def delete_report(report_id: str, request: Request):
-    """Eliminar un reporte específico del mismo día"""
+    """Eliminar un reporte específico (dual-delete: Excel + PostgreSQL)"""
     try:
         # Obtener información del cliente para auditoría
         client_info = get_client_info(request)
-        
-        # Verificar que el reporte existe
-        all_reports = excel_handler.get_all_reports()
-        report_to_delete = next((r for r in all_reports if r.get('ID') == report_id), None)
-        
-        if not report_to_delete:
+
+        excel_success = False
+        postgres_success = False
+        report_found = False
+
+        # Intentar eliminar de PostgreSQL primero
+        try:
+            from database.connection import SessionLocal
+            from database.models import Report
+
+            db = SessionLocal()
+            try:
+                # Buscar y eliminar el reporte (las incidencias y movimientos se eliminan en cascada)
+                report = db.query(Report).filter(Report.id == report_id).first()
+                if report:
+                    report_found = True
+                    # Guardar legacy_id si existe para buscarlo en Excel
+                    legacy_id = report.legacy_id
+
+                    db.delete(report)
+                    db.commit()
+                    postgres_success = True
+                    logger.info(f"Reporte eliminado de PostgreSQL: {report_id}")
+
+                    # Si tiene legacy_id, intentar eliminar de Excel
+                    if legacy_id:
+                        try:
+                            excel_success = excel_handler.delete_report(legacy_id)
+                            if excel_success:
+                                logger.info(f"Reporte eliminado de Excel: {legacy_id}")
+                        except Exception as excel_err:
+                            logger.warning(f"No se pudo eliminar de Excel (legacy_id: {legacy_id}): {excel_err}")
+                else:
+                    logger.warning(f"Reporte no encontrado en PostgreSQL: {report_id}")
+            except Exception as pg_error:
+                db.rollback()
+                logger.error(f"Error eliminando de PostgreSQL: {pg_error}")
+                raise
+            finally:
+                db.close()
+        except Exception as e:
+            logger.error(f"Error en eliminación de PostgreSQL: {e}")
+
+        # Si no se encontró en PostgreSQL, intentar en Excel
+        if not report_found:
+            try:
+                all_reports = excel_handler.get_all_reports()
+                report_to_delete = next((r for r in all_reports if r.get('ID') == report_id), None)
+
+                if report_to_delete:
+                    report_found = True
+                    excel_success = excel_handler.delete_report(report_id)
+                    logger.info(f"Reporte eliminado de Excel: {report_id}")
+            except Exception as excel_err:
+                logger.error(f"Error eliminando de Excel: {excel_err}")
+
+        if not report_found:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Reporte {report_id} no encontrado"
+                detail=f"Reporte {report_id} no encontrado en ningún sistema"
             )
-        
-        # Verificar que el reporte es del día actual
-        report_date = report_to_delete.get('Fecha_Creacion')
-        if isinstance(report_date, str):
-            report_date = datetime.fromisoformat(report_date.replace('Z', '+00:00')).date()
-        elif isinstance(report_date, datetime):
-            report_date = report_date.date()
-        
-        today = date.today()
-        if report_date != today:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Solo se pueden eliminar reportes del día actual. El reporte {report_id} es de {report_date}"
-            )
-        
-        # Eliminar el reporte usando el excel_handler
-        success = excel_handler.delete_report(report_id)
-        
-        if success:
+
+        if postgres_success or excel_success:
             logger.info(f"Reporte eliminado: {report_id} por IP {client_info['ip']}")
             return APIResponse(
                 success=True,
                 message=f"Reporte {report_id} eliminado exitosamente",
                 data={
                     "id_eliminado": report_id,
-                    "fecha_eliminacion": datetime.now().isoformat()
+                    "fecha_eliminacion": datetime.now().isoformat(),
+                    "excel_eliminado": excel_success,
+                    "postgres_eliminado": postgres_success
                 }
             )
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Error eliminando el reporte"
+                detail="Error eliminando el reporte de ambos sistemas"
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:

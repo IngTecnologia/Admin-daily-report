@@ -11,7 +11,7 @@ import RelevantFactsSection from './RelevantFactsSection'
 import Loading from '../common/Loading'
 import Alert from '../common/Alert'
 
-const DailyReportForm = ({ isDisabled = false }) => {
+const DailyReportForm = ({ isDisabled = false, onOperationChange }) => {
   const navigate = useNavigate()
   const { user } = useAuth()
   const {
@@ -81,6 +81,13 @@ const DailyReportForm = ({ isDisabled = false }) => {
       fetchUserOperations()
     }
   }, [user])
+
+  // Notificar al componente padre cuando cambia la operación seleccionada
+  React.useEffect(() => {
+    if (onOperationChange) {
+      onOperationChange(selectedOperation)
+    }
+  }, [selectedOperation, onOperationChange])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

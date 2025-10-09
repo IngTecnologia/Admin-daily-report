@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { API_BASE_URL } from '../../services/constants'
 import ReportDetail from '../admin/ReportDetail'
 
-const TodayReportsStatus = ({ onReportsChange }) => {
+const TodayReportsStatus = ({ onReportsChange, selectedOperation }) => {
   const { user } = useAuth()
   const [reportsInfo, setReportsInfo] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -16,9 +16,12 @@ const TodayReportsStatus = ({ onReportsChange }) => {
 
     try {
       setLoading(true)
-      const response = await fetch(
-        `${API_BASE_URL}/reportes/admin/${encodeURIComponent(adminName)}/today`
-      )
+      // Agregar operación a la URL si está seleccionada
+      const url = selectedOperation
+        ? `${API_BASE_URL}/reportes/admin/${encodeURIComponent(adminName)}/today?operacion=${encodeURIComponent(selectedOperation)}`
+        : `${API_BASE_URL}/reportes/admin/${encodeURIComponent(adminName)}/today`
+
+      const response = await fetch(url)
       
       if (response.ok) {
         const data = await response.json()
@@ -62,14 +65,18 @@ const TodayReportsStatus = ({ onReportsChange }) => {
 
   useEffect(() => {
     fetchTodayReports()
-  }, [user?.full_name, user?.fullName, user?.administrator_name])
+  }, [user?.full_name, user?.fullName, user?.administrator_name, selectedOperation])
 
   // Notify parent component when reports status changes
+  // Solo notificar si hay operación seleccionada (para usuarios multi-operación)
   useEffect(() => {
     if (onReportsChange && reportsInfo !== null) {
-      onReportsChange(reportsInfo.ha_reportado || false)
+      // Si hay operación seleccionada, notificar basado en ha_reportado
+      // Si NO hay operación seleccionada, siempre notificar false (no deshabilitar)
+      const shouldDisable = selectedOperation ? (reportsInfo.ha_reportado || false) : false
+      onReportsChange(shouldDisable)
     }
-  }, [reportsInfo, onReportsChange])
+  }, [reportsInfo, onReportsChange, selectedOperation])
 
   if (loading) {
     return (
@@ -131,7 +138,10 @@ const TodayReportsStatus = ({ onReportsChange }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span style={{ fontSize: '1.25rem' }}>✨</span>
           <div>
-            <strong>¡Buen día!</strong> Aún no has enviado tu reporte diario.
+            <strong>¡Listo para reportar!</strong>
+            {selectedOperation
+              ? ` No has enviado reporte para ${selectedOperation} hoy.`
+              : ' Aún no has enviado tu reporte diario.'}
             <br />
             <small style={{ opacity: 0.8 }}>
               Fecha: {new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })}
@@ -144,19 +154,31 @@ const TodayReportsStatus = ({ onReportsChange }) => {
 
   return (
     <div style={{
-      backgroundColor: '#fffbeb',
-      border: '1px solid #fed7aa',
+      backgroundColor: selectedOperation ? '#fffbeb' : '#e0f2fe',
+      border: selectedOperation ? '1px solid #fed7aa' : '1px solid #7dd3fc',
       borderRadius: '8px',
       padding: '1rem',
       marginBottom: '1.5rem',
-      color: 'var(--warning-yellow)'
+      color: selectedOperation ? 'var(--warning-yellow)' : '#0369a1'
     }}>
       <div style={{ marginBottom: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>📝</span>
-          <strong>
-            Ya has enviado {reportsInfo.reportes_enviados} reporte(s) hoy
-          </strong>
+          <span style={{ fontSize: '1.25rem' }}>{selectedOperation ? '📝' : 'ℹ️'}</span>
+          <div>
+            <strong>
+              {selectedOperation
+                ? `Ya reportaste para ${selectedOperation} hoy`
+                : `Has enviado ${reportsInfo.reportes_enviados} reporte(s) hoy`}
+            </strong>
+            {reportsInfo.operaciones_reportadas && reportsInfo.operaciones_reportadas.length > 0 && (
+              <div style={{ fontSize: '0.875rem', marginTop: '0.25rem', opacity: 0.9 }}>
+                Operaciones reportadas: {reportsInfo.operaciones_reportadas.join(', ')}
+                {!selectedOperation && <div style={{ marginTop: '0.5rem', fontWeight: '600' }}>
+                  👇 Selecciona otra operación abajo para enviar un nuevo reporte
+                </div>}
+              </div>
+            )}
+          </div>
         </div>
         <small style={{ opacity: 0.8 }}>
           Fecha: {new Date().toLocaleDateString('es-CO', { timeZone: 'America/Bogota' })}
@@ -168,7 +190,7 @@ const TodayReportsStatus = ({ onReportsChange }) => {
           <div style={{ marginBottom: '0.5rem', fontWeight: '500' }}>
             📊 Reportes enviados hoy:
           </div>
-          <div style={{ 
+          <div style={{
             backgroundColor: 'rgba(255, 255, 255, 0.7)',
             borderRadius: '4px',
             padding: '0.5rem',
@@ -176,23 +198,28 @@ const TodayReportsStatus = ({ onReportsChange }) => {
             overflowY: 'auto'
           }}>
             {reportsInfo.reportes.map((reporte, index) => (
-              <div key={reporte.id} style={{ 
-                display: 'flex', 
+              <div key={reporte.id} style={{
+                display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 paddingBottom: index < reportsInfo.reportes.length - 1 ? '0.25rem' : '0',
                 marginBottom: index < reportsInfo.reportes.length - 1 ? '0.25rem' : '0',
                 borderBottom: index < reportsInfo.reportes.length - 1 ? '1px solid rgba(0,0,0,0.1)' : 'none'
               }}>
-                <span style={{ flex: 1 }}>#{index + 1} - {reporte.id}</span>
-                <span style={{ 
-                  fontSize: '0.75rem', 
-                  opacity: 0.8, 
-                  marginRight: '0.5rem' 
+                <div style={{ flex: 1 }}>
+                  <strong>{reporte.operacion}</strong>
+                  <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>
+                    {reporte.id.substring(0, 8)}...
+                  </div>
+                </div>
+                <span style={{
+                  fontSize: '0.75rem',
+                  opacity: 0.8,
+                  marginRight: '0.5rem'
                 }}>
-                  {new Date(reporte.hora).toLocaleTimeString('es-CO', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  {new Date(reporte.hora).toLocaleTimeString('es-CO', {
+                    hour: '2-digit',
+                    minute: '2-digit'
                   })}
                 </span>
                 <button

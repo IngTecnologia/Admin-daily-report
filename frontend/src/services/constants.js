@@ -16,16 +16,34 @@ export const ADMINISTRATORS = [
 ]
 
 export const CLIENT_OPERATIONS = [
+  'Administración Barranca',
   'Administrativo Barranca',
+  'Administración Bogotá',
   'Administrativo Bogota',
+  'Cedco',
   'CEDCO',
+  'Consorcio P&C',
+  'Confiabilidad VRC',
+  'General',
+  'Gerencia Administrativa',
+  'Nuevas Tecnologías',
+  'Parex Quimico',
   'PAREX',
-  'VRC',
+  'Sierracol Caño limón',
+  'Sierracol Caricare',
+  'Sierracol CEDCO',
+  'Sierracol CLM',
+  'Sierracol CRC',
+  'Sierracol Telecomunicaciones',
   'SIERRACOL',
+  'TI',
   'VPI ADMON',
+  'VPI CUPIAGUA',
   'VPI CUSIANA',
   'VPI FLORENA',
-  'VPI CUPIAGUA'
+  'VPI Mayor',
+  'VPI transversales',
+  'VRC'
 ]
 
 export const INCIDENT_TYPES = [
@@ -39,6 +57,7 @@ export const INCIDENT_TYPES = [
   'Vacaciones',
   'Compensatorios',
   'Dia de la Familia',
+  'Permiso Remunerado',
   'Suspensiones de contrato',
   'Permisos no remunerados'
 ]
@@ -56,7 +75,7 @@ export const VALIDATION_RULES = {
     required: true,
     type: 'number',
     min: 1,
-    max: 1000,
+    max: 10000,
     integer: false,
     decimal: true,
     maxDecimals: 1

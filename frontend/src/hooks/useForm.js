@@ -64,17 +64,21 @@ export const useForm = (initialState = {}) => {
 
     // Validaci�n de fecha
     if (rule.type === 'date' && value) {
-      const selectedDate = new Date(value)
+      // Parsear fecha como componentes locales (evitar problemas de timezone)
+      const [year, month, day] = value.split('-').map(Number)
+      const selectedDate = new Date(year, month - 1, day)
+
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      
+
+      // Comparar solo la fecha (sin hora)
       if (selectedDate < today) {
         return 'La fecha no puede ser anterior a hoy'
       }
-      
+
       const maxDate = new Date()
       maxDate.setFullYear(maxDate.getFullYear() + 1)
-      
+
       if (selectedDate > maxDate) {
         return 'La fecha no puede ser m�s de un a�o en el futuro'
       }
